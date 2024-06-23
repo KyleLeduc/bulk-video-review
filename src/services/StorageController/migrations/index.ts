@@ -1,0 +1,1 @@
+export { handleMigrations } from './migrations'
