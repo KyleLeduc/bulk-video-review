@@ -29,15 +29,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M98,-83C98,-83 196,-83 196,-83 202,-83 208,-89 208,-95 208,-95 208,-126 208,-126 208,-132 202,-138 196,-138 196,-138 98,-138 98,-138 92,-138 86,-132 86,-126 86,-126 86,-95 86,-95 86,-89 92,-83 98,-83"/>
 <text text-anchor="middle" x="147" y="-125.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_src/services</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M457.25,-126C457.25,-126 503.25,-126 503.25,-126 509.25,-126 515.25,-132 515.25,-138 515.25,-138 515.25,-169 515.25,-169 515.25,-175 509.25,-181 503.25,-181 503.25,-181 457.25,-181 457.25,-181 451.25,-181 445.25,-175 445.25,-169 445.25,-169 445.25,-138 445.25,-138 445.25,-132 451.25,-126 457.25,-126"/>
-<text text-anchor="middle" x="480.25" y="-168.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_src/stores</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M337.25,-173C337.25,-173 413.5,-173 413.5,-173 419.5,-173 425.5,-179 425.5,-185 425.5,-185 425.5,-247 425.5,-247 425.5,-253 419.5,-259 413.5,-259 413.5,-259 337.25,-259 337.25,-259 331.25,-259 325.25,-253 325.25,-247 325.25,-247 325.25,-185 325.25,-185 325.25,-179 331.25,-173 337.25,-173"/>
 <text text-anchor="middle" x="375.38" y="-246.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_src/services</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M457.25,-126C457.25,-126 503.25,-126 503.25,-126 509.25,-126 515.25,-132 515.25,-138 515.25,-138 515.25,-169 515.25,-169 515.25,-175 509.25,-181 503.25,-181 503.25,-181 457.25,-181 457.25,-181 451.25,-181 445.25,-175 445.25,-169 445.25,-169 445.25,-138 445.25,-138 445.25,-132 451.25,-126 457.25,-126"/>
+<text text-anchor="middle" x="480.25" y="-168.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
 <!-- src/App.vue -->
 <g id="node1" class="node">

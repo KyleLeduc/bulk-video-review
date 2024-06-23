@@ -64,3 +64,11 @@ npm run test:e2e
 ```sh
 npm run lint
 ```
+
+## Deploying
+
+Deploys to Github Pages
+
+```sh
+npm run deploy
+```
