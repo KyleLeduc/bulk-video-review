@@ -12,13 +12,13 @@ export const useVideoStore = defineStore('videos', {
     return {
       _videos: new Map<string, ParsedVideo>(),
 
-      _minDuration: 11,
+      _minDuration: 0,
     }
   },
   getters: {
     sortByPinned: ({ _videos }): ParsedVideo[] => {
       return [..._videos.values()].sort(
-        (a, b) => Number(b.pinned) - Number(a.pinned)
+        (a, b) => Number(b.pinned) - Number(a.pinned),
       )
     },
 

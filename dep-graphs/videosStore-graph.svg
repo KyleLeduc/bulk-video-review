@@ -24,15 +24,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M128.25,-24C128.25,-24 212.75,-24 212.75,-24 218.75,-24 224.75,-30 224.75,-36 224.75,-36 224.75,-67 224.75,-67 224.75,-73 218.75,-79 212.75,-79 212.75,-79 128.25,-79 128.25,-79 122.25,-79 116.25,-73 116.25,-67 116.25,-67 116.25,-36 116.25,-36 116.25,-30 122.25,-24 128.25,-24"/>
 <text text-anchor="middle" x="170.5" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">FolderSelector</text>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M252.75,-51C252.75,-51 319.25,-51 319.25,-51 325.25,-51 331.25,-57 331.25,-63 331.25,-63 331.25,-94 331.25,-94 331.25,-100 325.25,-106 319.25,-106 319.25,-106 252.75,-106 252.75,-106 246.75,-106 240.75,-100 240.75,-94 240.75,-94 240.75,-63 240.75,-63 240.75,-57 246.75,-51 252.75,-51"/>
-<text text-anchor="middle" x="286" y="-93.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust4" class="cluster">
 <title>cluster_src/services</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M351.25,-37C351.25,-37 397.25,-37 397.25,-37 403.25,-37 409.25,-43 409.25,-49 409.25,-49 409.25,-80 409.25,-80 409.25,-86 403.25,-92 397.25,-92 397.25,-92 351.25,-92 351.25,-92 345.25,-92 339.25,-86 339.25,-80 339.25,-80 339.25,-49 339.25,-49 339.25,-43 345.25,-37 351.25,-37"/>
 <text text-anchor="middle" x="374.25" y="-79.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M252.75,-51C252.75,-51 319.25,-51 319.25,-51 325.25,-51 331.25,-57 331.25,-63 331.25,-63 331.25,-94 331.25,-94 331.25,-100 325.25,-106 319.25,-106 319.25,-106 252.75,-106 252.75,-106 246.75,-106 240.75,-100 240.75,-94 240.75,-94 240.75,-63 240.75,-63 240.75,-57 246.75,-51 252.75,-51"/>
+<text text-anchor="middle" x="286" y="-93.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <!-- src/components/FolderSelector/FolderSelector.vue -->
 <g id="node1" class="node">
