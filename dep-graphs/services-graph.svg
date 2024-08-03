@@ -39,6 +39,11 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M539,-60C539,-60 824,-60 824,-60 830,-60 836,-66 836,-72 836,-72 836,-201 836,-201 836,-207 830,-213 824,-213 824,-213 539,-213 539,-213 533,-213 527,-207 527,-201 527,-201 527,-72 527,-72 527,-66 533,-60 539,-60"/>
 <text text-anchor="middle" x="681.5" y="-200.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">migrations</text>
 </g>
+<g id="clust10" class="cluster">
+<title>cluster_src/services/StorageController/migrations/v2</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M692,-131C692,-131 738,-131 738,-131 744,-131 750,-137 750,-143 750,-143 750,-174 750,-174 750,-180 744,-186 738,-186 738,-186 692,-186 692,-186 686,-186 680,-180 680,-174 680,-174 680,-143 680,-143 680,-137 686,-131 692,-131"/>
+<text text-anchor="middle" x="715" y="-173.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">v2</text>
+</g>
 <g id="clust8" class="cluster">
 <title>cluster_src/services/StorageController/migrations/utils</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M770,-99C770,-99 816,-99 816,-99 822,-99 828,-105 828,-111 828,-111 828,-142 828,-142 828,-148 822,-154 816,-154 816,-154 770,-154 770,-154 764,-154 758,-148 758,-142 758,-142 758,-111 758,-111 758,-105 764,-99 770,-99"/>
@@ -48,11 +53,6 @@
 <title>cluster_src/services/StorageController/migrations/v1</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M692,-68C692,-68 738,-68 738,-68 744,-68 750,-74 750,-80 750,-80 750,-111 750,-111 750,-117 744,-123 738,-123 738,-123 692,-123 692,-123 686,-123 680,-117 680,-111 680,-111 680,-80 680,-80 680,-74 686,-68 692,-68"/>
 <text text-anchor="middle" x="715" y="-110.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">v1</text>
-</g>
-<g id="clust10" class="cluster">
-<title>cluster_src/services/StorageController/migrations/v2</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M692,-131C692,-131 738,-131 738,-131 744,-131 750,-137 750,-143 750,-143 750,-174 750,-174 750,-180 744,-186 738,-186 738,-186 692,-186 692,-186 686,-186 680,-180 680,-174 680,-174 680,-143 680,-143 680,-137 686,-131 692,-131"/>
-<text text-anchor="middle" x="715" y="-173.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">v2</text>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_src/services/Filters</title>
