@@ -10,6 +10,8 @@
 
 ![](./dep-graphs/videosStore-graph.svg)
 
+![](./dep-graphs/services-graph.svg)
+
 ## Project Setup
 
 ```sh

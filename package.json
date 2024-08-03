@@ -16,6 +16,7 @@
     "dep:components": "depcruise src --include-only \"^src\" --focus components --output-type dot | dot -T svg > ./dep-graphs/components-graph.svg",
     "dep:stores": "depcruise src --include-only \"^src\" --focus stores --output-type dot | dot -T svg > ./dep-graphs/stores-graph.svg",
     "dep:videosStore": "depcruise src --include-only \"^src\" --focus videosStore --output-type dot | dot -T svg > ./dep-graphs/videosStore-graph.svg",
+    "dep:services": "depcruise src --include-only \"^src\" --focus services --output-type dot | dot -T svg > ./dep-graphs/services-graph.svg",
     "dep-graph": "run-p dep:*",
     "prepare": "husky",
     "deploy:gh": "gh-pages -d dist",
@@ -54,3 +55,4 @@
     "vue-tsc": "^2.0.22"
   }
 }
+
