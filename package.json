@@ -13,6 +13,7 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "dep:src": "depcruise src --include-only \"^src\" --output-type dot | dot -T svg > ./dep-graphs/src-graph.svg",
+    "dep:archi": "depcruise src --include-only \"^src\" --output-type archi | dot -T svg > ./dep-graphs/archi-graph.svg",
     "dep:script": "ts-node ./scripts/generateDepGraphs.ts",
     "dep-graph": "run-p dep:*",
     "prepare": "husky",

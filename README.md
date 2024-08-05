@@ -2,6 +2,8 @@
 
 ## Dependency Graphs
 
+![](./dep-graphs/archi-graph.svg)
+
 ![](./dep-graphs/components-graph.svg)
 
 ![](./dep-graphs/src-graph.svg)
