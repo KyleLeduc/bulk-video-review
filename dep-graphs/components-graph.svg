@@ -42,7 +42,7 @@
 <!-- src/App.vue -->
 <g id="node1" class="node">
 <title>src/App.vue</title>
-<g id="a_node1"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/App.vue" xlink:title="App.vue">
+<g id="a_node1"><a xlink:href="src/App.vue" xlink:title="App.vue">
 <path fill="#41f083" stroke="black" d="M63.58,-74.62C63.58,-74.62 22.42,-74.62 22.42,-74.62 19.21,-74.62 16,-71.42 16,-68.21 16,-68.21 16,-61.79 16,-61.79 16,-58.58 19.21,-55.38 22.42,-55.38 22.42,-55.38 63.58,-55.38 63.58,-55.38 66.79,-55.38 70,-58.58 70,-61.79 70,-61.79 70,-68.21 70,-68.21 70,-71.42 66.79,-74.62 63.58,-74.62"/>
 <text text-anchor="start" x="26.88" y="-62.08" font-family="Helvetica,sans-Serif" font-size="9.00">App.vue</text>
 </a>
@@ -51,7 +51,7 @@
 <!-- src/components/NavBar.vue -->
 <g id="node2" class="node">
 <title>src/components/NavBar.vue</title>
-<g id="a_node2"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/NavBar.vue" xlink:title="NavBar.vue">
+<g id="a_node2"><a xlink:href="src/components/NavBar.vue" xlink:title="NavBar.vue">
 <path fill="#41f083" stroke="black" d="M171.83,-74.62C171.83,-74.62 122.17,-74.62 122.17,-74.62 118.96,-74.62 115.75,-71.42 115.75,-68.21 115.75,-68.21 115.75,-61.79 115.75,-61.79 115.75,-58.58 118.96,-55.38 122.17,-55.38 122.17,-55.38 171.83,-55.38 171.83,-55.38 175.04,-55.38 178.25,-58.58 178.25,-61.79 178.25,-61.79 178.25,-68.21 178.25,-68.21 178.25,-71.42 175.04,-74.62 171.83,-74.62"/>
 <text text-anchor="start" x="123.75" y="-62.08" font-family="Helvetica,sans-Serif" font-size="9.00">NavBar.vue</text>
 </a>
@@ -66,7 +66,7 @@
 <!-- src/components/utils/DiagnosticsPanel.vue -->
 <g id="node3" class="node">
 <title>src/components/utils/DiagnosticsPanel.vue</title>
-<g id="a_node3"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/utils/DiagnosticsPanel.vue" xlink:title="DiagnosticsPanel.vue">
+<g id="a_node3"><a xlink:href="src/components/utils/DiagnosticsPanel.vue" xlink:title="DiagnosticsPanel.vue">
 <path fill="#41f083" stroke="black" d="M193.58,-110.62C193.58,-110.62 100.42,-110.62 100.42,-110.62 97.21,-110.62 94,-107.42 94,-104.21 94,-104.21 94,-97.79 94,-97.79 94,-94.58 97.21,-91.38 100.42,-91.38 100.42,-91.38 193.58,-91.38 193.58,-91.38 196.79,-91.38 200,-94.58 200,-97.79 200,-97.79 200,-104.21 200,-104.21 200,-107.42 196.79,-110.62 193.58,-110.62"/>
 <text text-anchor="start" x="102" y="-98.08" font-family="Helvetica,sans-Serif" font-size="9.00">DiagnosticsPanel.vue</text>
 </a>
@@ -81,7 +81,7 @@
 <!-- src/components/VideoGallery.vue -->
 <g id="node4" class="node">
 <title>src/components/VideoGallery.vue</title>
-<g id="a_node4"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/VideoGallery.vue" xlink:title="VideoGallery.vue">
+<g id="a_node4"><a xlink:href="src/components/VideoGallery.vue" xlink:title="VideoGallery.vue">
 <path fill="#41f083" stroke="black" d="M182.71,-43.62C182.71,-43.62 111.29,-43.62 111.29,-43.62 108.08,-43.62 104.88,-40.42 104.88,-37.21 104.88,-37.21 104.88,-30.79 104.88,-30.79 104.88,-27.58 108.08,-24.38 111.29,-24.38 111.29,-24.38 182.71,-24.38 182.71,-24.38 185.92,-24.38 189.12,-27.58 189.12,-30.79 189.12,-30.79 189.12,-37.21 189.12,-37.21 189.12,-40.42 185.92,-43.62 182.71,-43.62"/>
 <text text-anchor="start" x="112.88" y="-31.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoGallery.vue</text>
 </a>
@@ -96,7 +96,7 @@
 <!-- src/components/FolderSelector/FolderSelector.vue -->
 <g id="node6" class="node">
 <title>src/components/FolderSelector/FolderSelector.vue</title>
-<g id="a_node6"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/FolderSelector/FolderSelector.vue" xlink:title="FolderSelector.vue">
+<g id="a_node6"><a xlink:href="src/components/FolderSelector/FolderSelector.vue" xlink:title="FolderSelector.vue">
 <path fill="#41f083" stroke="black" d="M310.08,-75.62C310.08,-75.62 230.42,-75.62 230.42,-75.62 227.21,-75.62 224,-72.42 224,-69.21 224,-69.21 224,-62.79 224,-62.79 224,-59.58 227.21,-56.38 230.42,-56.38 230.42,-56.38 310.08,-56.38 310.08,-56.38 313.29,-56.38 316.5,-59.58 316.5,-62.79 316.5,-62.79 316.5,-69.21 316.5,-69.21 316.5,-72.42 313.29,-75.62 310.08,-75.62"/>
 <text text-anchor="start" x="232" y="-63.08" font-family="Helvetica,sans-Serif" font-size="9.00">FolderSelector.vue</text>
 </a>
@@ -111,7 +111,7 @@
 <!-- src/stores/videosStore.ts -->
 <g id="node8" class="node">
 <title>src/stores/videosStore.ts</title>
-<g id="a_node8"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/stores/videosStore.ts" xlink:title="videosStore.ts">
+<g id="a_node8"><a xlink:href="src/stores/videosStore.ts" xlink:title="videosStore.ts">
 <path fill="#ddfeff" stroke="black" d="M406.21,-200.62C406.21,-200.62 344.54,-200.62 344.54,-200.62 341.33,-200.62 338.12,-197.42 338.12,-194.21 338.12,-194.21 338.12,-187.79 338.12,-187.79 338.12,-184.58 341.33,-181.38 344.54,-181.38 344.54,-181.38 406.21,-181.38 406.21,-181.38 409.42,-181.38 412.62,-184.58 412.62,-187.79 412.62,-187.79 412.62,-194.21 412.62,-194.21 412.62,-197.42 409.42,-200.62 406.21,-200.62"/>
 <text text-anchor="start" x="346.12" y="-188.07" font-family="Helvetica,sans-Serif" font-size="9.00">videosStore.ts</text>
 </a>
@@ -126,7 +126,7 @@
 <!-- src/stores/appStateStore.ts -->
 <g id="node9" class="node">
 <title>src/stores/appStateStore.ts</title>
-<g id="a_node9"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
+<g id="a_node9"><a xlink:href="src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
 <path fill="#ddfeff" stroke="black" d="M411.08,-231.62C411.08,-231.62 339.67,-231.62 339.67,-231.62 336.46,-231.62 333.25,-228.42 333.25,-225.21 333.25,-225.21 333.25,-218.79 333.25,-218.79 333.25,-215.58 336.46,-212.38 339.67,-212.38 339.67,-212.38 411.08,-212.38 411.08,-212.38 414.29,-212.38 417.5,-215.58 417.5,-218.79 417.5,-218.79 417.5,-225.21 417.5,-225.21 417.5,-228.42 414.29,-231.62 411.08,-231.62"/>
 <text text-anchor="start" x="341.25" y="-219.07" font-family="Helvetica,sans-Serif" font-size="9.00">appStateStore.ts</text>
 </a>
@@ -153,7 +153,7 @@
 <!-- src/components/VideoCard.vue -->
 <g id="node10" class="node">
 <title>src/components/VideoCard.vue</title>
-<g id="a_node10"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/VideoCard.vue" xlink:title="VideoCard.vue">
+<g id="a_node10"><a xlink:href="src/components/VideoCard.vue" xlink:title="VideoCard.vue">
 <path fill="#41f083" stroke="black" d="M301.83,-130.62C301.83,-130.62 238.67,-130.62 238.67,-130.62 235.46,-130.62 232.25,-127.42 232.25,-124.21 232.25,-124.21 232.25,-117.79 232.25,-117.79 232.25,-114.58 235.46,-111.38 238.67,-111.38 238.67,-111.38 301.83,-111.38 301.83,-111.38 305.04,-111.38 308.25,-114.58 308.25,-117.79 308.25,-117.79 308.25,-124.21 308.25,-124.21 308.25,-127.42 305.04,-130.62 301.83,-130.62"/>
 <text text-anchor="start" x="240.25" y="-118.08" font-family="Helvetica,sans-Serif" font-size="9.00">VideoCard.vue</text>
 </a>
@@ -168,7 +168,7 @@
 <!-- src/components/FolderSelector/FileVideoParser.ts -->
 <g id="node5" class="node">
 <title>src/components/FolderSelector/FileVideoParser.ts</title>
-<g id="a_node5"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/FolderSelector/FileVideoParser.ts" xlink:title="FileVideoParser.ts">
+<g id="a_node5"><a xlink:href="src/components/FolderSelector/FileVideoParser.ts" xlink:title="FileVideoParser.ts">
 <path fill="#ddfeff" stroke="black" d="M414.83,-75.62C414.83,-75.62 335.92,-75.62 335.92,-75.62 332.71,-75.62 329.5,-72.42 329.5,-69.21 329.5,-69.21 329.5,-62.79 329.5,-62.79 329.5,-59.58 332.71,-56.38 335.92,-56.38 335.92,-56.38 414.83,-56.38 414.83,-56.38 418.04,-56.38 421.25,-59.58 421.25,-62.79 421.25,-62.79 421.25,-69.21 421.25,-69.21 421.25,-72.42 418.04,-75.62 414.83,-75.62"/>
 <text text-anchor="start" x="337.5" y="-63.08" font-family="Helvetica,sans-Serif" font-size="9.00">FileVideoParser.ts</text>
 </a>
@@ -183,7 +183,7 @@
 <!-- src/services/index.ts -->
 <g id="node7" class="node">
 <title>src/services/index.ts</title>
-<g id="a_node7"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/services/index.ts" xlink:title="index.ts">
+<g id="a_node7"><a xlink:href="src/services/index.ts" xlink:title="index.ts">
 <path fill="#ddfeff" stroke="black" d="M500.83,-153.62C500.83,-153.62 459.67,-153.62 459.67,-153.62 456.46,-153.62 453.25,-150.42 453.25,-147.21 453.25,-147.21 453.25,-140.79 453.25,-140.79 453.25,-137.58 456.46,-134.38 459.67,-134.38 459.67,-134.38 500.83,-134.38 500.83,-134.38 504.04,-134.38 507.25,-137.58 507.25,-140.79 507.25,-140.79 507.25,-147.21 507.25,-147.21 507.25,-150.42 504.04,-153.62 500.83,-153.62"/>
 <text text-anchor="start" x="464.5" y="-141.07" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
 </a>
@@ -216,7 +216,7 @@
 <!-- src/components/VideoEmbed.vue -->
 <g id="node11" class="node">
 <title>src/components/VideoEmbed.vue</title>
-<g id="a_node11"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/VideoEmbed.vue" xlink:title="VideoEmbed.vue">
+<g id="a_node11"><a xlink:href="src/components/VideoEmbed.vue" xlink:title="VideoEmbed.vue">
 <path fill="#41f083" stroke="black" d="M411.83,-130.62C411.83,-130.62 338.92,-130.62 338.92,-130.62 335.71,-130.62 332.5,-127.42 332.5,-124.21 332.5,-124.21 332.5,-117.79 332.5,-117.79 332.5,-114.58 335.71,-111.38 338.92,-111.38 338.92,-111.38 411.83,-111.38 411.83,-111.38 415.04,-111.38 418.25,-114.58 418.25,-117.79 418.25,-117.79 418.25,-124.21 418.25,-124.21 418.25,-127.42 415.04,-130.62 411.83,-130.62"/>
 <text text-anchor="start" x="340.5" y="-118.08" font-family="Helvetica,sans-Serif" font-size="9.00">VideoEmbed.vue</text>
 </a>

@@ -42,7 +42,7 @@
 <!-- src/components/FolderSelector/FolderSelector.vue -->
 <g id="node1" class="node">
 <title>src/components/FolderSelector/FolderSelector.vue</title>
-<g id="a_node1"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/FolderSelector/FolderSelector.vue" xlink:title="FolderSelector.vue">
+<g id="a_node1"><a xlink:href="src/components/FolderSelector/FolderSelector.vue" xlink:title="FolderSelector.vue">
 <path fill="#41f083" stroke="black" d="M248.08,-51.62C248.08,-51.62 168.42,-51.62 168.42,-51.62 165.21,-51.62 162,-48.42 162,-45.21 162,-45.21 162,-38.79 162,-38.79 162,-35.58 165.21,-32.38 168.42,-32.38 168.42,-32.38 248.08,-32.38 248.08,-32.38 251.29,-32.38 254.5,-35.58 254.5,-38.79 254.5,-38.79 254.5,-45.21 254.5,-45.21 254.5,-48.42 251.29,-51.62 248.08,-51.62"/>
 <text text-anchor="start" x="170" y="-39.08" font-family="Helvetica,sans-Serif" font-size="9.00">FolderSelector.vue</text>
 </a>
@@ -51,7 +51,7 @@
 <!-- src/services/index.ts -->
 <g id="node2" class="node">
 <title>src/services/index.ts</title>
-<g id="a_node2"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/services/index.ts" xlink:title="index.ts">
+<g id="a_node2"><a xlink:href="src/services/index.ts" xlink:title="index.ts">
 <path fill="#ddfeff" stroke="black" d="M442.33,-66.62C442.33,-66.62 401.17,-66.62 401.17,-66.62 397.96,-66.62 394.75,-63.42 394.75,-60.21 394.75,-60.21 394.75,-53.79 394.75,-53.79 394.75,-50.58 397.96,-47.38 401.17,-47.38 401.17,-47.38 442.33,-47.38 442.33,-47.38 445.54,-47.38 448.75,-50.58 448.75,-53.79 448.75,-53.79 448.75,-60.21 448.75,-60.21 448.75,-63.42 445.54,-66.62 442.33,-66.62"/>
 <text text-anchor="start" x="406" y="-54.08" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
 </a>
@@ -66,7 +66,7 @@
 <!-- src/stores/videosStore.ts -->
 <g id="node3" class="node">
 <title>src/stores/videosStore.ts</title>
-<g id="a_node3"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/stores/videosStore.ts" xlink:title="videosStore.ts">
+<g id="a_node3"><a xlink:href="src/stores/videosStore.ts" xlink:title="videosStore.ts">
 <path fill="#ddfeff" stroke="black" d="M359.46,-88.62C359.46,-88.62 297.79,-88.62 297.79,-88.62 294.58,-88.62 291.38,-85.42 291.38,-82.21 291.38,-82.21 291.38,-75.79 291.38,-75.79 291.38,-72.58 294.58,-69.38 297.79,-69.38 297.79,-69.38 359.46,-69.38 359.46,-69.38 362.67,-69.38 365.88,-72.58 365.88,-75.79 365.88,-75.79 365.88,-82.21 365.88,-82.21 365.88,-85.42 362.67,-88.62 359.46,-88.62"/>
 <text text-anchor="start" x="299.38" y="-76.08" font-family="Helvetica,sans-Serif" font-size="9.00">videosStore.ts</text>
 </a>
@@ -87,7 +87,7 @@
 <!-- src/components/NavBar.vue -->
 <g id="node4" class="node">
 <title>src/components/NavBar.vue</title>
-<g id="a_node4"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/NavBar.vue" xlink:title="NavBar.vue">
+<g id="a_node4"><a xlink:href="src/components/NavBar.vue" xlink:title="NavBar.vue">
 <path fill="#41f083" stroke="black" d="M109.83,-43.62C109.83,-43.62 60.17,-43.62 60.17,-43.62 56.96,-43.62 53.75,-40.42 53.75,-37.21 53.75,-37.21 53.75,-30.79 53.75,-30.79 53.75,-27.58 56.96,-24.38 60.17,-24.38 60.17,-24.38 109.83,-24.38 109.83,-24.38 113.04,-24.38 116.25,-27.58 116.25,-30.79 116.25,-30.79 116.25,-37.21 116.25,-37.21 116.25,-40.42 113.04,-43.62 109.83,-43.62"/>
 <text text-anchor="start" x="61.75" y="-31.07" font-family="Helvetica,sans-Serif" font-size="9.00">NavBar.vue</text>
 </a>
@@ -108,7 +108,7 @@
 <!-- src/stores/appStateStore.ts -->
 <g id="node5" class="node">
 <title>src/stores/appStateStore.ts</title>
-<g id="a_node5"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
+<g id="a_node5"><a xlink:href="src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
 <path fill="#ddfeff" stroke="black" d="M364.33,-119.62C364.33,-119.62 292.92,-119.62 292.92,-119.62 289.71,-119.62 286.5,-116.42 286.5,-113.21 286.5,-113.21 286.5,-106.79 286.5,-106.79 286.5,-103.58 289.71,-100.38 292.92,-100.38 292.92,-100.38 364.33,-100.38 364.33,-100.38 367.54,-100.38 370.75,-103.58 370.75,-106.79 370.75,-106.79 370.75,-113.21 370.75,-113.21 370.75,-116.42 367.54,-119.62 364.33,-119.62"/>
 <text text-anchor="start" x="294.5" y="-107.08" font-family="Helvetica,sans-Serif" font-size="9.00">appStateStore.ts</text>
 </a>
@@ -123,7 +123,7 @@
 <!-- src/components/VideoGallery.vue -->
 <g id="node6" class="node">
 <title>src/components/VideoGallery.vue</title>
-<g id="a_node6"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/VideoGallery.vue" xlink:title="VideoGallery.vue">
+<g id="a_node6"><a xlink:href="src/components/VideoGallery.vue" xlink:title="VideoGallery.vue">
 <path fill="#41f083" stroke="black" d="M120.71,-74.62C120.71,-74.62 49.29,-74.62 49.29,-74.62 46.08,-74.62 42.88,-71.42 42.88,-68.21 42.88,-68.21 42.88,-61.79 42.88,-61.79 42.88,-58.58 46.08,-55.38 49.29,-55.38 49.29,-55.38 120.71,-55.38 120.71,-55.38 123.92,-55.38 127.12,-58.58 127.12,-61.79 127.12,-61.79 127.12,-68.21 127.12,-68.21 127.12,-71.42 123.92,-74.62 120.71,-74.62"/>
 <text text-anchor="start" x="50.88" y="-62.08" font-family="Helvetica,sans-Serif" font-size="9.00">VideoGallery.vue</text>
 </a>
@@ -138,7 +138,7 @@
 <!-- src/components/utils/DiagnosticsPanel.vue -->
 <g id="node7" class="node">
 <title>src/components/utils/DiagnosticsPanel.vue</title>
-<g id="a_node7"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/utils/DiagnosticsPanel.vue" xlink:title="DiagnosticsPanel.vue">
+<g id="a_node7"><a xlink:href="src/components/utils/DiagnosticsPanel.vue" xlink:title="DiagnosticsPanel.vue">
 <path fill="#41f083" stroke="black" d="M131.58,-110.62C131.58,-110.62 38.42,-110.62 38.42,-110.62 35.21,-110.62 32,-107.42 32,-104.21 32,-104.21 32,-97.79 32,-97.79 32,-94.58 35.21,-91.38 38.42,-91.38 38.42,-91.38 131.58,-91.38 131.58,-91.38 134.79,-91.38 138,-94.58 138,-97.79 138,-97.79 138,-104.21 138,-104.21 138,-107.42 134.79,-110.62 131.58,-110.62"/>
 <text text-anchor="start" x="40" y="-98.08" font-family="Helvetica,sans-Serif" font-size="9.00">DiagnosticsPanel.vue</text>
 </a>

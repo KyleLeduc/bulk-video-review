@@ -17,7 +17,7 @@
 <!-- src/App.vue -->
 <g id="node1" class="node">
 <title>src/App.vue</title>
-<g id="a_node1"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/App.vue" xlink:title="App.vue">
+<g id="a_node1"><a xlink:href="src/App.vue" xlink:title="App.vue">
 <path fill="#41f083" stroke="black" d="M130.58,-35.62C130.58,-35.62 89.42,-35.62 89.42,-35.62 86.21,-35.62 83,-32.42 83,-29.21 83,-29.21 83,-22.79 83,-22.79 83,-19.58 86.21,-16.38 89.42,-16.38 89.42,-16.38 130.58,-16.38 130.58,-16.38 133.79,-16.38 137,-19.58 137,-22.79 137,-22.79 137,-29.21 137,-29.21 137,-32.42 133.79,-35.62 130.58,-35.62"/>
 <text text-anchor="start" x="93.88" y="-23.07" font-family="Helvetica,sans-Serif" font-size="9.00">App.vue</text>
 </a>
@@ -26,7 +26,7 @@
 <!-- src/components -->
 <g id="node2" class="node">
 <title>src/components</title>
-<g id="a_node2"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components" xlink:title="components">
+<g id="a_node2"><a xlink:href="src/components" xlink:title="components">
 <polygon fill="#ffffcc" stroke="black" points="217.75,-35.62 152.14,-35.62 150,-33.49 150,-16.38 215.61,-16.38 217.75,-18.51 217.75,-35.62"/>
 <polyline fill="none" stroke="black" points="215.61,-33.49 150,-33.49"/>
 <polyline fill="none" stroke="black" points="215.61,-33.49 215.61,-16.38"/>
@@ -44,7 +44,7 @@
 <!-- src/services -->
 <g id="node3" class="node">
 <title>src/services</title>
-<g id="a_node3"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/services" xlink:title="services">
+<g id="a_node3"><a xlink:href="src/services" xlink:title="services">
 <polygon fill="#ffffcc" stroke="black" points="351.75,-49.62 299.89,-49.62 297.75,-47.49 297.75,-30.38 349.61,-30.38 351.75,-32.51 351.75,-49.62"/>
 <polyline fill="none" stroke="black" points="349.61,-47.49 297.75,-47.49"/>
 <polyline fill="none" stroke="black" points="349.61,-47.49 349.61,-30.38"/>
@@ -68,7 +68,7 @@
 <!-- src/stores -->
 <g id="node5" class="node">
 <title>src/stores</title>
-<g id="a_node5"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/stores" xlink:title="stores">
+<g id="a_node5"><a xlink:href="src/stores" xlink:title="stores">
 <polygon fill="#ffffcc" stroke="black" points="284.75,-49.62 232.89,-49.62 230.75,-47.49 230.75,-30.38 282.61,-30.38 284.75,-32.51 284.75,-49.62"/>
 <polyline fill="none" stroke="black" points="282.61,-47.49 230.75,-47.49"/>
 <polyline fill="none" stroke="black" points="282.61,-47.49 282.61,-30.38"/>
@@ -86,7 +86,7 @@
 <!-- src/assets -->
 <g id="node4" class="node">
 <title>src/assets</title>
-<g id="a_node4"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/assets" xlink:title="no&#45;orphans">
+<g id="a_node4"><a xlink:href="src/assets" xlink:title="no&#45;orphans">
 <polygon fill="#ffffcc" stroke="orange" points="137,-66.62 85.14,-66.62 83,-64.49 83,-47.38 134.86,-47.38 137,-49.51 137,-66.62"/>
 <polyline fill="none" stroke="orange" points="134.86,-64.49 83,-64.49"/>
 <polyline fill="none" stroke="orange" points="134.86,-64.49 134.86,-47.38"/>
@@ -104,7 +104,7 @@
 <!-- src/main.ts -->
 <g id="node6" class="node">
 <title>src/main.ts</title>
-<g id="a_node6"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/main.ts" xlink:title="main.ts">
+<g id="a_node6"><a xlink:href="src/main.ts" xlink:title="main.ts">
 <path fill="#ddfeff" stroke="black" d="M63.58,-50.62C63.58,-50.62 22.42,-50.62 22.42,-50.62 19.21,-50.62 16,-47.42 16,-44.21 16,-44.21 16,-37.79 16,-37.79 16,-34.58 19.21,-31.38 22.42,-31.38 22.42,-31.38 63.58,-31.38 63.58,-31.38 66.79,-31.38 70,-34.58 70,-37.79 70,-37.79 70,-44.21 70,-44.21 70,-47.42 66.79,-50.62 63.58,-50.62"/>
 <text text-anchor="start" x="27.62" y="-38.08" font-family="Helvetica,sans-Serif" font-size="9.00">main.ts</text>
 </a>

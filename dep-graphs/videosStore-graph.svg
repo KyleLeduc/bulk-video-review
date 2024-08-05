@@ -37,7 +37,7 @@
 <!-- src/components/FolderSelector/FolderSelector.vue -->
 <g id="node1" class="node">
 <title>src/components/FolderSelector/FolderSelector.vue</title>
-<g id="a_node1"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/FolderSelector/FolderSelector.vue" xlink:title="FolderSelector.vue">
+<g id="a_node1"><a xlink:href="src/components/FolderSelector/FolderSelector.vue" xlink:title="FolderSelector.vue">
 <path fill="#41f083" stroke="black" d="M210.33,-51.62C210.33,-51.62 130.67,-51.62 130.67,-51.62 127.46,-51.62 124.25,-48.42 124.25,-45.21 124.25,-45.21 124.25,-38.79 124.25,-38.79 124.25,-35.58 127.46,-32.38 130.67,-32.38 130.67,-32.38 210.33,-32.38 210.33,-32.38 213.54,-32.38 216.75,-35.58 216.75,-38.79 216.75,-38.79 216.75,-45.21 216.75,-45.21 216.75,-48.42 213.54,-51.62 210.33,-51.62"/>
 <text text-anchor="start" x="132.25" y="-39.08" font-family="Helvetica,sans-Serif" font-size="9.00">FolderSelector.vue</text>
 </a>
@@ -46,7 +46,7 @@
 <!-- src/services/index.ts -->
 <g id="node2" class="node">
 <title>src/services/index.ts</title>
-<g id="a_node2"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/services/index.ts" xlink:title="index.ts">
+<g id="a_node2"><a xlink:href="src/services/index.ts" xlink:title="index.ts">
 <path fill="#ddfeff" stroke="black" d="M394.83,-64.62C394.83,-64.62 353.67,-64.62 353.67,-64.62 350.46,-64.62 347.25,-61.42 347.25,-58.21 347.25,-58.21 347.25,-51.79 347.25,-51.79 347.25,-48.58 350.46,-45.38 353.67,-45.38 353.67,-45.38 394.83,-45.38 394.83,-45.38 398.04,-45.38 401.25,-48.58 401.25,-51.79 401.25,-51.79 401.25,-58.21 401.25,-58.21 401.25,-61.42 398.04,-64.62 394.83,-64.62"/>
 <text text-anchor="start" x="358.5" y="-52.08" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
 </a>
@@ -61,7 +61,7 @@
 <!-- src/stores/videosStore.ts -->
 <g id="node3" class="node">
 <title>src/stores/videosStore.ts</title>
-<g id="a_node3"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/stores/videosStore.ts" xlink:title="videosStore.ts">
+<g id="a_node3"><a xlink:href="src/stores/videosStore.ts" xlink:title="videosStore.ts">
 <path fill="#ddfeff" stroke="black" d="M316.83,-78.62C316.83,-78.62 255.17,-78.62 255.17,-78.62 251.96,-78.62 248.75,-75.42 248.75,-72.21 248.75,-72.21 248.75,-65.79 248.75,-65.79 248.75,-62.58 251.96,-59.38 255.17,-59.38 255.17,-59.38 316.83,-59.38 316.83,-59.38 320.04,-59.38 323.25,-62.58 323.25,-65.79 323.25,-65.79 323.25,-72.21 323.25,-72.21 323.25,-75.42 320.04,-78.62 316.83,-78.62"/>
 <text text-anchor="start" x="256.75" y="-66.08" font-family="Helvetica,sans-Serif" font-size="9.00">videosStore.ts</text>
 </a>
@@ -82,7 +82,7 @@
 <!-- src/components/NavBar.vue -->
 <g id="node4" class="node">
 <title>src/components/NavBar.vue</title>
-<g id="a_node4"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/NavBar.vue" xlink:title="NavBar.vue">
+<g id="a_node4"><a xlink:href="src/components/NavBar.vue" xlink:title="NavBar.vue">
 <path fill="#41f083" stroke="black" d="M90.96,-47.62C90.96,-47.62 41.29,-47.62 41.29,-47.62 38.08,-47.62 34.88,-44.42 34.88,-41.21 34.88,-41.21 34.88,-34.79 34.88,-34.79 34.88,-31.58 38.08,-28.38 41.29,-28.38 41.29,-28.38 90.96,-28.38 90.96,-28.38 94.17,-28.38 97.38,-31.58 97.38,-34.79 97.38,-34.79 97.38,-41.21 97.38,-41.21 97.38,-44.42 94.17,-47.62 90.96,-47.62"/>
 <text text-anchor="start" x="42.88" y="-35.08" font-family="Helvetica,sans-Serif" font-size="9.00">NavBar.vue</text>
 </a>
@@ -103,7 +103,7 @@
 <!-- src/components/VideoGallery.vue -->
 <g id="node5" class="node">
 <title>src/components/VideoGallery.vue</title>
-<g id="a_node5"><a xlink:href="vscode://file/E:\Coding\Projects\bulk-video-review/src/components/VideoGallery.vue" xlink:title="VideoGallery.vue">
+<g id="a_node5"><a xlink:href="src/components/VideoGallery.vue" xlink:title="VideoGallery.vue">
 <path fill="#41f083" stroke="black" d="M101.83,-78.62C101.83,-78.62 30.42,-78.62 30.42,-78.62 27.21,-78.62 24,-75.42 24,-72.21 24,-72.21 24,-65.79 24,-65.79 24,-62.58 27.21,-59.38 30.42,-59.38 30.42,-59.38 101.83,-59.38 101.83,-59.38 105.04,-59.38 108.25,-62.58 108.25,-65.79 108.25,-65.79 108.25,-72.21 108.25,-72.21 108.25,-75.42 105.04,-78.62 101.83,-78.62"/>
 <text text-anchor="start" x="32" y="-66.08" font-family="Helvetica,sans-Serif" font-size="9.00">VideoGallery.vue</text>
 </a>
