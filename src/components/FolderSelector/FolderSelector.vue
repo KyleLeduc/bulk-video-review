@@ -25,7 +25,9 @@ const input = ref<null | HTMLInputElement>(null)
 const parser = new FileVideoParser()
 
 const handleInput = async (e: Event) => {
-  const input = e.target as HTMLInputElement
+  if (!(e.target instanceof HTMLInputElement)) return
+
+  const input = e.target
   const { files } = input
   const storage = new VideoMetadataController()
 

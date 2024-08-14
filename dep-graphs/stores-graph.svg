@@ -29,15 +29,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M36,-83C36,-83 134,-83 134,-83 140,-83 146,-89 146,-95 146,-95 146,-126 146,-126 146,-132 140,-138 134,-138 134,-138 36,-138 36,-138 30,-138 24,-132 24,-126 24,-126 24,-95 24,-95 24,-89 30,-83 36,-83"/>
 <text text-anchor="middle" x="85" y="-125.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M290.5,-61C290.5,-61 366.75,-61 366.75,-61 372.75,-61 378.75,-67 378.75,-73 378.75,-73 378.75,-135 378.75,-135 378.75,-141 372.75,-147 366.75,-147 366.75,-147 290.5,-147 290.5,-147 284.5,-147 278.5,-141 278.5,-135 278.5,-135 278.5,-73 278.5,-73 278.5,-67 284.5,-61 290.5,-61"/>
-<text text-anchor="middle" x="328.62" y="-134.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust5" class="cluster">
 <title>cluster_src/services</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M398.75,-39C398.75,-39 444.75,-39 444.75,-39 450.75,-39 456.75,-45 456.75,-51 456.75,-51 456.75,-82 456.75,-82 456.75,-88 450.75,-94 444.75,-94 444.75,-94 398.75,-94 398.75,-94 392.75,-94 386.75,-88 386.75,-82 386.75,-82 386.75,-51 386.75,-51 386.75,-45 392.75,-39 398.75,-39"/>
 <text text-anchor="middle" x="421.75" y="-81.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M290.5,-61C290.5,-61 366.75,-61 366.75,-61 372.75,-61 378.75,-67 378.75,-73 378.75,-73 378.75,-135 378.75,-135 378.75,-141 372.75,-147 366.75,-147 366.75,-147 290.5,-147 290.5,-147 284.5,-147 278.5,-141 278.5,-135 278.5,-135 278.5,-73 278.5,-73 278.5,-67 284.5,-61 290.5,-61"/>
+<text text-anchor="middle" x="328.62" y="-134.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <!-- src/components/FolderSelector/FolderSelector.vue -->
 <g id="node1" class="node">
