@@ -2,15 +2,27 @@
 
 ## Dependency Graphs
 
+### Architectural
+
 ![](./dep-graphs/archi-graph.svg)
 
-![](./dep-graphs/components-graph.svg)
+### `src`
 
 ![](./dep-graphs/src-graph.svg)
 
+### Components
+
+![](./dep-graphs/components-graph.svg)
+
+### Stores
+
 ![](./dep-graphs/stores-graph.svg)
 
+### Video Store
+
 ![](./dep-graphs/videosStore-graph.svg)
+
+### Services
 
 ![](./dep-graphs/services-graph.svg)
 

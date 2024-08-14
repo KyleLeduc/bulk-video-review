@@ -29,11 +29,6 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M259,-44C259,-44 840,-44 840,-44 846,-44 852,-50 852,-56 852,-56 852,-318 852,-318 852,-324 846,-330 840,-330 840,-330 259,-330 259,-330 253,-330 247,-324 247,-318 247,-318 247,-56 247,-56 247,-50 253,-44 259,-44"/>
 <text text-anchor="middle" x="549.5" y="-317.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_src/services/Filters</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M329,-248C329,-248 478.5,-248 478.5,-248 484.5,-248 490.5,-254 490.5,-260 490.5,-260 490.5,-291 490.5,-291 490.5,-297 484.5,-303 478.5,-303 478.5,-303 329,-303 329,-303 323,-303 317,-297 317,-291 317,-291 317,-260 317,-260 317,-254 323,-248 329,-248"/>
-<text text-anchor="middle" x="403.75" y="-290.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">Filters</text>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_src/services/StorageController</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M329,-52C329,-52 832,-52 832,-52 838,-52 844,-58 844,-64 844,-64 844,-228 844,-228 844,-234 838,-240 832,-240 832,-240 329,-240 329,-240 323,-240 317,-234 317,-228 317,-228 317,-64 317,-64 317,-58 323,-52 329,-52"/>
@@ -58,6 +53,11 @@
 <title>cluster_src/services/StorageController/migrations/v2</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M692,-131C692,-131 738,-131 738,-131 744,-131 750,-137 750,-143 750,-143 750,-174 750,-174 750,-180 744,-186 738,-186 738,-186 692,-186 692,-186 686,-186 680,-180 680,-174 680,-174 680,-143 680,-143 680,-137 686,-131 692,-131"/>
 <text text-anchor="middle" x="715" y="-173.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">v2</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_src/services/Filters</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M329,-248C329,-248 478.5,-248 478.5,-248 484.5,-248 490.5,-254 490.5,-260 490.5,-260 490.5,-291 490.5,-291 490.5,-297 484.5,-303 478.5,-303 478.5,-303 329,-303 329,-303 323,-303 317,-297 317,-291 317,-291 317,-260 317,-260 317,-254 323,-248 329,-248"/>
+<text text-anchor="middle" x="403.75" y="-290.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">Filters</text>
 </g>
 <g id="clust11" class="cluster">
 <title>cluster_src/stores</title>
