@@ -20,9 +20,9 @@
 <text text-anchor="middle" x="143.25" y="-152.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">components</text>
 </g>
 <g id="clust3" class="cluster">
-<title>cluster_src/components/FolderSelector</title>
+<title>cluster_src/components/inputs</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M166,-24C166,-24 250.5,-24 250.5,-24 256.5,-24 262.5,-30 262.5,-36 262.5,-36 262.5,-67 262.5,-67 262.5,-73 256.5,-79 250.5,-79 250.5,-79 166,-79 166,-79 160,-79 154,-73 154,-67 154,-67 154,-36 154,-36 154,-30 160,-24 166,-24"/>
-<text text-anchor="middle" x="208.25" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">FolderSelector</text>
+<text text-anchor="middle" x="208.25" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_src/components/utils</title>
@@ -39,27 +39,63 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M290.5,-70C290.5,-70 366.75,-70 366.75,-70 372.75,-70 378.75,-76 378.75,-82 378.75,-82 378.75,-144 378.75,-144 378.75,-150 372.75,-156 366.75,-156 366.75,-156 290.5,-156 290.5,-156 284.5,-156 278.5,-150 278.5,-144 278.5,-144 278.5,-82 278.5,-82 278.5,-76 284.5,-70 290.5,-70"/>
 <text text-anchor="middle" x="328.62" y="-143.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
-<!-- src/components/FolderSelector/FolderSelector.vue -->
+<!-- src/components/NavBar.vue -->
 <g id="node1" class="node">
-<title>src/components/FolderSelector/FolderSelector.vue</title>
-<g id="a_node1"><a xlink:href="src/components/FolderSelector/FolderSelector.vue" xlink:title="FolderSelector.vue">
+<title>src/components/NavBar.vue</title>
+<g id="a_node1"><a xlink:href="src/components/NavBar.vue" xlink:title="NavBar.vue">
+<path fill="#41f083" stroke="black" d="M109.83,-43.62C109.83,-43.62 60.17,-43.62 60.17,-43.62 56.96,-43.62 53.75,-40.42 53.75,-37.21 53.75,-37.21 53.75,-30.79 53.75,-30.79 53.75,-27.58 56.96,-24.38 60.17,-24.38 60.17,-24.38 109.83,-24.38 109.83,-24.38 113.04,-24.38 116.25,-27.58 116.25,-30.79 116.25,-30.79 116.25,-37.21 116.25,-37.21 116.25,-40.42 113.04,-43.62 109.83,-43.62"/>
+<text text-anchor="start" x="61.75" y="-31.07" font-family="Helvetica,sans-Serif" font-size="9.00">NavBar.vue</text>
+</a>
+</g>
+</g>
+<!-- src/components/inputs/FolderSelector.vue -->
+<g id="node2" class="node">
+<title>src/components/inputs/FolderSelector.vue</title>
+<g id="a_node2"><a xlink:href="src/components/inputs/FolderSelector.vue" xlink:title="FolderSelector.vue">
 <path fill="#41f083" stroke="black" d="M248.08,-51.62C248.08,-51.62 168.42,-51.62 168.42,-51.62 165.21,-51.62 162,-48.42 162,-45.21 162,-45.21 162,-38.79 162,-38.79 162,-35.58 165.21,-32.38 168.42,-32.38 168.42,-32.38 248.08,-32.38 248.08,-32.38 251.29,-32.38 254.5,-35.58 254.5,-38.79 254.5,-38.79 254.5,-45.21 254.5,-45.21 254.5,-48.42 251.29,-51.62 248.08,-51.62"/>
 <text text-anchor="start" x="170" y="-39.08" font-family="Helvetica,sans-Serif" font-size="9.00">FolderSelector.vue</text>
 </a>
 </g>
 </g>
+<!-- src/components/NavBar.vue&#45;&gt;src/components/inputs/FolderSelector.vue -->
+<g id="edge1" class="edge">
+<title>src/components/NavBar.vue&#45;&gt;src/components/inputs/FolderSelector.vue</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M116.6,-36.02C127.55,-36.74 140.25,-37.58 152.61,-38.4"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="152.38,-40.48 158.51,-38.78 152.66,-36.29 152.38,-40.48"/>
+</g>
+<!-- src/stores/appStateStore.ts -->
+<g id="node3" class="node">
+<title>src/stores/appStateStore.ts</title>
+<g id="a_node3"><a xlink:href="src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
+<path fill="#ddfeff" stroke="black" d="M364.33,-128.62C364.33,-128.62 292.92,-128.62 292.92,-128.62 289.71,-128.62 286.5,-125.42 286.5,-122.21 286.5,-122.21 286.5,-115.79 286.5,-115.79 286.5,-112.58 289.71,-109.38 292.92,-109.38 292.92,-109.38 364.33,-109.38 364.33,-109.38 367.54,-109.38 370.75,-112.58 370.75,-115.79 370.75,-115.79 370.75,-122.21 370.75,-122.21 370.75,-125.42 367.54,-128.62 364.33,-128.62"/>
+<text text-anchor="start" x="294.5" y="-116.08" font-family="Helvetica,sans-Serif" font-size="9.00">appStateStore.ts</text>
+</a>
+</g>
+</g>
+<!-- src/components/NavBar.vue&#45;&gt;src/stores/appStateStore.ts -->
+<g id="edge2" class="edge">
+<title>src/components/NavBar.vue&#45;&gt;src/stores/appStateStore.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M116.56,-35.04C127.23,-36.94 138.42,-40.94 146,-49 159.32,-63.16 140.05,-78.46 154,-92 171.19,-108.68 232.62,-115.06 277.55,-117.49"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="277.17,-119.58 283.27,-117.78 277.38,-115.38 277.17,-119.58"/>
+</g>
 <!-- src/stores/videosStore.ts -->
-<g id="node2" class="node">
+<g id="node4" class="node">
 <title>src/stores/videosStore.ts</title>
-<g id="a_node2"><a xlink:href="src/stores/videosStore.ts" xlink:title="videosStore.ts">
+<g id="a_node4"><a xlink:href="src/stores/videosStore.ts" xlink:title="videosStore.ts">
 <path fill="#ddfeff" stroke="black" d="M359.46,-97.62C359.46,-97.62 297.79,-97.62 297.79,-97.62 294.58,-97.62 291.38,-94.42 291.38,-91.21 291.38,-91.21 291.38,-84.79 291.38,-84.79 291.38,-81.58 294.58,-78.38 297.79,-78.38 297.79,-78.38 359.46,-78.38 359.46,-78.38 362.67,-78.38 365.88,-81.58 365.88,-84.79 365.88,-84.79 365.88,-91.21 365.88,-91.21 365.88,-94.42 362.67,-97.62 359.46,-97.62"/>
 <text text-anchor="start" x="299.38" y="-85.08" font-family="Helvetica,sans-Serif" font-size="9.00">videosStore.ts</text>
 </a>
 </g>
 </g>
-<!-- src/components/FolderSelector/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts -->
-<g id="edge1" class="edge">
-<title>src/components/FolderSelector/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts</title>
+<!-- src/components/NavBar.vue&#45;&gt;src/stores/videosStore.ts -->
+<g id="edge3" class="edge">
+<title>src/components/NavBar.vue&#45;&gt;src/stores/videosStore.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M116.64,-35.32C127.19,-37.27 138.28,-41.23 146,-49 156.63,-59.71 142.3,-72.47 154,-82 172.92,-97.42 237.32,-95.74 282.12,-92.42"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="282.25,-94.52 288.07,-91.95 281.92,-90.33 282.25,-94.52"/>
+</g>
+<!-- src/components/inputs/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts -->
+<g id="edge5" class="edge">
+<title>src/components/inputs/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M254.84,-50.89C260.19,-52.38 265.51,-54.08 270.5,-56 282.39,-60.58 294.81,-67.28 305.03,-73.37"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="303.9,-75.14 310.11,-76.48 306.09,-71.56 303.9,-75.14"/>
 </g>
@@ -78,42 +114,6 @@
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M366.16,-88C372.48,-88 379.05,-88 385.34,-88"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="385.27,-90.1 391.27,-88 385.27,-85.9 385.27,-90.1"/>
 </g>
-<!-- src/components/NavBar.vue -->
-<g id="node3" class="node">
-<title>src/components/NavBar.vue</title>
-<g id="a_node3"><a xlink:href="src/components/NavBar.vue" xlink:title="NavBar.vue">
-<path fill="#41f083" stroke="black" d="M109.83,-43.62C109.83,-43.62 60.17,-43.62 60.17,-43.62 56.96,-43.62 53.75,-40.42 53.75,-37.21 53.75,-37.21 53.75,-30.79 53.75,-30.79 53.75,-27.58 56.96,-24.38 60.17,-24.38 60.17,-24.38 109.83,-24.38 109.83,-24.38 113.04,-24.38 116.25,-27.58 116.25,-30.79 116.25,-30.79 116.25,-37.21 116.25,-37.21 116.25,-40.42 113.04,-43.62 109.83,-43.62"/>
-<text text-anchor="start" x="61.75" y="-31.07" font-family="Helvetica,sans-Serif" font-size="9.00">NavBar.vue</text>
-</a>
-</g>
-</g>
-<!-- src/components/NavBar.vue&#45;&gt;src/components/FolderSelector/FolderSelector.vue -->
-<g id="edge2" class="edge">
-<title>src/components/NavBar.vue&#45;&gt;src/components/FolderSelector/FolderSelector.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M116.6,-36.02C127.55,-36.74 140.25,-37.58 152.61,-38.4"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="152.38,-40.48 158.51,-38.78 152.66,-36.29 152.38,-40.48"/>
-</g>
-<!-- src/components/NavBar.vue&#45;&gt;src/stores/videosStore.ts -->
-<g id="edge4" class="edge">
-<title>src/components/NavBar.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M116.64,-35.32C127.19,-37.27 138.28,-41.23 146,-49 156.63,-59.71 142.3,-72.47 154,-82 172.92,-97.42 237.32,-95.74 282.12,-92.42"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="282.25,-94.52 288.07,-91.95 281.92,-90.33 282.25,-94.52"/>
-</g>
-<!-- src/stores/appStateStore.ts -->
-<g id="node4" class="node">
-<title>src/stores/appStateStore.ts</title>
-<g id="a_node4"><a xlink:href="src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
-<path fill="#ddfeff" stroke="black" d="M364.33,-128.62C364.33,-128.62 292.92,-128.62 292.92,-128.62 289.71,-128.62 286.5,-125.42 286.5,-122.21 286.5,-122.21 286.5,-115.79 286.5,-115.79 286.5,-112.58 289.71,-109.38 292.92,-109.38 292.92,-109.38 364.33,-109.38 364.33,-109.38 367.54,-109.38 370.75,-112.58 370.75,-115.79 370.75,-115.79 370.75,-122.21 370.75,-122.21 370.75,-125.42 367.54,-128.62 364.33,-128.62"/>
-<text text-anchor="start" x="294.5" y="-116.08" font-family="Helvetica,sans-Serif" font-size="9.00">appStateStore.ts</text>
-</a>
-</g>
-</g>
-<!-- src/components/NavBar.vue&#45;&gt;src/stores/appStateStore.ts -->
-<g id="edge3" class="edge">
-<title>src/components/NavBar.vue&#45;&gt;src/stores/appStateStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M116.56,-35.04C127.23,-36.94 138.42,-40.94 146,-49 159.32,-63.16 140.05,-78.46 154,-92 171.19,-108.68 232.62,-115.06 277.55,-117.49"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="277.17,-119.58 283.27,-117.78 277.38,-115.38 277.17,-119.58"/>
-</g>
 <!-- src/components/VideoGallery.vue -->
 <g id="node5" class="node">
 <title>src/components/VideoGallery.vue</title>
@@ -124,7 +124,7 @@
 </g>
 </g>
 <!-- src/components/VideoGallery.vue&#45;&gt;src/stores/videosStore.ts -->
-<g id="edge5" class="edge">
+<g id="edge4" class="edge">
 <title>src/components/VideoGallery.vue&#45;&gt;src/stores/videosStore.ts</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M127.46,-71.08C134.03,-73.22 140.47,-76.1 146,-80 151.24,-83.69 148.35,-88.98 154,-92 194.61,-113.73 248.57,-108.11 285.5,-100.03"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="285.71,-102.14 291.08,-98.74 284.76,-98.05 285.71,-102.14"/>

@@ -45,49 +45,43 @@
 <g id="node3" class="node">
 <title>src/services</title>
 <g id="a_node3"><a xlink:href="src/services" xlink:title="services">
-<polygon fill="#ffffcc" stroke="black" points="351.75,-42.62 299.89,-42.62 297.75,-40.49 297.75,-23.38 349.61,-23.38 351.75,-25.51 351.75,-42.62"/>
-<polyline fill="none" stroke="black" points="349.61,-40.49 297.75,-40.49"/>
-<polyline fill="none" stroke="black" points="349.61,-40.49 349.61,-23.38"/>
-<polyline fill="none" stroke="black" points="349.61,-40.49 351.75,-42.62"/>
-<text text-anchor="start" x="307.5" y="-30.07" font-family="Helvetica,sans-Serif" font-size="9.00">services</text>
+<polygon fill="#ffffcc" stroke="black" points="351.75,-49.62 299.89,-49.62 297.75,-47.49 297.75,-30.38 349.61,-30.38 351.75,-32.51 351.75,-49.62"/>
+<polyline fill="none" stroke="black" points="349.61,-47.49 297.75,-47.49"/>
+<polyline fill="none" stroke="black" points="349.61,-47.49 349.61,-30.38"/>
+<polyline fill="none" stroke="black" points="349.61,-47.49 351.75,-49.62"/>
+<text text-anchor="start" x="307.5" y="-37.08" font-family="Helvetica,sans-Serif" font-size="9.00">services</text>
 </a>
 </g>
 </g>
 <!-- src/App.vue&#45;&gt;src/services -->
 <g id="edge2" class="edge">
 <title>src/App.vue&#45;&gt;src/services</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M132.71,-36.08C165.91,-50.11 231.09,-72.19 284.75,-57 291.63,-55.05 298.5,-51.51 304.51,-47.73"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="305.3,-49.73 309.09,-44.62 302.94,-46.25 305.3,-49.73"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M132.98,-35.99C138.46,-38.21 144.37,-40.38 150,-42 207.86,-58.67 225.68,-67.65 284.75,-56 288.21,-55.32 291.74,-54.33 295.2,-53.17"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="295.86,-55.16 300.74,-51.08 294.38,-51.23 295.86,-55.16"/>
 </g>
 <!-- src/components&#45;&gt;src/services -->
 <g id="edge4" class="edge">
 <title>src/components&#45;&gt;src/services</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M217.8,-18.61C237.31,-17.01 262.5,-16.74 284.75,-19 288.91,-19.42 293.29,-20.09 297.55,-20.95"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="296.74,-22.92 303.06,-22.25 297.7,-18.83 296.74,-22.92"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M218.02,-21.82C237.61,-20.21 262.8,-19.67 284.75,-24 288.21,-24.68 291.74,-25.67 295.2,-26.83"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="294.38,-28.77 300.74,-28.92 295.86,-24.84 294.38,-28.77"/>
 </g>
 <!-- src/stores -->
 <g id="node5" class="node">
 <title>src/stores</title>
 <g id="a_node5"><a xlink:href="src/stores" xlink:title="stores">
-<polygon fill="#ffffcc" stroke="black" points="284.75,-50.62 232.89,-50.62 230.75,-48.49 230.75,-31.38 282.61,-31.38 284.75,-33.51 284.75,-50.62"/>
-<polyline fill="none" stroke="black" points="282.61,-48.49 230.75,-48.49"/>
-<polyline fill="none" stroke="black" points="282.61,-48.49 282.61,-31.38"/>
-<polyline fill="none" stroke="black" points="282.61,-48.49 284.75,-50.62"/>
-<text text-anchor="start" x="244.62" y="-38.08" font-family="Helvetica,sans-Serif" font-size="9.00">stores</text>
+<polygon fill="#ffffcc" stroke="black" points="284.75,-49.62 232.89,-49.62 230.75,-47.49 230.75,-30.38 282.61,-30.38 284.75,-32.51 284.75,-49.62"/>
+<polyline fill="none" stroke="black" points="282.61,-47.49 230.75,-47.49"/>
+<polyline fill="none" stroke="black" points="282.61,-47.49 282.61,-30.38"/>
+<polyline fill="none" stroke="black" points="282.61,-47.49 284.75,-49.62"/>
+<text text-anchor="start" x="244.62" y="-37.08" font-family="Helvetica,sans-Serif" font-size="9.00">stores</text>
 </a>
 </g>
 </g>
 <!-- src/components&#45;&gt;src/stores -->
 <g id="edge3" class="edge">
 <title>src/components&#45;&gt;src/stores</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M217.87,-32.89C219.21,-33.16 220.55,-33.44 221.89,-33.72"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="221.37,-35.76 227.67,-34.93 222.23,-31.65 221.37,-35.76"/>
-</g>
-<!-- src/services&#45;&gt;src/components -->
-<g id="edge7" class="edge">
-<title>src/services&#45;&gt;src/components</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M297.43,-32.77C293.21,-32.08 288.88,-31.42 284.75,-31 265.62,-29.06 244.33,-28.99 226.34,-29.04"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="226.82,-26.94 220.82,-29.06 226.83,-31.14 226.82,-26.94"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M217.87,-32.43C219.21,-32.69 220.55,-32.95 221.89,-33.21"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="221.37,-35.25 227.66,-34.33 222.17,-31.13 221.37,-35.25"/>
 </g>
 <!-- src/assets -->
 <g id="node4" class="node">
@@ -102,10 +96,10 @@
 </g>
 </g>
 <!-- src/stores&#45;&gt;src/services -->
-<g id="edge8" class="edge">
+<g id="edge7" class="edge">
 <title>src/stores&#45;&gt;src/services</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M285.19,-37.75C286.33,-37.6 287.49,-37.46 288.65,-37.32"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="288.84,-39.41 294.54,-36.59 288.33,-35.24 288.84,-39.41"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M285.19,-40C286.33,-40 287.49,-40 288.65,-40"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="288.52,-42.1 294.52,-40 288.52,-37.9 288.52,-42.1"/>
 </g>
 <!-- src/main.ts -->
 <g id="node6" class="node">

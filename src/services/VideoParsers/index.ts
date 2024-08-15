@@ -1,4 +1,42 @@
-import type { VideoEntity, VideoMetadata } from '@/types'
+import type { ParsedVideo, VideoEntity, VideoMetadata } from '@/types'
+import { VideoMetadataController } from '../StorageController'
+
+export const parseFileList = async (files: FileList) => {
+  const parser = new FileVideoParser()
+  const storage = new VideoMetadataController()
+
+  const videos = []
+  for (const file of files) {
+    try {
+      // try to get the video from storage
+      let videoDto = await storage.get(await parser.generateHash(file))
+
+      if (!videoDto) {
+        // if we didn't find a video, create
+        const newVideoDto = await parser.transformVideoData(file)
+
+        if (newVideoDto) {
+          videoDto = await storage.post(newVideoDto)
+        } else {
+          // we didn't find a video and couldn't create a new VideoEntity
+          continue
+        }
+      }
+
+      const parsedVideo: ParsedVideo = {
+        ...videoDto,
+        url: URL.createObjectURL(file),
+        pinned: false,
+      }
+
+      videos.push(parsedVideo)
+    } catch (e) {
+      console.error('file input error', e)
+    }
+  }
+
+  return videos
+}
 
 class FileVideoParser {
   private video: HTMLVideoElement = document.createElement('video')
@@ -27,7 +65,7 @@ class FileVideoParser {
           0,
           0,
           this.canvas.width,
-          this.canvas.height
+          this.canvas.height,
         )
         const thumbUrl = this.canvas.toDataURL('image/jpeg', 0.25)
 
@@ -100,5 +138,3 @@ class FileVideoParser {
     }
   }
 }
-
-export { FileVideoParser }

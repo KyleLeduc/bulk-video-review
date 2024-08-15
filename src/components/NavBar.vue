@@ -27,7 +27,7 @@ import { useAppStateStore } from '@/stores/appStateStore'
 import { useVideoStore } from '@/stores/videosStore'
 import { ref } from 'vue'
 
-import FolderSelector from '@/components/FolderSelector/FolderSelector.vue'
+import FolderSelector from '@/components/inputs/FolderSelector.vue'
 
 const videoStore = useVideoStore()
 const appStateStore = useAppStateStore()

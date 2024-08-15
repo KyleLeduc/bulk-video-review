@@ -32,7 +32,7 @@ export const useVideoStore = defineStore('videos', {
   },
 
   actions: {
-    addVideo(videos: ParsedVideo[]) {
+    addVideos(videos: ParsedVideo[]) {
       videos.forEach((video) => {
         this._videos.set(video.id, video)
       })
