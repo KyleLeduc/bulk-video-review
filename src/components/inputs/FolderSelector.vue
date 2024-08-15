@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { useVideoStore } from '@/stores/videosStore'
-import { parseFileList } from '@/services/VideoParsers'
+import { parseFileList } from '@/services'
 
 const handleInput = async (e: Event) => {
   if (!(e.target instanceof HTMLInputElement)) return

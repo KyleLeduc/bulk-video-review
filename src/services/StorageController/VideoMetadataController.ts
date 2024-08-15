@@ -49,7 +49,7 @@ class VideoMetadataController {
   }
 
   private async getVideoEntity(
-    key: string
+    key: string,
   ): Promise<VideoStorageDto | undefined> {
     const db = await this.openDB()
 
@@ -68,7 +68,7 @@ class VideoMetadataController {
   }
 
   private async postVideoEntity(
-    videoMetadata: VideoEntity
+    videoMetadata: VideoEntity,
   ): Promise<VideoEntity> {
     const db = await this.openDB()
 
@@ -101,7 +101,7 @@ class VideoMetadataController {
   }
 
   private async getMetadata(
-    id: string
+    id: string,
   ): Promise<VideoMetadataEntity | undefined> {
     const db = await this.openDB()
 

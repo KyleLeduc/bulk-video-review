@@ -1,17 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import DiagnosticsPanel from '@/components/utils/DiagnosticsPanel.vue'
-import NavBar from '@/components/NavBar.vue'
-import VideoGallery from '@/components/VideoGallery.vue'
-import { VideoMetadataController } from '@/services/StorageController'
-
-const initServices = () => {
-  new VideoMetadataController().init()
-}
-
-onMounted(() => {
-  initServices()
-})
+import NavBar from '@/views/NavBar.vue'
+import VideoGallery from '@/views/VideoGallery.vue'
 </script>
 
 <template>

@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import { useVideoStore } from '@/stores/videosStore'
 import { storeToRefs } from 'pinia'
-import VideoCard from './VideoCard.vue'
+import VideoCard from '@/components/VideoCard.vue'
 
 const videoStore = useVideoStore()
 
