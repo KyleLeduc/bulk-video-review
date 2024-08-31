@@ -48,9 +48,7 @@ class VideoMetadataController {
     return { ...videoEntity, ...voteEntity }
   }
 
-  private async getVideoEntity(
-    key: string,
-  ): Promise<VideoStorageDto | undefined> {
+  private async getVideoEntity(key: string): Promise<VideoStorageDto> {
     const db = await this.openDB()
 
     return new Promise<VideoStorageDto>((resolve, reject) => {
@@ -59,7 +57,7 @@ class VideoMetadataController {
       const request = store.get(key)
 
       request.onsuccess = () => {
-        resolve(request.result ?? undefined)
+        resolve(request.result)
       }
 
       request.onerror = () =>
