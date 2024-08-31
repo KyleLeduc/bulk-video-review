@@ -1,8 +1,7 @@
 import type { VideoStorageDto, VideoEntity, VideoMetadataEntity } from '@/types'
+import { storeNames } from './domain/constants'
 import { handleMigrations } from './migrations/index'
-
-const videoStoreName = 'videoCacheDto'
-const videoMetadataStoreName = 'VideoMetadata'
+import { MetadataRepository } from './infrastructure/repository/MetadataRepository'
 
 /**
  * IndexedDb bridge to handle storing video metadata
@@ -21,19 +20,20 @@ class VideoMetadataController {
         await handleMigrations(request, event.oldVersion)
       }
 
-      request.onerror = () => reject(request.error)
+      request.onerror = () => reject(request.error!)
       request.onsuccess = () => resolve(request.result)
     })
   }
 
   /**
    * Gets the video w/ a matching id
-   * @param key id of the video
+   * @param id id of the video
    * @returns video or undefined
    */
-  async getVideo(key: string): Promise<VideoStorageDto | undefined> {
-    const videoData = await this.getVideoEntity(key)
-    const metadata = await this.getMetadataEntity(key)
+  async getVideo(id: string): Promise<VideoStorageDto | undefined> {
+    const videoData = await this.getVideoEntity(id)
+    const metadataRepo = new MetadataRepository()
+    const metadata = await metadataRepo.getMetadata(id)
 
     if (!videoData) return undefined
     return { ...videoData, ...metadata }
@@ -41,19 +41,23 @@ class VideoMetadataController {
 
   async postVideo(videoMetadata: VideoEntity): Promise<VideoStorageDto> {
     const { id } = videoMetadata
+    const metadataRepo = new MetadataRepository()
+    const metadata = await metadataRepo.upsertMetadata({
+      id,
+      votes: 0,
+    })
 
-    const voteEntity = await this.upsertMetadataEntity({ id, votes: 0 })
     const videoEntity = await this.postVideoEntity(videoMetadata)
 
-    return { ...videoEntity, ...voteEntity }
+    return { ...videoEntity, ...metadata }
   }
 
   private async getVideoEntity(key: string): Promise<VideoStorageDto> {
     const db = await this.openDB()
 
     return new Promise<VideoStorageDto>((resolve, reject) => {
-      const transaction = db.transaction(videoStoreName, 'readonly')
-      const store = transaction.objectStore(videoStoreName)
+      const transaction = db.transaction(storeNames.video, 'readonly')
+      const store = transaction.objectStore(storeNames.video)
       const request = store.get(key)
 
       request.onsuccess = () => {
@@ -71,59 +75,35 @@ class VideoMetadataController {
     const db = await this.openDB()
 
     return new Promise<VideoEntity>((resolve, reject) => {
-      const transaction = db.transaction(videoStoreName, 'readwrite')
-      const store = transaction.objectStore(videoStoreName)
+      const transaction = db.transaction(storeNames.video, 'readwrite')
+      const store = transaction.objectStore(storeNames.video)
       const request = store.put(videoMetadata)
 
       request.onsuccess = () => resolve(videoMetadata)
-      request.onerror = () => reject(request.error)
+      request.onerror = () => reject(request.error!)
     })
   }
 
-  async updateVotes(id: string, vote: number) {
+  async updateVotes(
+    id: string,
+    delta: number,
+  ): Promise<VideoMetadataEntity | null> {
     try {
-      const metadata = await this.getMetadataEntity(id)
-      if (!metadata) {
-        throw new Error('video not found')
+      const metadataRepo = new MetadataRepository()
+      const metadata = await metadataRepo.getMetadata(id)
+
+      if (metadata) {
+        metadata.votes += delta
+
+        return await metadataRepo.upsertMetadata(metadata)
       }
 
-      const videoVoteEntity: VideoMetadataEntity = {
-        ...metadata,
-        votes: metadata.votes + vote,
-      }
-
-      await this.upsertMetadataEntity(videoVoteEntity)
+      return null
     } catch (e) {
       console.error(e)
+
+      return null
     }
-  }
-
-  private async getMetadataEntity(
-    id: string,
-  ): Promise<VideoMetadataEntity | undefined> {
-    const db = await this.openDB()
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(videoMetadataStoreName)
-      const store = transaction.objectStore(videoMetadataStoreName)
-      const request = store.get(id)
-
-      request.onsuccess = () => resolve(request.result)
-      request.onerror = () => reject(request.error)
-    })
-  }
-
-  private async upsertMetadataEntity(metadata: VideoMetadataEntity) {
-    const db = await this.openDB()
-
-    return new Promise<VideoMetadataEntity>((resolve, reject) => {
-      const transaction = db.transaction(videoMetadataStoreName, 'readwrite')
-      const store = transaction.objectStore(videoMetadataStoreName)
-      const request = store.put(metadata)
-
-      request.onsuccess = () => resolve(metadata)
-      request.onerror = () => reject(request.error)
-    })
   }
 }
 
