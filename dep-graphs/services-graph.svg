@@ -34,11 +34,6 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M347,-24C347,-24 489,-24 489,-24 495,-24 501,-30 501,-36 501,-36 501,-67 501,-67 501,-73 495,-79 489,-79 489,-79 347,-79 347,-79 341,-79 335,-73 335,-67 335,-67 335,-36 335,-36 335,-30 341,-24 347,-24"/>
 <text text-anchor="middle" x="418" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">Filters</text>
 </g>
-<g id="clust11" class="cluster">
-<title>cluster_src/services/VideoParsers</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M345,-98C345,-98 395,-98 395,-98 401,-98 407,-104 407,-110 407,-110 407,-141 407,-141 407,-147 401,-153 395,-153 395,-153 345,-153 345,-153 339,-153 333,-147 333,-141 333,-141 333,-110 333,-110 333,-104 339,-98 345,-98"/>
-<text text-anchor="middle" x="370" y="-140.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">VideoParsers</text>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_src/services/StorageController</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M443,-87C443,-87 949,-87 949,-87 955,-87 961,-93 961,-99 961,-99 961,-263 961,-263 961,-269 955,-275 949,-275 949,-275 443,-275 443,-275 437,-275 431,-269 431,-263 431,-263 431,-99 431,-99 431,-93 437,-87 443,-87"/>
@@ -63,6 +58,11 @@
 <title>cluster_src/services/StorageController/migrations/v2</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M809,-166C809,-166 855,-166 855,-166 861,-166 867,-172 867,-178 867,-178 867,-209 867,-209 867,-215 861,-221 855,-221 855,-221 809,-221 809,-221 803,-221 797,-215 797,-209 797,-209 797,-178 797,-178 797,-172 803,-166 809,-166"/>
 <text text-anchor="middle" x="832" y="-208.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">v2</text>
+</g>
+<g id="clust11" class="cluster">
+<title>cluster_src/services/VideoParsers</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M345,-98C345,-98 395,-98 395,-98 401,-98 407,-104 407,-110 407,-110 407,-141 407,-141 407,-147 401,-153 395,-153 395,-153 345,-153 345,-153 339,-153 333,-147 333,-141 333,-141 333,-110 333,-110 333,-104 339,-98 345,-98"/>
+<text text-anchor="middle" x="370" y="-140.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">VideoParsers</text>
 </g>
 <g id="clust12" class="cluster">
 <title>cluster_src/stores</title>

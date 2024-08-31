@@ -31,18 +31,18 @@ class VideoMetadataController {
    * @param key id of the video
    * @returns video or undefined
    */
-  async get(key: string): Promise<VideoStorageDto | undefined> {
+  async getVideo(key: string): Promise<VideoStorageDto | undefined> {
     const videoData = await this.getVideoEntity(key)
-    const metadata = await this.getMetadata(key)
+    const metadata = await this.getMetadataEntity(key)
 
     if (!videoData) return undefined
     return { ...videoData, ...metadata }
   }
 
-  async post(videoMetadata: VideoEntity): Promise<VideoStorageDto> {
+  async postVideo(videoMetadata: VideoEntity): Promise<VideoStorageDto> {
     const { id } = videoMetadata
 
-    const voteEntity = await this.postVoteEntity({ id, votes: 0 })
+    const voteEntity = await this.upsertMetadataEntity({ id, votes: 0 })
     const videoEntity = await this.postVideoEntity(videoMetadata)
 
     return { ...videoEntity, ...voteEntity }
@@ -82,7 +82,7 @@ class VideoMetadataController {
 
   async updateVotes(id: string, vote: number) {
     try {
-      const metadata = await this.getMetadata(id)
+      const metadata = await this.getMetadataEntity(id)
       if (!metadata) {
         throw new Error('video not found')
       }
@@ -92,13 +92,13 @@ class VideoMetadataController {
         votes: metadata.votes + vote,
       }
 
-      await this.postVoteEntity(videoVoteEntity)
+      await this.upsertMetadataEntity(videoVoteEntity)
     } catch (e) {
       console.error(e)
     }
   }
 
-  private async getMetadata(
+  private async getMetadataEntity(
     id: string,
   ): Promise<VideoMetadataEntity | undefined> {
     const db = await this.openDB()
@@ -113,7 +113,7 @@ class VideoMetadataController {
     })
   }
 
-  private async postVoteEntity(metadata: VideoMetadataEntity) {
+  private async upsertMetadataEntity(metadata: VideoMetadataEntity) {
     const db = await this.openDB()
 
     return new Promise<VideoMetadataEntity>((resolve, reject) => {

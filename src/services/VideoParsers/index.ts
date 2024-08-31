@@ -9,14 +9,14 @@ export const parseFileList = async (files: FileList) => {
   for (const file of files) {
     try {
       // try to get the video from storage
-      let videoDto = await storage.get(await parser.generateHash(file))
+      let videoDto = await storage.getVideo(await parser.generateHash(file))
 
       if (!videoDto) {
         // if we didn't find a video, create
         const newVideoDto = await parser.transformVideoData(file)
 
         if (newVideoDto) {
-          videoDto = await storage.post(newVideoDto)
+          videoDto = await storage.postVideo(newVideoDto)
         } else {
           // we didn't find a video and couldn't create a new VideoEntity
           continue
