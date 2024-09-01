@@ -7,6 +7,25 @@ import { MetadataRepository } from './infrastructure/repository/MetadataReposito
  * IndexedDb bridge to handle storing video metadata
  */
 class VideoMetadataController {
+  private static instance: VideoMetadataController
+  private metadataRepo: MetadataRepository
+
+  private constructor(metadataRepo: MetadataRepository) {
+    this.metadataRepo = metadataRepo
+  }
+
+  public static getInstance(): VideoMetadataController {
+    if (!VideoMetadataController.instance) {
+      const metadataRepo = new MetadataRepository()
+
+      VideoMetadataController.instance = new VideoMetadataController(
+        metadataRepo,
+      )
+    }
+
+    return VideoMetadataController.instance
+  }
+
   init() {
     this.openDB()
   }
@@ -32,8 +51,7 @@ class VideoMetadataController {
    */
   async getVideo(id: string): Promise<VideoStorageDto | undefined> {
     const videoData = await this.getVideoEntity(id)
-    const metadataRepo = new MetadataRepository()
-    const metadata = await metadataRepo.getMetadata(id)
+    const metadata = await this.metadataRepo.getMetadata(id)
 
     if (!videoData) return undefined
     return { ...videoData, ...metadata }
@@ -41,8 +59,7 @@ class VideoMetadataController {
 
   async postVideo(videoMetadata: VideoEntity): Promise<VideoStorageDto> {
     const { id } = videoMetadata
-    const metadataRepo = new MetadataRepository()
-    const metadata = await metadataRepo.upsertMetadata({
+    const metadata = await this.metadataRepo.upsertMetadata({
       id,
       votes: 0,
     })
@@ -89,13 +106,12 @@ class VideoMetadataController {
     delta: number,
   ): Promise<VideoMetadataEntity | null> {
     try {
-      const metadataRepo = new MetadataRepository()
-      const metadata = await metadataRepo.getMetadata(id)
+      const metadata = await this.metadataRepo.getMetadata(id)
 
       if (metadata) {
         metadata.votes += delta
 
-        return await metadataRepo.upsertMetadata(metadata)
+        return await this.metadataRepo.upsertMetadata(metadata)
       }
 
       return null

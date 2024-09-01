@@ -5,7 +5,7 @@ import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
 import { VideoMetadataController } from '@/services'
 
 const initServices = () => {
-  new VideoMetadataController().init()
+  VideoMetadataController.getInstance().init()
 }
 
 import './assets/main.css'

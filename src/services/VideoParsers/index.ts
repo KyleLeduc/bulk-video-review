@@ -3,7 +3,7 @@ import { VideoMetadataController } from '../StorageController'
 
 export const parseFileList = async (files: FileList) => {
   const parser = new FileVideoParser()
-  const storage = new VideoMetadataController()
+  const storage = VideoMetadataController.getInstance()
 
   const videos = []
   for (const file of files) {

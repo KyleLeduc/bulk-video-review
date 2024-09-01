@@ -29,15 +29,55 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M259,-16C259,-16 1162,-16 1162,-16 1168,-16 1174,-22 1174,-28 1174,-28 1174,-451 1174,-451 1174,-457 1168,-463 1162,-463 1162,-463 259,-463 259,-463 253,-463 247,-457 247,-451 247,-451 247,-28 247,-28 247,-22 253,-16 259,-16"/>
 <text text-anchor="middle" x="710.5" y="-450.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
-<g id="clust18" class="cluster">
-<title>cluster_src/services/VideoParsers</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M345,-100C345,-100 395,-100 395,-100 401,-100 407,-106 407,-112 407,-112 407,-143 407,-143 407,-149 401,-155 395,-155 395,-155 345,-155 345,-155 339,-155 333,-149 333,-143 333,-143 333,-112 333,-112 333,-106 339,-100 345,-100"/>
-<text text-anchor="middle" x="370" y="-142.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">VideoParsers</text>
+<g id="clust5" class="cluster">
+<title>cluster_src/services/Filters</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M347,-24C347,-24 489,-24 489,-24 495,-24 501,-30 501,-36 501,-36 501,-67 501,-67 501,-73 495,-79 489,-79 489,-79 347,-79 347,-79 341,-79 335,-73 335,-67 335,-67 335,-36 335,-36 335,-30 341,-24 347,-24"/>
+<text text-anchor="middle" x="418" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">Filters</text>
 </g>
 <g id="clust6" class="cluster">
 <title>cluster_src/services/StorageController</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M443,-87C443,-87 1154,-87 1154,-87 1160,-87 1166,-93 1166,-99 1166,-99 1166,-424 1166,-424 1166,-430 1160,-436 1154,-436 1154,-436 443,-436 443,-436 437,-436 431,-430 431,-424 431,-424 431,-99 431,-99 431,-93 437,-87 443,-87"/>
 <text text-anchor="middle" x="798.5" y="-423.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">StorageController</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_src/services/StorageController/domain</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M941,-95C941,-95 1146,-95 1146,-95 1152,-95 1158,-101 1158,-107 1158,-107 1158,-236 1158,-236 1158,-242 1152,-248 1146,-248 1146,-248 941,-248 941,-248 935,-248 929,-242 929,-236 929,-236 929,-107 929,-107 929,-101 935,-95 941,-95"/>
+<text text-anchor="middle" x="1043.5" y="-235.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
+</g>
+<g id="clust9" class="cluster">
+<title>cluster_src/services/StorageController/domain/entities</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M1082.75,-166C1082.75,-166 1138,-166 1138,-166 1144,-166 1150,-172 1150,-178 1150,-178 1150,-209 1150,-209 1150,-215 1144,-221 1138,-221 1138,-221 1082.75,-221 1082.75,-221 1076.75,-221 1070.75,-215 1070.75,-209 1070.75,-209 1070.75,-178 1070.75,-178 1070.75,-172 1076.75,-166 1082.75,-166"/>
+<text text-anchor="middle" x="1110.38" y="-208.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
+</g>
+<g id="clust10" class="cluster">
+<title>cluster_src/services/StorageController/domain/repositories</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M949,-166C949,-166 1050.75,-166 1050.75,-166 1056.75,-166 1062.75,-172 1062.75,-178 1062.75,-178 1062.75,-209 1062.75,-209 1062.75,-215 1056.75,-221 1050.75,-221 1050.75,-221 949,-221 949,-221 943,-221 937,-215 937,-209 937,-209 937,-178 937,-178 937,-172 943,-166 949,-166"/>
+<text text-anchor="middle" x="999.88" y="-208.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repositories</text>
+</g>
+<g id="clust8" class="cluster">
+<title>cluster_src/services/StorageController/domain/constants</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M976.88,-103C976.88,-103 1022.88,-103 1022.88,-103 1028.88,-103 1034.88,-109 1034.88,-115 1034.88,-115 1034.88,-146 1034.88,-146 1034.88,-152 1028.88,-158 1022.88,-158 1022.88,-158 976.88,-158 976.88,-158 970.88,-158 964.88,-152 964.88,-146 964.88,-146 964.88,-115 964.88,-115 964.88,-109 970.88,-103 976.88,-103"/>
+<text text-anchor="middle" x="999.88" y="-145.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">constants</text>
+</g>
+<g id="clust14" class="cluster">
+<title>cluster_src/services/StorageController/migrations</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M690.75,-256C690.75,-256 1141.38,-256 1141.38,-256 1147.38,-256 1153.38,-262 1153.38,-268 1153.38,-268 1153.38,-397 1153.38,-397 1153.38,-403 1147.38,-409 1141.38,-409 1141.38,-409 690.75,-409 690.75,-409 684.75,-409 678.75,-403 678.75,-397 678.75,-397 678.75,-268 678.75,-268 678.75,-262 684.75,-256 690.75,-256"/>
+<text text-anchor="middle" x="916.06" y="-396.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">migrations</text>
+</g>
+<g id="clust16" class="cluster">
+<title>cluster_src/services/StorageController/migrations/v1</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M976.88,-264C976.88,-264 1022.88,-264 1022.88,-264 1028.88,-264 1034.88,-270 1034.88,-276 1034.88,-276 1034.88,-307 1034.88,-307 1034.88,-313 1028.88,-319 1022.88,-319 1022.88,-319 976.88,-319 976.88,-319 970.88,-319 964.88,-313 964.88,-307 964.88,-307 964.88,-276 964.88,-276 964.88,-270 970.88,-264 976.88,-264"/>
+<text text-anchor="middle" x="999.88" y="-306.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">v1</text>
+</g>
+<g id="clust17" class="cluster">
+<title>cluster_src/services/StorageController/migrations/v2</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M976.88,-327C976.88,-327 1022.88,-327 1022.88,-327 1028.88,-327 1034.88,-333 1034.88,-339 1034.88,-339 1034.88,-370 1034.88,-370 1034.88,-376 1028.88,-382 1022.88,-382 1022.88,-382 976.88,-382 976.88,-382 970.88,-382 964.88,-376 964.88,-370 964.88,-370 964.88,-339 964.88,-339 964.88,-333 970.88,-327 976.88,-327"/>
+<text text-anchor="middle" x="999.88" y="-369.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">v2</text>
+</g>
+<g id="clust15" class="cluster">
+<title>cluster_src/services/StorageController/migrations/utils</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M1087.38,-295C1087.38,-295 1133.38,-295 1133.38,-295 1139.38,-295 1145.38,-301 1145.38,-307 1145.38,-307 1145.38,-338 1145.38,-338 1145.38,-344 1139.38,-350 1133.38,-350 1133.38,-350 1087.38,-350 1087.38,-350 1081.38,-350 1075.38,-344 1075.38,-338 1075.38,-338 1075.38,-307 1075.38,-307 1075.38,-301 1081.38,-295 1087.38,-295"/>
+<text text-anchor="middle" x="1110.38" y="-337.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
 </g>
 <g id="clust11" class="cluster">
 <title>cluster_src/services/StorageController/infrastructure</title>
@@ -54,50 +94,10 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M664,-158C664,-158 763.5,-158 763.5,-158 769.5,-158 775.5,-164 775.5,-170 775.5,-170 775.5,-201 775.5,-201 775.5,-207 769.5,-213 763.5,-213 763.5,-213 664,-213 664,-213 658,-213 652,-207 652,-201 652,-201 652,-170 652,-170 652,-164 658,-158 664,-158"/>
 <text text-anchor="middle" x="713.75" y="-200.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repository</text>
 </g>
-<g id="clust14" class="cluster">
-<title>cluster_src/services/StorageController/migrations</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M690.75,-256C690.75,-256 1141.38,-256 1141.38,-256 1147.38,-256 1153.38,-262 1153.38,-268 1153.38,-268 1153.38,-397 1153.38,-397 1153.38,-403 1147.38,-409 1141.38,-409 1141.38,-409 690.75,-409 690.75,-409 684.75,-409 678.75,-403 678.75,-397 678.75,-397 678.75,-268 678.75,-268 678.75,-262 684.75,-256 690.75,-256"/>
-<text text-anchor="middle" x="916.06" y="-396.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">migrations</text>
-</g>
-<g id="clust17" class="cluster">
-<title>cluster_src/services/StorageController/migrations/v2</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M976.88,-327C976.88,-327 1022.88,-327 1022.88,-327 1028.88,-327 1034.88,-333 1034.88,-339 1034.88,-339 1034.88,-370 1034.88,-370 1034.88,-376 1028.88,-382 1022.88,-382 1022.88,-382 976.88,-382 976.88,-382 970.88,-382 964.88,-376 964.88,-370 964.88,-370 964.88,-339 964.88,-339 964.88,-333 970.88,-327 976.88,-327"/>
-<text text-anchor="middle" x="999.88" y="-369.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">v2</text>
-</g>
-<g id="clust16" class="cluster">
-<title>cluster_src/services/StorageController/migrations/v1</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M976.88,-264C976.88,-264 1022.88,-264 1022.88,-264 1028.88,-264 1034.88,-270 1034.88,-276 1034.88,-276 1034.88,-307 1034.88,-307 1034.88,-313 1028.88,-319 1022.88,-319 1022.88,-319 976.88,-319 976.88,-319 970.88,-319 964.88,-313 964.88,-307 964.88,-307 964.88,-276 964.88,-276 964.88,-270 970.88,-264 976.88,-264"/>
-<text text-anchor="middle" x="999.88" y="-306.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">v1</text>
-</g>
-<g id="clust15" class="cluster">
-<title>cluster_src/services/StorageController/migrations/utils</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M1087.38,-295C1087.38,-295 1133.38,-295 1133.38,-295 1139.38,-295 1145.38,-301 1145.38,-307 1145.38,-307 1145.38,-338 1145.38,-338 1145.38,-344 1139.38,-350 1133.38,-350 1133.38,-350 1087.38,-350 1087.38,-350 1081.38,-350 1075.38,-344 1075.38,-338 1075.38,-338 1075.38,-307 1075.38,-307 1075.38,-301 1081.38,-295 1087.38,-295"/>
-<text text-anchor="middle" x="1110.38" y="-337.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
-</g>
-<g id="clust7" class="cluster">
-<title>cluster_src/services/StorageController/domain</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M941,-95C941,-95 1146,-95 1146,-95 1152,-95 1158,-101 1158,-107 1158,-107 1158,-236 1158,-236 1158,-242 1152,-248 1146,-248 1146,-248 941,-248 941,-248 935,-248 929,-242 929,-236 929,-236 929,-107 929,-107 929,-101 935,-95 941,-95"/>
-<text text-anchor="middle" x="1043.5" y="-235.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
-</g>
-<g id="clust10" class="cluster">
-<title>cluster_src/services/StorageController/domain/repositories</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M949,-166C949,-166 1050.75,-166 1050.75,-166 1056.75,-166 1062.75,-172 1062.75,-178 1062.75,-178 1062.75,-209 1062.75,-209 1062.75,-215 1056.75,-221 1050.75,-221 1050.75,-221 949,-221 949,-221 943,-221 937,-215 937,-209 937,-209 937,-178 937,-178 937,-172 943,-166 949,-166"/>
-<text text-anchor="middle" x="999.88" y="-208.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repositories</text>
-</g>
-<g id="clust8" class="cluster">
-<title>cluster_src/services/StorageController/domain/constants</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M976.88,-103C976.88,-103 1022.88,-103 1022.88,-103 1028.88,-103 1034.88,-109 1034.88,-115 1034.88,-115 1034.88,-146 1034.88,-146 1034.88,-152 1028.88,-158 1022.88,-158 1022.88,-158 976.88,-158 976.88,-158 970.88,-158 964.88,-152 964.88,-146 964.88,-146 964.88,-115 964.88,-115 964.88,-109 970.88,-103 976.88,-103"/>
-<text text-anchor="middle" x="999.88" y="-145.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">constants</text>
-</g>
-<g id="clust9" class="cluster">
-<title>cluster_src/services/StorageController/domain/entities</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M1082.75,-166C1082.75,-166 1138,-166 1138,-166 1144,-166 1150,-172 1150,-178 1150,-178 1150,-209 1150,-209 1150,-215 1144,-221 1138,-221 1138,-221 1082.75,-221 1082.75,-221 1076.75,-221 1070.75,-215 1070.75,-209 1070.75,-209 1070.75,-178 1070.75,-178 1070.75,-172 1076.75,-166 1082.75,-166"/>
-<text text-anchor="middle" x="1110.38" y="-208.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_src/services/Filters</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M347,-24C347,-24 489,-24 489,-24 495,-24 501,-30 501,-36 501,-36 501,-67 501,-67 501,-73 495,-79 489,-79 489,-79 347,-79 347,-79 341,-79 335,-73 335,-67 335,-67 335,-36 335,-36 335,-30 341,-24 347,-24"/>
-<text text-anchor="middle" x="418" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">Filters</text>
+<g id="clust18" class="cluster">
+<title>cluster_src/services/VideoParsers</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M345,-100C345,-100 395,-100 395,-100 401,-100 407,-106 407,-112 407,-112 407,-143 407,-143 407,-149 401,-155 395,-155 395,-155 345,-155 345,-155 339,-155 333,-149 333,-143 333,-143 333,-112 333,-112 333,-106 339,-100 345,-100"/>
+<text text-anchor="middle" x="370" y="-142.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">VideoParsers</text>
 </g>
 <g id="clust19" class="cluster">
 <title>cluster_src/stores</title>

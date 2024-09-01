@@ -97,14 +97,14 @@ const handleSkip = (duration: number) => {
 // }
 
 function handlePinVideo() {
-  const storage = new VideoMetadataController() // todo move logic to videoStore
+  const storage = VideoMetadataController.getInstance() // todo move logic to videoStore
   storage.updateVotes(props.video.id, 2)
 
   emit('pinVideo', props.video.id)
 }
 
 function handleRemoveVideo() {
-  new VideoMetadataController().updateVotes(props.video.id, -1) // todo move logic to videoStore
+  VideoMetadataController.getInstance().updateVotes(props.video.id, -1) // todo move logic to videoStore
   emit('removeVideo', props.video.id)
 }
 
