@@ -1,5 +1,5 @@
 import type { ParsedVideo } from '@/types'
-import { applyFilters } from '@/services'
+import { applyFilters } from '@/application/services/filters'
 import { defineStore } from 'pinia'
 
 interface State {

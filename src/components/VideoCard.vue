@@ -33,7 +33,7 @@
 import type { ParsedVideo } from '@/types'
 import { computed, reactive, ref } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
-import { VideoMetadataService } from '@/services' // move vote to store
+import { VideoMetadataService } from '@/application/services/VideoMetadataService' // move vote to store
 const videoElement = ref<InstanceType<typeof VideoEmbed> | null>(null)
 
 const props = defineProps<{ video: ParsedVideo }>()

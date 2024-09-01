@@ -2,7 +2,7 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
-import { VideoMetadataService } from '@/services'
+import { VideoMetadataService } from '@/application/services/VideoMetadataService'
 
 const initServices = () => {
   VideoMetadataService.getInstance().init()
