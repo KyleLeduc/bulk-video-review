@@ -24,20 +24,20 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-24C144.25,-24 228.75,-24 228.75,-24 234.75,-24 240.75,-30 240.75,-36 240.75,-36 240.75,-67 240.75,-67 240.75,-73 234.75,-79 228.75,-79 228.75,-79 144.25,-79 144.25,-79 138.25,-79 132.25,-73 132.25,-67 132.25,-67 132.25,-36 132.25,-36 132.25,-30 138.25,-24 144.25,-24"/>
 <text text-anchor="middle" x="186.5" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_src/views</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-44C28,-44 104.25,-44 104.25,-44 110.25,-44 116.25,-50 116.25,-56 116.25,-56 116.25,-118 116.25,-118 116.25,-124 110.25,-130 104.25,-130 104.25,-130 28,-130 28,-130 22,-130 16,-124 16,-118 16,-118 16,-56 16,-56 16,-50 22,-44 28,-44"/>
-<text text-anchor="middle" x="66.12" y="-117.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
+<g id="clust5" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M268.75,-69C268.75,-69 335.25,-69 335.25,-69 341.25,-69 347.25,-75 347.25,-81 347.25,-81 347.25,-112 347.25,-112 347.25,-118 341.25,-124 335.25,-124 335.25,-124 268.75,-124 268.75,-124 262.75,-124 256.75,-118 256.75,-112 256.75,-112 256.75,-81 256.75,-81 256.75,-75 262.75,-69 268.75,-69"/>
+<text text-anchor="middle" x="302" y="-111.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_src/services</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M367.25,-43C367.25,-43 413.25,-43 413.25,-43 419.25,-43 425.25,-49 425.25,-55 425.25,-55 425.25,-86 425.25,-86 425.25,-92 419.25,-98 413.25,-98 413.25,-98 367.25,-98 367.25,-98 361.25,-98 355.25,-92 355.25,-86 355.25,-86 355.25,-55 355.25,-55 355.25,-49 361.25,-43 367.25,-43"/>
 <text text-anchor="middle" x="390.25" y="-85.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M268.75,-69C268.75,-69 335.25,-69 335.25,-69 341.25,-69 347.25,-75 347.25,-81 347.25,-81 347.25,-112 347.25,-112 347.25,-118 341.25,-124 335.25,-124 335.25,-124 268.75,-124 268.75,-124 262.75,-124 256.75,-118 256.75,-112 256.75,-112 256.75,-81 256.75,-81 256.75,-75 262.75,-69 268.75,-69"/>
-<text text-anchor="middle" x="302" y="-111.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+<g id="clust6" class="cluster">
+<title>cluster_src/views</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-44C28,-44 104.25,-44 104.25,-44 110.25,-44 116.25,-50 116.25,-56 116.25,-56 116.25,-118 116.25,-118 116.25,-124 110.25,-130 104.25,-130 104.25,-130 28,-130 28,-130 22,-130 16,-124 16,-118 16,-118 16,-56 16,-56 16,-50 22,-44 28,-44"/>
+<text text-anchor="middle" x="66.12" y="-117.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
 </g>
 <!-- src/components/inputs/FolderSelector.vue -->
 <g id="node1" class="node">

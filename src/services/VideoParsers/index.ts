@@ -1,9 +1,9 @@
 import type { ParsedVideo, VideoEntity, VideoMetadata } from '@/types'
-import { VideoMetadataController } from '../StorageController'
+import { VideoMetadataService } from '../Storage'
 
 export const parseFileList = async (files: FileList) => {
   const parser = new FileVideoParser()
-  const storage = VideoMetadataController.getInstance()
+  const storage = VideoMetadataService.getInstance()
 
   const videos = []
   for (const file of files) {

@@ -1,31 +1,31 @@
 import type { VideoStorageDto, VideoEntity, VideoMetadataEntity } from '@/types'
-import { handleMigrations } from './migrations/index'
-import { MetadataRepository } from './infrastructure/repository/MetadataRepository'
-import { VideoRepository } from './infrastructure/repository/VideoRepository'
+import { handleMigrations } from '../../migrations/index'
+import { MetadataRepository } from '../../infrastructure/repository/MetadataRepository'
+import { VideoRepository } from '../../infrastructure/repository/VideoRepository'
 
 /**
  * IndexedDb bridge to handle storing video metadata
  */
-class VideoMetadataController {
-  private static instance: VideoMetadataController
+class VideoMetadataService {
+  private static instance: VideoMetadataService
 
   private constructor(
     private metadataRepo: MetadataRepository,
     private videoRepo: VideoRepository,
   ) {}
 
-  public static getInstance(): VideoMetadataController {
-    if (!VideoMetadataController.instance) {
+  public static getInstance(): VideoMetadataService {
+    if (!VideoMetadataService.instance) {
       const metadataRepo = new MetadataRepository()
       const videoRepo = new VideoRepository()
 
-      VideoMetadataController.instance = new VideoMetadataController(
+      VideoMetadataService.instance = new VideoMetadataService(
         metadataRepo,
         videoRepo,
       )
     }
 
-    return VideoMetadataController.instance
+    return VideoMetadataService.instance
   }
 
   init() {
@@ -93,4 +93,4 @@ class VideoMetadataController {
   }
 }
 
-export { VideoMetadataController }
+export { VideoMetadataService }

@@ -1,3 +1,3 @@
 export { applyFilters } from './Filters'
-export { VideoMetadataController } from './StorageController'
+export { VideoMetadataService } from './Storage'
 export { parseFileList } from './VideoParsers'

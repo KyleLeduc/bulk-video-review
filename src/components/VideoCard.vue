@@ -33,7 +33,7 @@
 import type { ParsedVideo } from '@/types'
 import { computed, reactive, ref } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
-import { VideoMetadataController } from '@/services' // move vote to store
+import { VideoMetadataService } from '@/services' // move vote to store
 const videoElement = ref<InstanceType<typeof VideoEmbed> | null>(null)
 
 const props = defineProps<{ video: ParsedVideo }>()
@@ -97,14 +97,14 @@ const handleSkip = (duration: number) => {
 // }
 
 function handlePinVideo() {
-  const storage = VideoMetadataController.getInstance() // todo move logic to videoStore
+  const storage = VideoMetadataService.getInstance() // todo move logic to videoStore
   storage.updateVotes(props.video.id, 2)
 
   emit('pinVideo', props.video.id)
 }
 
 function handleRemoveVideo() {
-  VideoMetadataController.getInstance().updateVotes(props.video.id, -1) // todo move logic to videoStore
+  VideoMetadataService.getInstance().updateVotes(props.video.id, -1) // todo move logic to videoStore
   emit('removeVideo', props.video.id)
 }
 

@@ -19,25 +19,25 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M198.25,-16C198.25,-16 413.25,-16 413.25,-16 419.25,-16 425.25,-22 425.25,-28 425.25,-28 425.25,-185 425.25,-185 425.25,-191 419.25,-197 413.25,-197 413.25,-197 198.25,-197 198.25,-197 192.25,-197 186.25,-191 186.25,-185 186.25,-185 186.25,-28 186.25,-28 186.25,-22 192.25,-16 198.25,-16"/>
 <text text-anchor="middle" x="305.75" y="-184.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">components</text>
 </g>
-<g id="clust3" class="cluster">
-<title>cluster_src/components/inputs</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M213,-115C213,-115 297.5,-115 297.5,-115 303.5,-115 309.5,-121 309.5,-127 309.5,-127 309.5,-158 309.5,-158 309.5,-164 303.5,-170 297.5,-170 297.5,-170 213,-170 213,-170 207,-170 201,-164 201,-158 201,-158 201,-127 201,-127 201,-121 207,-115 213,-115"/>
-<text text-anchor="middle" x="255.25" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
-</g>
 <g id="clust4" class="cluster">
 <title>cluster_src/components/utils</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M206.25,-52C206.25,-52 304.25,-52 304.25,-52 310.25,-52 316.25,-58 316.25,-64 316.25,-64 316.25,-95 316.25,-95 316.25,-101 310.25,-107 304.25,-107 304.25,-107 206.25,-107 206.25,-107 200.25,-107 194.25,-101 194.25,-95 194.25,-95 194.25,-64 194.25,-64 194.25,-58 200.25,-52 206.25,-52"/>
 <text text-anchor="middle" x="255.25" y="-94.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_src/services</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M445.25,-115C445.25,-115 491.25,-115 491.25,-115 497.25,-115 503.25,-121 503.25,-127 503.25,-127 503.25,-158 503.25,-158 503.25,-164 497.25,-170 491.25,-170 491.25,-170 445.25,-170 445.25,-170 439.25,-170 433.25,-164 433.25,-158 433.25,-158 433.25,-127 433.25,-127 433.25,-121 439.25,-115 445.25,-115"/>
-<text text-anchor="middle" x="468.25" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
+<g id="clust3" class="cluster">
+<title>cluster_src/components/inputs</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M213,-115C213,-115 297.5,-115 297.5,-115 303.5,-115 309.5,-121 309.5,-127 309.5,-127 309.5,-158 309.5,-158 309.5,-164 303.5,-170 297.5,-170 297.5,-170 213,-170 213,-170 207,-170 201,-164 201,-158 201,-158 201,-127 201,-127 201,-121 207,-115 213,-115"/>
+<text text-anchor="middle" x="255.25" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
 <g id="clust6" class="cluster">
 <title>cluster_src/stores</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M336.25,-205C336.25,-205 412.5,-205 412.5,-205 418.5,-205 424.5,-211 424.5,-217 424.5,-217 424.5,-279 424.5,-279 424.5,-285 418.5,-291 412.5,-291 412.5,-291 336.25,-291 336.25,-291 330.25,-291 324.25,-285 324.25,-279 324.25,-279 324.25,-217 324.25,-217 324.25,-211 330.25,-205 336.25,-205"/>
 <text text-anchor="middle" x="374.38" y="-278.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_src/services</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M445.25,-115C445.25,-115 491.25,-115 491.25,-115 497.25,-115 503.25,-121 503.25,-127 503.25,-127 503.25,-158 503.25,-158 503.25,-164 497.25,-170 491.25,-170 491.25,-170 445.25,-170 445.25,-170 439.25,-170 433.25,-164 433.25,-158 433.25,-158 433.25,-127 433.25,-127 433.25,-121 439.25,-115 445.25,-115"/>
+<text text-anchor="middle" x="468.25" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_src/views</title>
