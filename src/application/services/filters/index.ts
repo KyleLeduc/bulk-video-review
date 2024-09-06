@@ -1,1 +1,0 @@
-export { applyFilters } from './Filters'

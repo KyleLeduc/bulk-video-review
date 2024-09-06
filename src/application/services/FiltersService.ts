@@ -10,7 +10,7 @@ interface Filters {
 // Filter by minimum duration
 function minDurationFilter(
   videos: ParsedVideo[],
-  minDuration: number
+  minDuration: number,
 ): ParsedVideo[] {
   return videos.filter((video) => video.duration >= minDuration)
 }
@@ -18,7 +18,7 @@ function minDurationFilter(
 // Filter by maximum duration
 function maxDurationFilter(
   videos: ParsedVideo[],
-  maxDuration: number
+  maxDuration: number,
 ): ParsedVideo[] {
   return videos.filter((video) => video.duration <= maxDuration)
 }
@@ -26,10 +26,10 @@ function maxDurationFilter(
 // Filter by title containing a string
 function titleContainsFilter(
   videos: ParsedVideo[],
-  searchString: string
+  searchString: string,
 ): ParsedVideo[] {
   return videos.filter((video) =>
-    video.title.toLowerCase().includes(searchString.toLowerCase())
+    video.title.toLowerCase().includes(searchString.toLowerCase()),
   )
 }
 
@@ -42,7 +42,7 @@ function titleContainsFilter(
  */
 export function applyFilters(
   videos: ParsedVideo[],
-  filters: Filters
+  filters: Filters,
 ): ParsedVideo[] {
   const pinnedVideos = videos.filter((v) => v.pinned)
   let unPinnedVideos = videos.filter((v) => !v.pinned)

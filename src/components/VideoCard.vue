@@ -9,9 +9,10 @@
     <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(-60)">⏪⏪</div>
     <div v-if="isVidLoaded" @click="handleSkip(-30)">⏪</div>
     <div class="tabs">
+      <div>{{ props.video.votes }} 🗳️</div>
       <div class="tab" @click="loadVideo">Thumbs</div>
       <div class="tab video" @click="loadVideo">Video</div>
-      <div>{{ props.video.duration }}</div>
+      <div>⏱️ {{ props.video.duration }}</div>
     </div>
     <div v-if="isVidLoaded" @click="handleSkip(30)">⏩</div>
     <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(60)">⏩⏩</div>
@@ -33,7 +34,7 @@
 import type { ParsedVideo } from '@/types'
 import { computed, reactive, ref } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
-import { VideoMetadataService } from '@/application/services/VideoMetadataService' // move vote to store
+import { VideoMetadataService } from '@/application'
 const videoElement = ref<InstanceType<typeof VideoEmbed> | null>(null)
 
 const props = defineProps<{ video: ParsedVideo }>()
@@ -110,6 +111,11 @@ function handleRemoveVideo() {
 
 function loadVideo() {
   state.showVideo = !state.showVideo
+  if (state.showVideo === true) {
+    VideoMetadataService.getInstance().updateVotes(props.video.id, 1)
+  } else {
+    VideoMetadataService.getInstance().updateVotes(props.video.id, -1)
+  }
 }
 </script>
 
@@ -139,8 +145,6 @@ function loadVideo() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  // background-color: hsl(133, 99%, v-bind(''));
 
   * {
     cursor: pointer;

@@ -1,5 +1,5 @@
 import type { ParsedVideo } from '@/types'
-import { applyFilters } from '@/application/services/filters'
+import { applyFilters } from '@/application'
 import { defineStore } from 'pinia'
 
 interface State {
@@ -16,8 +16,13 @@ export const useVideoStore = defineStore('videos', {
     }
   },
   getters: {
-    sortByPinned: ({ _videos }): ParsedVideo[] => {
+    sortByVotes: ({ _videos }): ParsedVideo[] => {
       return [..._videos.values()].sort(
+        (a, b) => Number(b.votes) - Number(a.votes),
+      )
+    },
+    sortByPinned(): ParsedVideo[] {
+      return this.sortByVotes.sort(
         (a, b) => Number(b.pinned) - Number(a.pinned),
       )
     },
