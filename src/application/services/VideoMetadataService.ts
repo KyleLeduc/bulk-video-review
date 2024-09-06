@@ -1,9 +1,5 @@
 import type { VideoStorageDto, VideoEntity, VideoMetadataEntity } from '@/types'
-import {
-  handleMigrations,
-  MetadataRepository,
-  VideoRepository,
-} from '@/infrastructure'
+import { MetadataRepository, VideoRepository } from '@/infrastructure'
 
 /**
  * IndexedDb bridge to handle storing video metadata
@@ -28,24 +24,6 @@ class VideoMetadataService {
     }
 
     return VideoMetadataService.instance
-  }
-
-  init() {
-    this.openDB()
-  }
-
-  private openDB() {
-    return new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open('VideoMetaDataDB', 2)
-      request.onupgradeneeded = async (event) => {
-        console.log('Upgrading from version:', event.oldVersion)
-
-        await handleMigrations(request, event.oldVersion)
-      }
-
-      request.onerror = () => reject(request.error!)
-      request.onsuccess = () => resolve(request.result)
-    })
   }
 
   /**

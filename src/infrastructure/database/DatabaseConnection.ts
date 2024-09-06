@@ -1,4 +1,4 @@
-import { storeNames } from '@/domain'
+import { handleMigrations } from './migrations'
 
 class DatabaseConnection {
   private static instance: DatabaseConnection
@@ -23,10 +23,9 @@ class DatabaseConnection {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion)
 
-      // request.onupgradeneeded = (event) => {
-      //   const db = (event.target as IDBOpenDBRequest).result
-      //   this.initializeDatabase(db)
-      // }
+      request.onupgradeneeded = (event) => {
+        handleMigrations(request, event.oldVersion)
+      }
 
       request.onsuccess = (event) => {
         this.db = (event.target as IDBOpenDBRequest).result
@@ -39,15 +38,6 @@ class DatabaseConnection {
         )
       }
     })
-  }
-
-  private initializeDatabase(db: IDBDatabase): void {
-    if (!db.objectStoreNames.contains(storeNames.video)) {
-      db.createObjectStore(storeNames.video, { keyPath: 'id' })
-    }
-    if (!db.objectStoreNames.contains(storeNames.metadata)) {
-      db.createObjectStore(storeNames.metadata, { keyPath: 'id' })
-    }
   }
 
   public async getStore(

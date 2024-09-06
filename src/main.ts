@@ -2,11 +2,6 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
-import { VideoMetadataService } from '@/application'
-
-const initServices = () => {
-  VideoMetadataService.getInstance().init()
-}
 
 import './assets/main.css'
 
@@ -16,5 +11,3 @@ app.use(createPinia())
 app.use(autoAnimatePlugin)
 
 app.mount('#app')
-
-initServices()
