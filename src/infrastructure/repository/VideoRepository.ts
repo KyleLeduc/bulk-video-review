@@ -1,6 +1,5 @@
-import { storeNames } from '../../domain/constants'
-import type { VideoEntity } from '../../domain/entities/Video'
-import type { IVideoRepository } from '../../domain/repositories/IVideoRepository'
+import type { VideoEntity, IVideoRepository } from '@/domain'
+import { storeNames } from '@/domain'
 import { DatabaseConnection } from '../database/DatabaseConnection'
 
 class VideoRepository implements IVideoRepository {

@@ -1,7 +1,6 @@
-import type { IMetadataRepository } from '../../domain/repositories/IMetadataRepository'
-import type { MetadataEntity } from '../../domain/entities/Metadata'
+import type { IMetadataRepository, MetadataEntity } from '@/domain'
+import { storeNames } from '@/domain'
 import { DatabaseConnection } from '../database/DatabaseConnection'
-import { storeNames } from '../../domain/constants'
 
 class MetadataRepository implements IMetadataRepository {
   private db = DatabaseConnection.getInstance()

@@ -1,4 +1,4 @@
-import { storeNames } from '../../domain/constants'
+import { storeNames } from '@/domain'
 
 class DatabaseConnection {
   private static instance: DatabaseConnection
