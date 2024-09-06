@@ -1,8 +1,8 @@
 import type { VideoEntity } from '@/types'
-import { getAllFromStore, transactionComplete } from '../utils'
+import { getAllFromStore, transactionComplete } from './utils'
 
 export const handleAddVideoMetadataStore = async (
-  request: IDBOpenDBRequest
+  request: IDBOpenDBRequest,
 ) => {
   console.log('Metadata migration')
   const db = request.result
@@ -26,9 +26,8 @@ export const handleAddVideoMetadataStore = async (
 
     try {
       // act perform migrations in a try catch to handle errors
-      const videoEntities = await getAllFromStore<VideoEntity>(
-        videoCacheDtoStore
-      )
+      const videoEntities =
+        await getAllFromStore<VideoEntity>(videoCacheDtoStore)
 
       for (const videoEntity of videoEntities) {
         const { id } = videoEntity

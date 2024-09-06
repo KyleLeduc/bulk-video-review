@@ -1,5 +1,5 @@
 import type { ParsedVideo, VideoEntity } from '@/types'
-import { getAllFromStore, transactionComplete } from '../utils'
+import { getAllFromStore, transactionComplete } from './utils'
 
 /**
  * Converts ParsedVideo to VideoDto
@@ -8,7 +8,7 @@ import { getAllFromStore, transactionComplete } from '../utils'
  * @returns translated videos
  */
 const handleParsedVideoTranslation = (
-  parsedVideos: ParsedVideo[]
+  parsedVideos: ParsedVideo[],
 ): VideoEntity[] => {
   const videoEntities: VideoEntity[] = []
 
