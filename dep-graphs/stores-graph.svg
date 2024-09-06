@@ -34,15 +34,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M151,-24C151,-24 235.5,-24 235.5,-24 241.5,-24 247.5,-30 247.5,-36 247.5,-36 247.5,-67 247.5,-67 247.5,-73 241.5,-79 235.5,-79 235.5,-79 151,-79 151,-79 145,-79 139,-73 139,-67 139,-67 139,-36 139,-36 139,-30 145,-24 151,-24"/>
 <text text-anchor="middle" x="193.25" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
-<g id="clust7" class="cluster">
-<title>cluster_src/views</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-121C28,-121 104.25,-121 104.25,-121 110.25,-121 116.25,-127 116.25,-133 116.25,-133 116.25,-195 116.25,-195 116.25,-201 110.25,-207 104.25,-207 104.25,-207 28,-207 28,-207 22,-207 16,-201 16,-195 16,-195 16,-133 16,-133 16,-127 22,-121 28,-121"/>
-<text text-anchor="middle" x="66.12" y="-194.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_src/stores</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-104C282.25,-104 358.5,-104 358.5,-104 364.5,-104 370.5,-110 370.5,-116 370.5,-116 370.5,-178 370.5,-178 370.5,-184 364.5,-190 358.5,-190 358.5,-190 282.25,-190 282.25,-190 276.25,-190 270.25,-184 270.25,-178 270.25,-178 270.25,-116 270.25,-116 270.25,-110 276.25,-104 282.25,-104"/>
 <text text-anchor="middle" x="320.38" y="-177.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_src/views</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-121C28,-121 104.25,-121 104.25,-121 110.25,-121 116.25,-127 116.25,-133 116.25,-133 116.25,-195 116.25,-195 116.25,-201 110.25,-207 104.25,-207 104.25,-207 28,-207 28,-207 22,-207 16,-201 16,-195 16,-195 16,-133 16,-133 16,-127 22,-121 28,-121"/>
+<text text-anchor="middle" x="66.12" y="-194.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
 </g>
 <!-- src/application/index.ts -->
 <g id="node1" class="node">

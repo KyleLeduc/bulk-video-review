@@ -1,7 +1,9 @@
 import type { VideoStorageDto, VideoEntity, VideoMetadataEntity } from '@/types'
-import { handleMigrations } from '../../infrastructure/database/migrations'
-import { MetadataRepository } from '../../infrastructure/repository/MetadataRepository'
-import { VideoRepository } from '../../infrastructure/repository/VideoRepository'
+import {
+  handleMigrations,
+  MetadataRepository,
+  VideoRepository,
+} from '@/infrastructure'
 
 /**
  * IndexedDb bridge to handle storing video metadata

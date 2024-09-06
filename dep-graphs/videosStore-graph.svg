@@ -14,6 +14,11 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M20,-8C20,-8 421.25,-8 421.25,-8 427.25,-8 433.25,-14 433.25,-20 433.25,-20 433.25,-145 433.25,-145 433.25,-151 427.25,-157 421.25,-157 421.25,-157 20,-157 20,-157 14,-157 8,-151 8,-145 8,-145 8,-20 8,-20 8,-14 14,-8 20,-8"/>
 <text text-anchor="middle" x="220.62" y="-144.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
 </g>
+<g id="clust2" class="cluster">
+<title>cluster_src/application</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M367.25,-43C367.25,-43 413.25,-43 413.25,-43 419.25,-43 425.25,-49 425.25,-55 425.25,-55 425.25,-86 425.25,-86 425.25,-92 419.25,-98 413.25,-98 413.25,-98 367.25,-98 367.25,-98 361.25,-98 355.25,-92 355.25,-86 355.25,-86 355.25,-55 355.25,-55 355.25,-49 361.25,-43 367.25,-43"/>
+<text text-anchor="middle" x="390.25" y="-85.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
+</g>
 <g id="clust3" class="cluster">
 <title>cluster_src/components</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M136.25,-16C136.25,-16 236.75,-16 236.75,-16 242.75,-16 248.75,-22 248.75,-28 248.75,-28 248.75,-94 248.75,-94 248.75,-100 242.75,-106 236.75,-106 236.75,-106 136.25,-106 136.25,-106 130.25,-106 124.25,-100 124.25,-94 124.25,-94 124.25,-28 124.25,-28 124.25,-22 130.25,-16 136.25,-16"/>
@@ -23,11 +28,6 @@
 <title>cluster_src/components/inputs</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-24C144.25,-24 228.75,-24 228.75,-24 234.75,-24 240.75,-30 240.75,-36 240.75,-36 240.75,-67 240.75,-67 240.75,-73 234.75,-79 228.75,-79 228.75,-79 144.25,-79 144.25,-79 138.25,-79 132.25,-73 132.25,-67 132.25,-67 132.25,-36 132.25,-36 132.25,-30 138.25,-24 144.25,-24"/>
 <text text-anchor="middle" x="186.5" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_src/application</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M367.25,-43C367.25,-43 413.25,-43 413.25,-43 419.25,-43 425.25,-49 425.25,-55 425.25,-55 425.25,-86 425.25,-86 425.25,-92 419.25,-98 413.25,-98 413.25,-98 367.25,-98 367.25,-98 361.25,-98 355.25,-92 355.25,-86 355.25,-86 355.25,-55 355.25,-55 355.25,-49 361.25,-43 367.25,-43"/>
-<text text-anchor="middle" x="390.25" y="-85.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_src/stores</title>
