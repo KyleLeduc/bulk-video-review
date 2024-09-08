@@ -13,15 +13,14 @@
 
 <script setup lang="ts">
 import { useVideoStore } from '@/stores/videosStore'
-import { parseFileList } from '@/application'
+
+const videoStore = useVideoStore()
 
 const handleInput = async (e: Event) => {
   if (!(e.target instanceof HTMLInputElement)) return
 
   if (e.target.files) {
-    const parsedVideos = await parseFileList(e.target.files)
-
-    useVideoStore().addVideos(parsedVideos)
+    await videoStore.addVideosFromFiles(e.target.files)
   }
 }
 </script>

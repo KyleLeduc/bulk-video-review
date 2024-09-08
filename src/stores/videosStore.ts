@@ -1,5 +1,9 @@
 import type { ParsedVideo } from '@/types'
-import { applyFilters, VideoMetadataService } from '@/application'
+import {
+  applyFilters,
+  VideoMetadataService,
+  parseFileList,
+} from '@/application'
 import { defineStore } from 'pinia'
 
 interface State {
@@ -78,6 +82,11 @@ export const useVideoStore = defineStore('videos', {
             console.error('Failed to update video metadata:', error)
           })
       }
+    },
+
+    async addVideosFromFiles(files: FileList) {
+      const parsedVideos = await parseFileList(files)
+      this.addVideos(parsedVideos)
     },
   },
 })
