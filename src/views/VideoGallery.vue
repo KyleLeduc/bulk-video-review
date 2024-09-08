@@ -14,12 +14,14 @@
 
 <script setup lang="ts">
 import { useVideoStore } from '@/stores/videosStore'
+import { useAppStateStore } from '@/stores/appStateStore'
 import { storeToRefs } from 'pinia'
 import VideoCard from '@/components/VideoCard.vue'
 
 const videoStore = useVideoStore()
-
+const appStateStore = useAppStateStore()
 const { filteredVideos } = storeToRefs(videoStore)
+const { columnCount } = storeToRefs(appStateStore)
 
 function handlePin(id: string) {
   videoStore.togglePinVideo(id)
@@ -33,6 +35,6 @@ function handleRemove(id: string) {
 <style scoped>
 .container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(v-bind(columnCount), 1fr);
 }
 </style>

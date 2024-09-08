@@ -1,29 +1,21 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
-interface State {
-  /** Diagnostics panel visibility */
-  _diagnosticsPanelVisible: boolean
-}
+export const useAppStateStore = defineStore('appState', () => {
+  const isDiagnosticsPanelOpen = ref(false)
+  const columnCount = ref(4) // Default to 4 columns
 
-export const useAppStateStore = defineStore('appState', {
-  state: (): State => {
-    return {
-      _diagnosticsPanelVisible: false,
+  function toggleDiagnosticsPanel(forceOpen?: boolean) {
+    if (forceOpen !== undefined) {
+      isDiagnosticsPanelOpen.value = forceOpen
+    } else {
+      isDiagnosticsPanelOpen.value = !isDiagnosticsPanelOpen.value
     }
-  },
-  getters: {
-    diagnosticsPanelVisible(state) {
-      return state._diagnosticsPanelVisible
-    },
-  },
-  actions: {
-    toggleDiagnosticsPanel(newVisibility?: boolean) {
-      if (newVisibility === undefined) {
-        this._diagnosticsPanelVisible = !this._diagnosticsPanelVisible
-        return
-      }
+  }
 
-      this._diagnosticsPanelVisible = newVisibility
-    },
-  },
+  return {
+    isDiagnosticsPanelOpen,
+    columnCount,
+    toggleDiagnosticsPanel,
+  }
 })

@@ -19,6 +19,18 @@
       <span class="validationMessage">{{ durationValidationMessage }}</span>
       <span @mouseup="appStateStore.toggleDiagnosticsPanel(true)">🧰</span>
     </div>
+    <div class="column-selector">
+      <label for="columnCount">Columns: </label>
+      <select
+        id="columnCount"
+        v-model="appStateStore.columnCount"
+        @change="handleColumnChange"
+      >
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+    </div>
   </nav>
 </template>
 
@@ -47,6 +59,11 @@ function handleDurationFilter(e: Event) {
     : (durationValidationMessage.value = 'Only numbers')
 
   videoStore._minDuration = parseFloat(inputElement.value) || 0
+}
+
+function handleColumnChange(e: Event) {
+  const selectElement = e.target as HTMLSelectElement
+  appStateStore.columnCount = parseInt(selectElement.value)
 }
 </script>
 
@@ -117,5 +134,13 @@ header input {
 .buttons {
   display: flex;
   flex-direction: row;
+}
+
+.column-selector {
+  color: aliceblue;
+}
+
+.column-selector select {
+  margin-left: 0.5em;
 }
 </style>
