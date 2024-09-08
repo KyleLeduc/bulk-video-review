@@ -16,8 +16,13 @@
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_src/application</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M390.5,-69C390.5,-69 436.5,-69 436.5,-69 442.5,-69 448.5,-75 448.5,-81 448.5,-81 448.5,-112 448.5,-112 448.5,-118 442.5,-124 436.5,-124 436.5,-124 390.5,-124 390.5,-124 384.5,-124 378.5,-118 378.5,-112 378.5,-112 378.5,-81 378.5,-81 378.5,-75 384.5,-69 390.5,-69"/>
-<text text-anchor="middle" x="413.5" y="-111.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M390.5,-116C390.5,-116 436.5,-116 436.5,-116 442.5,-116 448.5,-122 448.5,-128 448.5,-128 448.5,-159 448.5,-159 448.5,-165 442.5,-171 436.5,-171 436.5,-171 390.5,-171 390.5,-171 384.5,-171 378.5,-165 378.5,-159 378.5,-159 378.5,-128 378.5,-128 378.5,-122 384.5,-116 390.5,-116"/>
+<text text-anchor="middle" x="413.5" y="-158.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-114C282.25,-114 358.5,-114 358.5,-114 364.5,-114 370.5,-120 370.5,-126 370.5,-126 370.5,-188 370.5,-188 370.5,-194 364.5,-200 358.5,-200 358.5,-200 282.25,-200 282.25,-200 276.25,-200 270.25,-194 270.25,-188 270.25,-188 270.25,-126 270.25,-126 270.25,-120 276.25,-114 282.25,-114"/>
+<text text-anchor="middle" x="320.38" y="-187.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_src/components</title>
@@ -26,18 +31,13 @@
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_src/components/utils</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-115C144.25,-115 242.25,-115 242.25,-115 248.25,-115 254.25,-121 254.25,-127 254.25,-127 254.25,-158 254.25,-158 254.25,-164 248.25,-170 242.25,-170 242.25,-170 144.25,-170 144.25,-170 138.25,-170 132.25,-164 132.25,-158 132.25,-158 132.25,-127 132.25,-127 132.25,-121 138.25,-115 144.25,-115"/>
-<text text-anchor="middle" x="193.25" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-24C144.25,-24 242.25,-24 242.25,-24 248.25,-24 254.25,-30 254.25,-36 254.25,-36 254.25,-67 254.25,-67 254.25,-73 248.25,-79 242.25,-79 242.25,-79 144.25,-79 144.25,-79 138.25,-79 132.25,-73 132.25,-67 132.25,-67 132.25,-36 132.25,-36 132.25,-30 138.25,-24 144.25,-24"/>
+<text text-anchor="middle" x="193.25" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_src/components/inputs</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M151,-24C151,-24 235.5,-24 235.5,-24 241.5,-24 247.5,-30 247.5,-36 247.5,-36 247.5,-67 247.5,-67 247.5,-73 241.5,-79 235.5,-79 235.5,-79 151,-79 151,-79 145,-79 139,-73 139,-67 139,-67 139,-36 139,-36 139,-30 145,-24 151,-24"/>
-<text text-anchor="middle" x="193.25" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
-</g>
-<g id="clust6" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-84C282.25,-84 358.5,-84 358.5,-84 364.5,-84 370.5,-90 370.5,-96 370.5,-96 370.5,-158 370.5,-158 370.5,-164 364.5,-170 358.5,-170 358.5,-170 282.25,-170 282.25,-170 276.25,-170 270.25,-164 270.25,-158 270.25,-158 270.25,-96 270.25,-96 270.25,-90 276.25,-84 282.25,-84"/>
-<text text-anchor="middle" x="320.38" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M151,-87C151,-87 235.5,-87 235.5,-87 241.5,-87 247.5,-93 247.5,-99 247.5,-99 247.5,-130 247.5,-130 247.5,-136 241.5,-142 235.5,-142 235.5,-142 151,-142 151,-142 145,-142 139,-136 139,-130 139,-130 139,-99 139,-99 139,-93 145,-87 151,-87"/>
+<text text-anchor="middle" x="193.25" y="-129.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_src/views</title>
@@ -48,8 +48,8 @@
 <g id="node1" class="node">
 <title>src/application/index.ts</title>
 <g id="a_node1"><a xlink:href="src/application/index.ts" xlink:title="index.ts">
-<path fill="#ddfeff" stroke="black" d="M434.08,-96.62C434.08,-96.62 392.92,-96.62 392.92,-96.62 389.71,-96.62 386.5,-93.42 386.5,-90.21 386.5,-90.21 386.5,-83.79 386.5,-83.79 386.5,-80.58 389.71,-77.38 392.92,-77.38 392.92,-77.38 434.08,-77.38 434.08,-77.38 437.29,-77.38 440.5,-80.58 440.5,-83.79 440.5,-83.79 440.5,-90.21 440.5,-90.21 440.5,-93.42 437.29,-96.62 434.08,-96.62"/>
-<text text-anchor="start" x="397.75" y="-84.08" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
+<path fill="#ddfeff" stroke="black" d="M434.08,-143.62C434.08,-143.62 392.92,-143.62 392.92,-143.62 389.71,-143.62 386.5,-140.42 386.5,-137.21 386.5,-137.21 386.5,-130.79 386.5,-130.79 386.5,-127.58 389.71,-124.38 392.92,-124.38 392.92,-124.38 434.08,-124.38 434.08,-124.38 437.29,-124.38 440.5,-127.58 440.5,-130.79 440.5,-130.79 440.5,-137.21 440.5,-137.21 440.5,-140.42 437.29,-143.62 434.08,-143.62"/>
+<text text-anchor="start" x="397.75" y="-131.07" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
 </a>
 </g>
 </g>
@@ -57,8 +57,8 @@
 <g id="node2" class="node">
 <title>src/components/VideoCard.vue</title>
 <g id="a_node2"><a xlink:href="src/components/VideoCard.vue" xlink:title="VideoCard.vue">
-<path fill="#41f083" stroke="black" d="M224.83,-106.62C224.83,-106.62 161.67,-106.62 161.67,-106.62 158.46,-106.62 155.25,-103.42 155.25,-100.21 155.25,-100.21 155.25,-93.79 155.25,-93.79 155.25,-90.58 158.46,-87.38 161.67,-87.38 161.67,-87.38 224.83,-87.38 224.83,-87.38 228.04,-87.38 231.25,-90.58 231.25,-93.79 231.25,-93.79 231.25,-100.21 231.25,-100.21 231.25,-103.42 228.04,-106.62 224.83,-106.62"/>
-<text text-anchor="start" x="163.25" y="-94.08" font-family="Helvetica,sans-Serif" font-size="9.00">VideoCard.vue</text>
+<path fill="#41f083" stroke="black" d="M224.83,-169.62C224.83,-169.62 161.67,-169.62 161.67,-169.62 158.46,-169.62 155.25,-166.42 155.25,-163.21 155.25,-163.21 155.25,-156.79 155.25,-156.79 155.25,-153.58 158.46,-150.38 161.67,-150.38 161.67,-150.38 224.83,-150.38 224.83,-150.38 228.04,-150.38 231.25,-153.58 231.25,-156.79 231.25,-156.79 231.25,-163.21 231.25,-163.21 231.25,-166.42 228.04,-169.62 224.83,-169.62"/>
+<text text-anchor="start" x="163.25" y="-157.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoCard.vue</text>
 </a>
 </g>
 </g>
@@ -66,50 +66,50 @@
 <g id="node3" class="node">
 <title>src/stores/videosStore.ts</title>
 <g id="a_node3"><a xlink:href="src/stores/videosStore.ts" xlink:title="videosStore.ts">
-<path fill="#ddfeff" stroke="black" d="M351.21,-111.62C351.21,-111.62 289.54,-111.62 289.54,-111.62 286.33,-111.62 283.12,-108.42 283.12,-105.21 283.12,-105.21 283.12,-98.79 283.12,-98.79 283.12,-95.58 286.33,-92.38 289.54,-92.38 289.54,-92.38 351.21,-92.38 351.21,-92.38 354.42,-92.38 357.62,-95.58 357.62,-98.79 357.62,-98.79 357.62,-105.21 357.62,-105.21 357.62,-108.42 354.42,-111.62 351.21,-111.62"/>
-<text text-anchor="start" x="291.12" y="-99.08" font-family="Helvetica,sans-Serif" font-size="9.00">videosStore.ts</text>
+<path fill="#ddfeff" stroke="black" d="M351.21,-172.62C351.21,-172.62 289.54,-172.62 289.54,-172.62 286.33,-172.62 283.12,-169.42 283.12,-166.21 283.12,-166.21 283.12,-159.79 283.12,-159.79 283.12,-156.58 286.33,-153.38 289.54,-153.38 289.54,-153.38 351.21,-153.38 351.21,-153.38 354.42,-153.38 357.62,-156.58 357.62,-159.79 357.62,-159.79 357.62,-166.21 357.62,-166.21 357.62,-169.42 354.42,-172.62 351.21,-172.62"/>
+<text text-anchor="start" x="291.12" y="-160.07" font-family="Helvetica,sans-Serif" font-size="9.00">videosStore.ts</text>
 </a>
 </g>
 </g>
 <!-- src/components/VideoCard.vue&#45;&gt;src/stores/videosStore.ts -->
 <g id="edge1" class="edge">
 <title>src/components/VideoCard.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M231.45,-98.49C244.81,-99.02 260.02,-99.63 273.99,-100.19"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="273.86,-102.28 279.94,-100.42 274.03,-98.09 273.86,-102.28"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M231.45,-160.89C244.81,-161.21 260.02,-161.58 273.99,-161.91"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="273.89,-164.01 279.94,-162.05 273.99,-159.81 273.89,-164.01"/>
 </g>
 <!-- src/stores/videosStore.ts&#45;&gt;src/application/index.ts -->
 <g id="edge5" class="edge">
 <title>src/stores/videosStore.ts&#45;&gt;src/application/index.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M357.91,-95.99C364.38,-94.92 371.1,-93.81 377.53,-92.76"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="377.48,-94.89 383.06,-91.85 376.8,-90.75 377.48,-94.89"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M354.71,-152.95C360,-151.32 365.4,-149.63 370.5,-148 372.9,-147.23 375.38,-146.43 377.87,-145.62"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="378.4,-147.66 383.44,-143.79 377.09,-143.67 378.4,-147.66"/>
 </g>
 <!-- src/components/inputs/FolderSelector.vue -->
 <g id="node4" class="node">
 <title>src/components/inputs/FolderSelector.vue</title>
 <g id="a_node4"><a xlink:href="src/components/inputs/FolderSelector.vue" xlink:title="FolderSelector.vue">
-<path fill="#41f083" stroke="black" d="M233.08,-51.62C233.08,-51.62 153.42,-51.62 153.42,-51.62 150.21,-51.62 147,-48.42 147,-45.21 147,-45.21 147,-38.79 147,-38.79 147,-35.58 150.21,-32.38 153.42,-32.38 153.42,-32.38 233.08,-32.38 233.08,-32.38 236.29,-32.38 239.5,-35.58 239.5,-38.79 239.5,-38.79 239.5,-45.21 239.5,-45.21 239.5,-48.42 236.29,-51.62 233.08,-51.62"/>
-<text text-anchor="start" x="155" y="-39.08" font-family="Helvetica,sans-Serif" font-size="9.00">FolderSelector.vue</text>
+<path fill="#41f083" stroke="black" d="M233.08,-114.62C233.08,-114.62 153.42,-114.62 153.42,-114.62 150.21,-114.62 147,-111.42 147,-108.21 147,-108.21 147,-101.79 147,-101.79 147,-98.58 150.21,-95.38 153.42,-95.38 153.42,-95.38 233.08,-95.38 233.08,-95.38 236.29,-95.38 239.5,-98.58 239.5,-101.79 239.5,-101.79 239.5,-108.21 239.5,-108.21 239.5,-111.42 236.29,-114.62 233.08,-114.62"/>
+<text text-anchor="start" x="155" y="-102.08" font-family="Helvetica,sans-Serif" font-size="9.00">FolderSelector.vue</text>
 </a>
 </g>
 </g>
 <!-- src/components/inputs/FolderSelector.vue&#45;&gt;src/application/index.ts -->
 <g id="edge2" class="edge">
 <title>src/components/inputs/FolderSelector.vue&#45;&gt;src/application/index.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M239.97,-51.41C247.42,-52.94 255.05,-54.52 262.25,-56 301.78,-64.15 347.16,-73.51 377.61,-79.8"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="376.91,-81.8 383.21,-80.95 377.76,-77.68 376.91,-81.8"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M239.66,-100.85C275.77,-98.89 327.24,-99.14 370.5,-111 377.38,-112.89 384.36,-116.09 390.61,-119.52"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="389.22,-121.13 395.45,-122.36 391.34,-117.51 389.22,-121.13"/>
 </g>
 <!-- src/components/inputs/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts -->
 <g id="edge3" class="edge">
 <title>src/components/inputs/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M239.85,-48.26C247.53,-50.19 255.27,-52.71 262.25,-56 266.61,-58.05 285.75,-73.74 300.7,-86.23"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="299.35,-87.84 305.29,-90.09 302.05,-84.62 299.35,-87.84"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M239.67,-107.2C247.99,-109.47 256,-113.15 262.25,-119 272.01,-128.14 260.93,-138.42 270.25,-148 271.66,-149.45 273.22,-150.77 274.87,-151.96"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="273.77,-153.75 280.02,-154.89 275.85,-150.1 273.77,-153.75"/>
 </g>
 <!-- src/components/utils/DiagnosticsPanel.vue -->
 <g id="node5" class="node">
 <title>src/components/utils/DiagnosticsPanel.vue</title>
 <g id="a_node5"><a xlink:href="src/components/utils/DiagnosticsPanel.vue" xlink:title="DiagnosticsPanel.vue">
-<path fill="#41f083" stroke="black" d="M239.83,-142.62C239.83,-142.62 146.67,-142.62 146.67,-142.62 143.46,-142.62 140.25,-139.42 140.25,-136.21 140.25,-136.21 140.25,-129.79 140.25,-129.79 140.25,-126.58 143.46,-123.38 146.67,-123.38 146.67,-123.38 239.83,-123.38 239.83,-123.38 243.04,-123.38 246.25,-126.58 246.25,-129.79 246.25,-129.79 246.25,-136.21 246.25,-136.21 246.25,-139.42 243.04,-142.62 239.83,-142.62"/>
-<text text-anchor="start" x="148.25" y="-130.07" font-family="Helvetica,sans-Serif" font-size="9.00">DiagnosticsPanel.vue</text>
+<path fill="#41f083" stroke="black" d="M239.83,-51.62C239.83,-51.62 146.67,-51.62 146.67,-51.62 143.46,-51.62 140.25,-48.42 140.25,-45.21 140.25,-45.21 140.25,-38.79 140.25,-38.79 140.25,-35.58 143.46,-32.38 146.67,-32.38 146.67,-32.38 239.83,-32.38 239.83,-32.38 243.04,-32.38 246.25,-35.58 246.25,-38.79 246.25,-38.79 246.25,-45.21 246.25,-45.21 246.25,-48.42 243.04,-51.62 239.83,-51.62"/>
+<text text-anchor="start" x="148.25" y="-39.08" font-family="Helvetica,sans-Serif" font-size="9.00">DiagnosticsPanel.vue</text>
 </a>
 </g>
 </g>
@@ -117,64 +117,64 @@
 <g id="node6" class="node">
 <title>src/stores/appStateStore.ts</title>
 <g id="a_node6"><a xlink:href="src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
-<path fill="#ddfeff" stroke="black" d="M356.08,-142.62C356.08,-142.62 284.67,-142.62 284.67,-142.62 281.46,-142.62 278.25,-139.42 278.25,-136.21 278.25,-136.21 278.25,-129.79 278.25,-129.79 278.25,-126.58 281.46,-123.38 284.67,-123.38 284.67,-123.38 356.08,-123.38 356.08,-123.38 359.29,-123.38 362.5,-126.58 362.5,-129.79 362.5,-129.79 362.5,-136.21 362.5,-136.21 362.5,-139.42 359.29,-142.62 356.08,-142.62"/>
-<text text-anchor="start" x="286.25" y="-130.07" font-family="Helvetica,sans-Serif" font-size="9.00">appStateStore.ts</text>
+<path fill="#ddfeff" stroke="black" d="M356.08,-141.62C356.08,-141.62 284.67,-141.62 284.67,-141.62 281.46,-141.62 278.25,-138.42 278.25,-135.21 278.25,-135.21 278.25,-128.79 278.25,-128.79 278.25,-125.58 281.46,-122.38 284.67,-122.38 284.67,-122.38 356.08,-122.38 356.08,-122.38 359.29,-122.38 362.5,-125.58 362.5,-128.79 362.5,-128.79 362.5,-135.21 362.5,-135.21 362.5,-138.42 359.29,-141.62 356.08,-141.62"/>
+<text text-anchor="start" x="286.25" y="-129.07" font-family="Helvetica,sans-Serif" font-size="9.00">appStateStore.ts</text>
 </a>
 </g>
 </g>
 <!-- src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts -->
 <g id="edge4" class="edge">
 <title>src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M246.59,-133C254.1,-133 261.81,-133 269.27,-133"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="268.87,-135.1 274.87,-133 268.87,-130.9 268.87,-135.1"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M212.03,-52.02C226.02,-60.14 245.83,-72.13 262.25,-84 276.03,-93.96 290.69,-106.33 301.72,-116.01"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="300.24,-117.51 306.12,-119.93 303.03,-114.37 300.24,-117.51"/>
 </g>
 <!-- src/views/NavBar.vue -->
 <g id="node7" class="node">
 <title>src/views/NavBar.vue</title>
 <g id="a_node7"><a xlink:href="src/views/NavBar.vue" xlink:title="NavBar.vue">
-<path fill="#41f083" stroke="black" d="M90.96,-207.62C90.96,-207.62 41.29,-207.62 41.29,-207.62 38.08,-207.62 34.88,-204.42 34.88,-201.21 34.88,-201.21 34.88,-194.79 34.88,-194.79 34.88,-191.58 38.08,-188.38 41.29,-188.38 41.29,-188.38 90.96,-188.38 90.96,-188.38 94.17,-188.38 97.38,-191.58 97.38,-194.79 97.38,-194.79 97.38,-201.21 97.38,-201.21 97.38,-204.42 94.17,-207.62 90.96,-207.62"/>
-<text text-anchor="start" x="42.88" y="-195.07" font-family="Helvetica,sans-Serif" font-size="9.00">NavBar.vue</text>
+<path fill="#41f083" stroke="black" d="M90.96,-176.62C90.96,-176.62 41.29,-176.62 41.29,-176.62 38.08,-176.62 34.88,-173.42 34.88,-170.21 34.88,-170.21 34.88,-163.79 34.88,-163.79 34.88,-160.58 38.08,-157.38 41.29,-157.38 41.29,-157.38 90.96,-157.38 90.96,-157.38 94.17,-157.38 97.38,-160.58 97.38,-163.79 97.38,-163.79 97.38,-170.21 97.38,-170.21 97.38,-173.42 94.17,-176.62 90.96,-176.62"/>
+<text text-anchor="start" x="42.88" y="-164.07" font-family="Helvetica,sans-Serif" font-size="9.00">NavBar.vue</text>
 </a>
 </g>
 </g>
 <!-- src/views/NavBar.vue&#45;&gt;src/stores/videosStore.ts -->
 <g id="edge8" class="edge">
 <title>src/views/NavBar.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M97.55,-205.96C140.45,-215.17 218.36,-224.14 262.25,-182 283.25,-161.84 251.53,-139.29 270.25,-117 271.71,-115.27 273.35,-113.73 275.14,-112.37"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="275.94,-114.34 280.04,-109.47 273.8,-110.72 275.94,-114.34"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M97.77,-171.3C104.58,-173.54 111.25,-176.91 116.25,-182 125.32,-191.23 113.92,-202.21 124.25,-210 148.73,-228.47 233.38,-220.35 262.25,-210 279.27,-203.9 294.85,-190.29 305.42,-179.28"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="306.76,-180.92 309.28,-175.08 303.67,-178.08 306.76,-180.92"/>
 </g>
 <!-- src/views/NavBar.vue&#45;&gt;src/components/inputs/FolderSelector.vue -->
 <g id="edge6" class="edge">
 <title>src/views/NavBar.vue&#45;&gt;src/components/inputs/FolderSelector.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M97.82,-194.66C104.88,-192.43 111.66,-188.81 116.25,-183 133.78,-160.81 105.7,-77.35 124.25,-56 128.13,-51.54 133.01,-48.27 138.38,-45.91"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="138.71,-48.02 143.67,-44.05 137.32,-44.05 138.71,-48.02"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M75.79,-157.25C86.18,-146.19 104.66,-128.48 124.25,-119 128.59,-116.9 133.23,-115.11 137.98,-113.59"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="138.49,-115.63 143.68,-111.97 137.33,-111.59 138.49,-115.63"/>
 </g>
 <!-- src/views/NavBar.vue&#45;&gt;src/stores/appStateStore.ts -->
 <g id="edge7" class="edge">
 <title>src/views/NavBar.vue&#45;&gt;src/stores/appStateStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M83.96,-207.98C95,-213.93 109.98,-220.91 124.25,-224 184.19,-237 208.58,-253.68 262.25,-224 290.1,-208.6 306.2,-173.3 313.85,-151.47"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="315.79,-152.27 315.67,-145.92 311.8,-150.96 315.79,-152.27"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M97.79,-171.99C104.45,-174.2 111.04,-177.39 116.25,-182 122.81,-187.8 116.91,-195.23 124.25,-200 137.11,-208.36 250.63,-210 262.25,-200 280.31,-184.46 254.68,-165.03 270.25,-147 270.53,-146.68 270.81,-146.37 271.1,-146.06"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="272.27,-147.81 275.63,-142.42 269.64,-144.54 272.27,-147.81"/>
 </g>
 <!-- src/views/VideoGallery.vue -->
 <g id="node8" class="node">
 <title>src/views/VideoGallery.vue</title>
 <g id="a_node8"><a xlink:href="src/views/VideoGallery.vue" xlink:title="VideoGallery.vue">
-<path fill="#41f083" stroke="black" d="M101.83,-176.62C101.83,-176.62 30.42,-176.62 30.42,-176.62 27.21,-176.62 24,-173.42 24,-170.21 24,-170.21 24,-163.79 24,-163.79 24,-160.58 27.21,-157.38 30.42,-157.38 30.42,-157.38 101.83,-157.38 101.83,-157.38 105.04,-157.38 108.25,-160.58 108.25,-163.79 108.25,-163.79 108.25,-170.21 108.25,-170.21 108.25,-173.42 105.04,-176.62 101.83,-176.62"/>
-<text text-anchor="start" x="32" y="-164.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoGallery.vue</text>
+<path fill="#41f083" stroke="black" d="M101.83,-207.62C101.83,-207.62 30.42,-207.62 30.42,-207.62 27.21,-207.62 24,-204.42 24,-201.21 24,-201.21 24,-194.79 24,-194.79 24,-191.58 27.21,-188.38 30.42,-188.38 30.42,-188.38 101.83,-188.38 101.83,-188.38 105.04,-188.38 108.25,-191.58 108.25,-194.79 108.25,-194.79 108.25,-201.21 108.25,-201.21 108.25,-204.42 105.04,-207.62 101.83,-207.62"/>
+<text text-anchor="start" x="32" y="-195.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoGallery.vue</text>
 </a>
 </g>
 </g>
 <!-- src/views/VideoGallery.vue&#45;&gt;src/components/VideoCard.vue -->
 <g id="edge9" class="edge">
 <title>src/views/VideoGallery.vue&#45;&gt;src/components/VideoCard.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M74.45,-157.17C84.33,-144.65 103.13,-123.31 124.25,-112 131.14,-108.31 138.88,-105.53 146.61,-103.43"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="146.67,-105.58 152.01,-102.12 145.68,-101.49 146.67,-105.58"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M100.33,-187.92C115.86,-183.2 134.53,-177.53 150.96,-172.54"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="151.3,-174.63 156.43,-170.88 150.08,-170.61 151.3,-174.63"/>
 </g>
 <!-- src/views/VideoGallery.vue&#45;&gt;src/stores/videosStore.ts -->
 <g id="edge10" class="edge">
 <title>src/views/VideoGallery.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M108.37,-174.54C158.78,-182.72 240.1,-192.21 262.25,-173 281.24,-156.53 253.9,-136.1 270.25,-117 271.72,-115.28 273.38,-113.76 275.19,-112.4"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="275.99,-114.37 280.1,-109.52 273.86,-110.75 275.99,-114.37"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M88.87,-208.05C99.32,-212.34 112.18,-216.85 124.25,-219 184.63,-229.75 205.47,-242.19 262.25,-219 281.38,-211.19 297.57,-193.54 307.78,-180.13"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="309.47,-181.37 311.29,-175.28 306.07,-178.9 309.47,-181.37"/>
 </g>
 </g>
 </svg>

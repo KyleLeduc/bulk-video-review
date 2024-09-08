@@ -1,5 +1,5 @@
 import type { ParsedVideo } from '@/types'
-import { applyFilters } from '@/application'
+import { applyFilters, VideoMetadataService } from '@/application'
 import { defineStore } from 'pinia'
 
 interface State {
@@ -60,6 +60,24 @@ export const useVideoStore = defineStore('videos', {
       })
 
       this._videos = filteredVideos
+    },
+
+    updateVotes(videoId: string, delta: number) {
+      const video = this._videos.get(videoId)
+
+      if (video) {
+        const metadataService = VideoMetadataService.getInstance()
+        metadataService
+          .updateVotes(videoId, delta)
+          .then((data) => {
+            if (data) {
+              video.votes = data.votes
+            }
+          })
+          .catch((error) => {
+            console.error('Failed to update video metadata:', error)
+          })
+      }
     },
   },
 })
