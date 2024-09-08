@@ -1,24 +1,28 @@
 <template>
-  <div class="cardNav">
-    <div class="pin" @click="handlePinVideo">📌</div>
-    <div v-if="isVidLoaded" @click="videoElement?.controls.toggleMute">
-      <div v-if="videoElement?.state.isMuted">🔇</div>
-      <div v-else>🔈</div>
-    </div>
+  <div class="card">
+    <div class="cardNav">
+      <div class="pin" @click="handlePinVideo">📌</div>
+      <div v-if="isVidLoaded" @click="videoElement?.controls.toggleMute">
+        <div v-if="videoElement?.state.isMuted">🔇</div>
+        <div v-else>🔈</div>
+      </div>
 
-    <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(-60)">⏪⏪</div>
-    <div v-if="isVidLoaded" @click="handleSkip(-30)">⏪</div>
-    <div class="tabs">
-      <div>{{ props.video.votes }} 🗳️</div>
-      <div class="tab" @click="loadVideo">Thumbs</div>
-      <div class="tab video" @click="loadVideo">Video</div>
-      <div>⏱️ {{ props.video.duration }}</div>
+      <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(-60)">
+        ⏪⏪
+      </div>
+      <div v-if="isVidLoaded" @click="handleSkip(-30)">⏪</div>
+      <div class="tabs">
+        <div>{{ props.video.votes }} 🗳️</div>
+        <div v-if="!isVidLoaded" class="tab" @click="loadVideo">Thumbs</div>
+        <div v-else class="tab video" @click="loadVideo">Video</div>
+        <div>⏱️ {{ props.video.duration }}</div>
+      </div>
+      <div v-if="isVidLoaded" @click="handleSkip(30)">⏩</div>
+      <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(60)">
+        ⏩⏩
+      </div>
+      <div class="close" @click="handleRemoveVideo">❌</div>
     </div>
-    <div v-if="isVidLoaded" @click="handleSkip(30)">⏩</div>
-    <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(60)">⏩⏩</div>
-    <div class="close" @click="handleRemoveVideo">❌</div>
-  </div>
-  <div class="content">
     <img
       class="thumb"
       v-if="!state.showVideo"
@@ -61,7 +65,6 @@ interface State {
 
 /**
  * todo
- * single toggle between thumbs/vids
  * toggling starts vid muted
  *
  * todo
@@ -121,8 +124,44 @@ function loadVideo() {
 </script>
 
 <style lang="scss" scoped>
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #f0f0f0;
+  overflow: hidden; // This will ensure content doesn't overflow the card
+}
+
+.cardNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid brown;
+
+  * {
+    cursor: pointer;
+  }
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.close,
+.pin {
+  padding: 0 12px;
+}
+
+.big-skip {
+  letter-spacing: -10px;
+  padding: 2px 5px;
+}
+
 .tabs {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .tab {
@@ -136,33 +175,6 @@ function loadVideo() {
   margin-right: 5px;
   padding: 0 0.2em;
   border-bottom-width: 0;
-}
-
-.content {
-  height: 100%;
-}
-
-.cardNav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  * {
-    cursor: pointer;
-  }
-}
-
-.close,
-.pin {
-  padding: 0 12px;
-}
-
-.thumb {
-  width: 100%;
-}
-
-.big-skip {
-  letter-spacing: -10px;
-  padding: 2px 5px;
+  cursor: pointer;
 }
 </style>

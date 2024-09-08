@@ -1,7 +1,6 @@
 <template>
   <video
     width="100%"
-    height="300px"
     controls
     :key="video.id"
     ref="videoFrame"

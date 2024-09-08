@@ -1,13 +1,13 @@
 <template>
   <main>
     <div class="container" v-auto-animate>
-      <div class="card" v-for="video in filteredVideos" :key="video.id">
-        <VideoCard
-          @pin-video="handlePin"
-          @remove-video="handleRemove"
-          :video="video"
-        />
-      </div>
+      <VideoCard
+        v-for="video in filteredVideos"
+        :key="video.id"
+        @pin-video="handlePin"
+        @remove-video="handleRemove"
+        :video="video"
+      />
     </div>
   </main>
 </template>
@@ -31,22 +31,8 @@ function handleRemove(id: string) {
 </script>
 
 <style scoped>
-main {
-  margin: 0 3em 3em 3em;
-}
-
 .container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  min-height: 100vh;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  margin: 0.02em;
-  border: 1px solid grey;
-  border-radius: 5px;
-  max-height: 362px;
 }
 </style>

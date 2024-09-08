@@ -19,11 +19,6 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M367.25,-61C367.25,-61 413.25,-61 413.25,-61 419.25,-61 425.25,-67 425.25,-73 425.25,-73 425.25,-104 425.25,-104 425.25,-110 419.25,-116 413.25,-116 413.25,-116 367.25,-116 367.25,-116 361.25,-116 355.25,-110 355.25,-104 355.25,-104 355.25,-73 355.25,-73 355.25,-67 361.25,-61 367.25,-61"/>
 <text text-anchor="middle" x="390.25" y="-103.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M268.75,-61C268.75,-61 335.25,-61 335.25,-61 341.25,-61 347.25,-67 347.25,-73 347.25,-73 347.25,-104 347.25,-104 347.25,-110 341.25,-116 335.25,-116 335.25,-116 268.75,-116 268.75,-116 262.75,-116 256.75,-110 256.75,-104 256.75,-104 256.75,-73 256.75,-73 256.75,-67 262.75,-61 268.75,-61"/>
-<text text-anchor="middle" x="302" y="-103.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_src/views</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-46C28,-46 104.25,-46 104.25,-46 110.25,-46 116.25,-52 116.25,-58 116.25,-58 116.25,-120 116.25,-120 116.25,-126 110.25,-132 104.25,-132 104.25,-132 28,-132 28,-132 22,-132 16,-126 16,-120 16,-120 16,-58 16,-58 16,-52 22,-46 28,-46"/>
@@ -38,6 +33,11 @@
 <title>cluster_src/components/inputs</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-34C144.25,-34 228.75,-34 228.75,-34 234.75,-34 240.75,-40 240.75,-46 240.75,-46 240.75,-77 240.75,-77 240.75,-83 234.75,-89 228.75,-89 228.75,-89 144.25,-89 144.25,-89 138.25,-89 132.25,-83 132.25,-77 132.25,-77 132.25,-46 132.25,-46 132.25,-40 138.25,-34 144.25,-34"/>
 <text text-anchor="middle" x="186.5" y="-76.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M268.75,-61C268.75,-61 335.25,-61 335.25,-61 341.25,-61 347.25,-67 347.25,-73 347.25,-73 347.25,-104 347.25,-104 347.25,-110 341.25,-116 335.25,-116 335.25,-116 268.75,-116 268.75,-116 262.75,-116 256.75,-110 256.75,-104 256.75,-104 256.75,-73 256.75,-73 256.75,-67 262.75,-61 268.75,-61"/>
+<text text-anchor="middle" x="302" y="-103.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <!-- src/application/index.ts -->
 <g id="node1" class="node">
