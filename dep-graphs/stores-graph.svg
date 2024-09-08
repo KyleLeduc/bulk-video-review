@@ -14,6 +14,11 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M20,-8C20,-8 444.5,-8 444.5,-8 450.5,-8 456.5,-14 456.5,-20 456.5,-20 456.5,-246 456.5,-246 456.5,-252 450.5,-258 444.5,-258 444.5,-258 20,-258 20,-258 14,-258 8,-252 8,-246 8,-246 8,-20 8,-20 8,-14 14,-8 20,-8"/>
 <text text-anchor="middle" x="232.25" y="-245.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
 </g>
+<g id="clust2" class="cluster">
+<title>cluster_src/application</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M390.5,-78C390.5,-78 436.5,-78 436.5,-78 442.5,-78 448.5,-84 448.5,-90 448.5,-90 448.5,-121 448.5,-121 448.5,-127 442.5,-133 436.5,-133 436.5,-133 390.5,-133 390.5,-133 384.5,-133 378.5,-127 378.5,-121 378.5,-121 378.5,-90 378.5,-90 378.5,-84 384.5,-78 390.5,-78"/>
+<text text-anchor="middle" x="413.5" y="-120.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
+</g>
 <g id="clust3" class="cluster">
 <title>cluster_src/components</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M136.25,-26C136.25,-26 250.25,-26 250.25,-26 256.25,-26 262.25,-32 262.25,-38 262.25,-38 262.25,-195 262.25,-195 262.25,-201 256.25,-207 250.25,-207 250.25,-207 136.25,-207 136.25,-207 130.25,-207 124.25,-201 124.25,-195 124.25,-195 124.25,-38 124.25,-38 124.25,-32 130.25,-26 136.25,-26"/>
@@ -29,20 +34,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-62C144.25,-62 242.25,-62 242.25,-62 248.25,-62 254.25,-68 254.25,-74 254.25,-74 254.25,-105 254.25,-105 254.25,-111 248.25,-117 242.25,-117 242.25,-117 144.25,-117 144.25,-117 138.25,-117 132.25,-111 132.25,-105 132.25,-105 132.25,-74 132.25,-74 132.25,-68 138.25,-62 144.25,-62"/>
 <text text-anchor="middle" x="193.25" y="-104.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
 </g>
-<g id="clust2" class="cluster">
-<title>cluster_src/application</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M390.5,-78C390.5,-78 436.5,-78 436.5,-78 442.5,-78 448.5,-84 448.5,-90 448.5,-90 448.5,-121 448.5,-121 448.5,-127 442.5,-133 436.5,-133 436.5,-133 390.5,-133 390.5,-133 384.5,-133 378.5,-127 378.5,-121 378.5,-121 378.5,-90 378.5,-90 378.5,-84 384.5,-78 390.5,-78"/>
-<text text-anchor="middle" x="413.5" y="-120.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
+<g id="clust6" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-78C282.25,-78 358.5,-78 358.5,-78 364.5,-78 370.5,-84 370.5,-90 370.5,-90 370.5,-152 370.5,-152 370.5,-158 364.5,-164 358.5,-164 358.5,-164 282.25,-164 282.25,-164 276.25,-164 270.25,-158 270.25,-152 270.25,-152 270.25,-90 270.25,-90 270.25,-84 276.25,-78 282.25,-78"/>
+<text text-anchor="middle" x="320.38" y="-151.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_src/views</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-125C28,-125 104.25,-125 104.25,-125 110.25,-125 116.25,-131 116.25,-137 116.25,-137 116.25,-199 116.25,-199 116.25,-205 110.25,-211 104.25,-211 104.25,-211 28,-211 28,-211 22,-211 16,-205 16,-199 16,-199 16,-137 16,-137 16,-131 22,-125 28,-125"/>
 <text text-anchor="middle" x="66.12" y="-198.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
-</g>
-<g id="clust6" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-78C282.25,-78 358.5,-78 358.5,-78 364.5,-78 370.5,-84 370.5,-90 370.5,-90 370.5,-152 370.5,-152 370.5,-158 364.5,-164 358.5,-164 358.5,-164 282.25,-164 282.25,-164 276.25,-164 270.25,-158 270.25,-152 270.25,-152 270.25,-90 270.25,-90 270.25,-84 276.25,-78 282.25,-78"/>
-<text text-anchor="middle" x="320.38" y="-151.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <!-- src/application/index.ts -->
 <g id="node1" class="node">
