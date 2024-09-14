@@ -1,7 +1,7 @@
 <template>
   <nav>
     <h1>bulk-video-review</h1>
-    <FolderSelector />
+    <FileInput />
 
     <div class="buttons">
       <div class="button" @click="handleClearUnpinned">💣</div>
@@ -39,7 +39,7 @@ import { useAppStateStore } from '@/stores/appStateStore'
 import { useVideoStore } from '@/stores/videosStore'
 import { ref } from 'vue'
 
-import FolderSelector from '@/components/inputs/FolderSelector.vue'
+import FileInput from '@/components/inputs/FileInput.vue'
 
 const videoStore = useVideoStore()
 const appStateStore = useAppStateStore()

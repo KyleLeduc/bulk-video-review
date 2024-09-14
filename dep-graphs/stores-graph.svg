@@ -34,15 +34,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M163.38,-62C163.38,-62 223.12,-62 223.12,-62 229.12,-62 235.12,-68 235.12,-74 235.12,-74 235.12,-105 235.12,-105 235.12,-111 229.12,-117 223.12,-117 223.12,-117 163.38,-117 163.38,-117 157.38,-117 151.38,-111 151.38,-105 151.38,-105 151.38,-74 151.38,-74 151.38,-68 157.38,-62 163.38,-62"/>
 <text text-anchor="middle" x="193.25" y="-104.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
-<g id="clust7" class="cluster">
-<title>cluster_src/views</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-110C28,-110 104.25,-110 104.25,-110 110.25,-110 116.25,-116 116.25,-122 116.25,-122 116.25,-184 116.25,-184 116.25,-190 110.25,-196 104.25,-196 104.25,-196 28,-196 28,-196 22,-196 16,-190 16,-184 16,-184 16,-122 16,-122 16,-116 22,-110 28,-110"/>
-<text text-anchor="middle" x="66.12" y="-183.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_src/stores</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-94C282.25,-94 358.5,-94 358.5,-94 364.5,-94 370.5,-100 370.5,-106 370.5,-106 370.5,-168 370.5,-168 370.5,-174 364.5,-180 358.5,-180 358.5,-180 282.25,-180 282.25,-180 276.25,-180 270.25,-174 270.25,-168 270.25,-168 270.25,-106 270.25,-106 270.25,-100 276.25,-94 282.25,-94"/>
 <text text-anchor="middle" x="320.38" y="-167.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_src/views</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-110C28,-110 104.25,-110 104.25,-110 110.25,-110 116.25,-116 116.25,-122 116.25,-122 116.25,-184 116.25,-184 116.25,-190 110.25,-196 104.25,-196 104.25,-196 28,-196 28,-196 22,-196 16,-190 16,-184 16,-184 16,-122 16,-122 16,-116 22,-110 28,-110"/>
+<text text-anchor="middle" x="66.12" y="-183.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
 </g>
 <!-- src/application/index.ts -->
 <g id="node1" class="node">

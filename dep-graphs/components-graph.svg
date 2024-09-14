@@ -29,15 +29,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M225.38,-115C225.38,-115 285.12,-115 285.12,-115 291.12,-115 297.12,-121 297.12,-127 297.12,-127 297.12,-158 297.12,-158 297.12,-164 291.12,-170 285.12,-170 285.12,-170 225.38,-170 225.38,-170 219.38,-170 213.38,-164 213.38,-158 213.38,-158 213.38,-127 213.38,-127 213.38,-121 219.38,-115 225.38,-115"/>
 <text text-anchor="middle" x="255.25" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M336.25,-205C336.25,-205 412.5,-205 412.5,-205 418.5,-205 424.5,-211 424.5,-217 424.5,-217 424.5,-279 424.5,-279 424.5,-285 418.5,-291 412.5,-291 412.5,-291 336.25,-291 336.25,-291 330.25,-291 324.25,-285 324.25,-279 324.25,-279 324.25,-217 324.25,-217 324.25,-211 330.25,-205 336.25,-205"/>
-<text text-anchor="middle" x="374.38" y="-278.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_src/views</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M90,-185C90,-185 166.25,-185 166.25,-185 172.25,-185 178.25,-191 178.25,-197 178.25,-197 178.25,-259 178.25,-259 178.25,-265 172.25,-271 166.25,-271 166.25,-271 90,-271 90,-271 84,-271 78,-265 78,-259 78,-259 78,-197 78,-197 78,-191 84,-185 90,-185"/>
 <text text-anchor="middle" x="128.12" y="-258.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M336.25,-205C336.25,-205 412.5,-205 412.5,-205 418.5,-205 424.5,-211 424.5,-217 424.5,-217 424.5,-279 424.5,-279 424.5,-285 418.5,-291 412.5,-291 412.5,-291 336.25,-291 336.25,-291 330.25,-291 324.25,-285 324.25,-279 324.25,-279 324.25,-217 324.25,-217 324.25,-211 330.25,-205 336.25,-205"/>
+<text text-anchor="middle" x="374.38" y="-278.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <!-- src/App.vue -->
 <g id="node1" class="node">
