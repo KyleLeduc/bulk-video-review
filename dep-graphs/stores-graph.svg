@@ -19,11 +19,6 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M390.5,-94C390.5,-94 436.5,-94 436.5,-94 442.5,-94 448.5,-100 448.5,-106 448.5,-106 448.5,-137 448.5,-137 448.5,-143 442.5,-149 436.5,-149 436.5,-149 390.5,-149 390.5,-149 384.5,-149 378.5,-143 378.5,-137 378.5,-137 378.5,-106 378.5,-106 378.5,-100 384.5,-94 390.5,-94"/>
 <text text-anchor="middle" x="413.5" y="-136.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-94C282.25,-94 358.5,-94 358.5,-94 364.5,-94 370.5,-100 370.5,-106 370.5,-106 370.5,-168 370.5,-168 370.5,-174 364.5,-180 358.5,-180 358.5,-180 282.25,-180 282.25,-180 276.25,-180 270.25,-174 270.25,-168 270.25,-168 270.25,-106 270.25,-106 270.25,-100 276.25,-94 282.25,-94"/>
-<text text-anchor="middle" x="320.38" y="-167.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_src/components</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M136.25,-26C136.25,-26 250.25,-26 250.25,-26 256.25,-26 262.25,-32 262.25,-38 262.25,-38 262.25,-195 262.25,-195 262.25,-201 256.25,-207 250.25,-207 250.25,-207 136.25,-207 136.25,-207 130.25,-207 124.25,-201 124.25,-195 124.25,-195 124.25,-38 124.25,-38 124.25,-32 130.25,-26 136.25,-26"/>
@@ -36,13 +31,18 @@
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_src/components/inputs</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M151,-62C151,-62 235.5,-62 235.5,-62 241.5,-62 247.5,-68 247.5,-74 247.5,-74 247.5,-105 247.5,-105 247.5,-111 241.5,-117 235.5,-117 235.5,-117 151,-117 151,-117 145,-117 139,-111 139,-105 139,-105 139,-74 139,-74 139,-68 145,-62 151,-62"/>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M163.38,-62C163.38,-62 223.12,-62 223.12,-62 229.12,-62 235.12,-68 235.12,-74 235.12,-74 235.12,-105 235.12,-105 235.12,-111 229.12,-117 223.12,-117 223.12,-117 163.38,-117 163.38,-117 157.38,-117 151.38,-111 151.38,-105 151.38,-105 151.38,-74 151.38,-74 151.38,-68 157.38,-62 163.38,-62"/>
 <text text-anchor="middle" x="193.25" y="-104.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_src/views</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-110C28,-110 104.25,-110 104.25,-110 110.25,-110 116.25,-116 116.25,-122 116.25,-122 116.25,-184 116.25,-184 116.25,-190 110.25,-196 104.25,-196 104.25,-196 28,-196 28,-196 22,-196 16,-190 16,-184 16,-184 16,-122 16,-122 16,-116 22,-110 28,-110"/>
 <text text-anchor="middle" x="66.12" y="-183.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-94C282.25,-94 358.5,-94 358.5,-94 364.5,-94 370.5,-100 370.5,-106 370.5,-106 370.5,-168 370.5,-168 370.5,-174 364.5,-180 358.5,-180 358.5,-180 282.25,-180 282.25,-180 276.25,-180 270.25,-174 270.25,-168 270.25,-168 270.25,-106 270.25,-106 270.25,-100 276.25,-94 282.25,-94"/>
+<text text-anchor="middle" x="320.38" y="-167.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <!-- src/application/index.ts -->
 <g id="node1" class="node">
@@ -83,20 +83,20 @@
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M357.91,-112C364.23,-112 370.8,-112 377.09,-112"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="377.02,-114.1 383.02,-112 377.02,-109.9 377.02,-114.1"/>
 </g>
-<!-- src/components/inputs/FolderSelector.vue -->
+<!-- src/components/inputs/FileInput.vue -->
 <g id="node4" class="node">
-<title>src/components/inputs/FolderSelector.vue</title>
-<g id="a_node4"><a xlink:href="src/components/inputs/FolderSelector.vue" xlink:title="FolderSelector.vue">
-<path fill="#41f083" stroke="black" d="M233.08,-89.62C233.08,-89.62 153.42,-89.62 153.42,-89.62 150.21,-89.62 147,-86.42 147,-83.21 147,-83.21 147,-76.79 147,-76.79 147,-73.58 150.21,-70.38 153.42,-70.38 153.42,-70.38 233.08,-70.38 233.08,-70.38 236.29,-70.38 239.5,-73.58 239.5,-76.79 239.5,-76.79 239.5,-83.21 239.5,-83.21 239.5,-86.42 236.29,-89.62 233.08,-89.62"/>
-<text text-anchor="start" x="155" y="-77.08" font-family="Helvetica,sans-Serif" font-size="9.00">FolderSelector.vue</text>
+<title>src/components/inputs/FileInput.vue</title>
+<g id="a_node4"><a xlink:href="src/components/inputs/FileInput.vue" xlink:title="FileInput.vue">
+<path fill="#41f083" stroke="black" d="M220.71,-89.62C220.71,-89.62 165.79,-89.62 165.79,-89.62 162.58,-89.62 159.38,-86.42 159.38,-83.21 159.38,-83.21 159.38,-76.79 159.38,-76.79 159.38,-73.58 162.58,-70.38 165.79,-70.38 165.79,-70.38 220.71,-70.38 220.71,-70.38 223.92,-70.38 227.12,-73.58 227.12,-76.79 227.12,-76.79 227.12,-83.21 227.12,-83.21 227.12,-86.42 223.92,-89.62 220.71,-89.62"/>
+<text text-anchor="start" x="167.38" y="-77.08" font-family="Helvetica,sans-Serif" font-size="9.00">FileInput.vue</text>
 </a>
 </g>
 </g>
-<!-- src/components/inputs/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts -->
+<!-- src/components/inputs/FileInput.vue&#45;&gt;src/stores/videosStore.ts -->
 <g id="edge2" class="edge">
-<title>src/components/inputs/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M233.84,-90.12C246.76,-93.43 261.2,-97.12 274.48,-100.52"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="273.75,-102.5 280.08,-101.95 274.79,-98.43 273.75,-102.5"/>
+<title>src/components/inputs/FileInput.vue&#45;&gt;src/stores/videosStore.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M227.45,-88.49C241.87,-92.18 258.98,-96.55 274.5,-100.52"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="273.67,-102.48 280,-101.93 274.71,-98.41 273.67,-102.48"/>
 </g>
 <!-- src/components/utils/DiagnosticsPanel.vue -->
 <g id="node5" class="node">
@@ -137,9 +137,9 @@
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M69.01,-118.17C73.77,-96.36 88.57,-44.21 124.25,-23 176.97,8.34 208.43,6.41 262.25,-23 289.62,-37.95 305.82,-72.25 313.62,-93.63"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="311.63,-94.31 315.56,-99.31 315.61,-92.95 311.63,-94.31"/>
 </g>
-<!-- src/views/NavBar.vue&#45;&gt;src/components/inputs/FolderSelector.vue -->
+<!-- src/views/NavBar.vue&#45;&gt;src/components/inputs/FileInput.vue -->
 <g id="edge5" class="edge">
-<title>src/views/NavBar.vue&#45;&gt;src/components/inputs/FolderSelector.vue</title>
+<title>src/views/NavBar.vue&#45;&gt;src/components/inputs/FileInput.vue</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M93.36,-117.94C112.04,-110.77 137.34,-101.06 157.68,-93.26"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="158.38,-95.24 163.23,-91.13 156.87,-91.32 158.38,-95.24"/>
 </g>

@@ -31,7 +31,7 @@
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_src/components/inputs</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M280,-115C280,-115 364.5,-115 364.5,-115 370.5,-115 376.5,-121 376.5,-127 376.5,-127 376.5,-158 376.5,-158 376.5,-164 370.5,-170 364.5,-170 364.5,-170 280,-170 280,-170 274,-170 268,-164 268,-158 268,-158 268,-127 268,-127 268,-121 274,-115 280,-115"/>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M292.38,-115C292.38,-115 352.12,-115 352.12,-115 358.12,-115 364.12,-121 364.12,-127 364.12,-127 364.12,-158 364.12,-158 364.12,-164 358.12,-170 352.12,-170 352.12,-170 292.38,-170 292.38,-170 286.38,-170 280.38,-164 280.38,-158 280.38,-158 280.38,-127 280.38,-127 280.38,-121 286.38,-115 292.38,-115"/>
 <text text-anchor="middle" x="322.25" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
 <g id="clust6" class="cluster">
@@ -168,18 +168,18 @@
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M226.57,-223C268.94,-223 346.03,-223 395.14,-223"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="394.95,-225.1 400.95,-223 394.95,-220.9 394.95,-225.1"/>
 </g>
-<!-- src/components/inputs/FolderSelector.vue -->
+<!-- src/components/inputs/FileInput.vue -->
 <g id="node13" class="node">
-<title>src/components/inputs/FolderSelector.vue</title>
-<g id="a_node13"><a xlink:href="src/components/inputs/FolderSelector.vue" xlink:title="FolderSelector.vue">
-<path fill="#41f083" stroke="black" d="M362.08,-142.62C362.08,-142.62 282.42,-142.62 282.42,-142.62 279.21,-142.62 276,-139.42 276,-136.21 276,-136.21 276,-129.79 276,-129.79 276,-126.58 279.21,-123.38 282.42,-123.38 282.42,-123.38 362.08,-123.38 362.08,-123.38 365.29,-123.38 368.5,-126.58 368.5,-129.79 368.5,-129.79 368.5,-136.21 368.5,-136.21 368.5,-139.42 365.29,-142.62 362.08,-142.62"/>
-<text text-anchor="start" x="284" y="-130.07" font-family="Helvetica,sans-Serif" font-size="9.00">FolderSelector.vue</text>
+<title>src/components/inputs/FileInput.vue</title>
+<g id="a_node13"><a xlink:href="src/components/inputs/FileInput.vue" xlink:title="FileInput.vue">
+<path fill="#41f083" stroke="black" d="M349.71,-142.62C349.71,-142.62 294.79,-142.62 294.79,-142.62 291.58,-142.62 288.38,-139.42 288.38,-136.21 288.38,-136.21 288.38,-129.79 288.38,-129.79 288.38,-126.58 291.58,-123.38 294.79,-123.38 294.79,-123.38 349.71,-123.38 349.71,-123.38 352.92,-123.38 356.12,-126.58 356.12,-129.79 356.12,-129.79 356.12,-136.21 356.12,-136.21 356.12,-139.42 352.92,-142.62 349.71,-142.62"/>
+<text text-anchor="start" x="296.38" y="-130.07" font-family="Helvetica,sans-Serif" font-size="9.00">FileInput.vue</text>
 </a>
 </g>
 </g>
-<!-- src/views/NavBar.vue&#45;&gt;src/components/inputs/FolderSelector.vue -->
+<!-- src/views/NavBar.vue&#45;&gt;src/components/inputs/FileInput.vue -->
 <g id="edge28" class="edge">
-<title>src/views/NavBar.vue&#45;&gt;src/components/inputs/FolderSelector.vue</title>
+<title>src/views/NavBar.vue&#45;&gt;src/components/inputs/FileInput.vue</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M226.71,-216.16C233.09,-214.06 239.58,-211.38 245.25,-208 271.03,-192.63 294.59,-166.71 308.44,-149.73"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="309.77,-151.42 311.87,-145.42 306.49,-148.81 309.77,-151.42"/>
 </g>
@@ -348,9 +348,9 @@
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M465.76,-212.93C474.21,-209.1 483.77,-204.56 492.25,-200 498.62,-196.57 505.36,-192.58 511.52,-188.77"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="512.44,-190.68 516.4,-185.7 510.2,-187.12 512.44,-190.68"/>
 </g>
-<!-- src/components/inputs/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts -->
+<!-- src/components/inputs/FileInput.vue&#45;&gt;src/stores/videosStore.ts -->
 <g id="edge11" class="edge">
-<title>src/components/inputs/FolderSelector.vue&#45;&gt;src/stores/videosStore.ts</title>
+<title>src/components/inputs/FileInput.vue&#45;&gt;src/stores/videosStore.ts</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M331.2,-142.7C343.09,-156.76 366.76,-182.96 391.25,-200 396.08,-203.36 401.48,-206.45 406.88,-209.2"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="405.69,-210.96 412.01,-211.67 407.51,-207.18 405.69,-210.96"/>
 </g>

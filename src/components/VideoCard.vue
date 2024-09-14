@@ -1,8 +1,17 @@
 <template>
   <div class="card">
+    <img
+      class="thumb"
+      v-if="!state.showVideo"
+      :src="video.thumb"
+      alt=""
+      srcset=""
+    />
+    <VideoEmbed ref="videoElement" v-else :video="props.video" />
+
     <div class="cardNav">
       <div class="pin" @click="handlePinVideo">📌</div>
-      <div v-if="isVidLoaded" @click="videoElement?.controls.toggleMute">
+      <div v-if="isVidLoaded" @click="handleMute">
         <div v-if="videoElement?.state.isMuted">🔇</div>
         <div v-else>🔈</div>
       </div>
@@ -23,14 +32,6 @@
       </div>
       <div class="close" @click="handleRemoveVideo">❌</div>
     </div>
-    <img
-      class="thumb"
-      v-if="!state.showVideo"
-      :src="video.thumb"
-      alt=""
-      srcset=""
-    />
-    <VideoEmbed ref="videoElement" v-else :video="props.video" />
   </div>
 </template>
 
@@ -84,17 +85,11 @@ const isVidLoaded = computed(() => {
   return videoElement.value !== null
 })
 
-// const handleMute = () => {
-//   if (videoElement.value) {
-//     videoElement.value.controls.toggleMute()
-//   }
-// }
+const handleMute = () =>
+  videoElement.value && videoElement.value.controls.toggleMute()
 
-const handleSkip = (duration: number) => {
-  if (videoElement.value) {
-    videoElement.value.controls.skip(duration)
-  }
-}
+const handleSkip = (duration: number) =>
+  videoElement.value && videoElement.value.controls.skip(duration)
 
 // const handlePlay = () => {
 //   if (videoElement.value) {
@@ -128,7 +123,8 @@ function loadVideo() {
   display: flex;
   flex-direction: column;
   border: 1px solid #f0f0f0;
-  overflow: hidden; // This will ensure content doesn't overflow the card
+  overflow: hidden;
+  position: relative;
 }
 
 .cardNav {
@@ -136,10 +132,37 @@ function loadVideo() {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid brown;
+  position: absolute;
+  top: -100%;
+  left: 0;
+  right: 0;
+  opacity: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  transition:
+    top 0.3s ease,
+    opacity 0.3s ease;
 
   * {
     cursor: pointer;
   }
+}
+
+.card:hover .cardNav,
+.card:focus-within .cardNav {
+  top: 0;
+  opacity: 1;
+  transition:
+    top 0.3s ease,
+    opacity 0.3s ease;
+}
+
+.card .cardNav {
+  transition-delay: 0.3s; // Add delay for hiding
+}
+
+.card:hover .cardNav,
+.card:focus-within .cardNav {
+  transition-delay: 0s; // Remove delay for showing
 }
 
 .content {
