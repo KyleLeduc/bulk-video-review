@@ -16,10 +16,10 @@
         <div v-else>🔈</div>
       </div>
 
-      <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(-60)">
+      <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(-30)">
         ⏪⏪
       </div>
-      <div v-if="isVidLoaded" @click="handleSkip(-30)">⏪</div>
+      <div v-if="isVidLoaded" @click="handleSkip(-15)">⏪</div>
       <div class="tabs">
         <div>{{ props.video.votes }} 🗳️</div>
         <div v-if="!isVidLoaded" class="tab" @click="loadVideo">Thumbs</div>
