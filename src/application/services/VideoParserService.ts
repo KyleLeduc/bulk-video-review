@@ -1,12 +1,12 @@
 import type { ParsedVideo, VideoEntity, VideoMetadata } from '@/types'
 import { VideoMetadataService } from './VideoMetadataService'
 
-export const parseFileList = async (files: FileList) => {
+export async function* parseFileList(files: FileList) {
+  const startTime = performance.now()
   const parser = new FileVideoParser()
   const storage = VideoMetadataService.getInstance()
 
-  const videos = []
-  for (const file of files) {
+  const processFile = async (file: File) => {
     try {
       // try to get the video from storage
       let videoDto = await storage.getVideo(await parser.generateHash(file))
@@ -19,7 +19,7 @@ export const parseFileList = async (files: FileList) => {
           videoDto = await storage.postVideo(newVideoDto)
         } else {
           // we didn't find a video and couldn't create a new VideoEntity
-          continue
+          return null
         }
       }
 
@@ -29,64 +29,75 @@ export const parseFileList = async (files: FileList) => {
         pinned: false,
       }
 
-      videos.push(parsedVideo)
+      return parsedVideo
     } catch (e) {
       console.error('file input error', e)
     }
   }
 
-  return videos
+  const filePromises = Array.from(files).map((file) => processFile(file))
+
+  const batchSize = 20 // Adjust batch size as needed
+  for (let i = 0; i < filePromises.length; i += batchSize) {
+    const batch = filePromises.slice(i, i + batchSize)
+    const results = await Promise.allSettled(batch)
+
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value) {
+        yield result.value
+      }
+    }
+
+    // Allow the browser to handle other tasks
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+
+  const endTime = performance.now()
+  console.log(`Total time taken: ${endTime - startTime} milliseconds`)
 }
 
 class FileVideoParser {
-  private video: HTMLVideoElement = document.createElement('video')
-  private canvas: HTMLCanvasElement = document.createElement('canvas')
-  private context: CanvasRenderingContext2D | null =
-    this.canvas.getContext('2d')
-
   private generateMetadata = async (file: File) => {
     const key = await this.generateHash(file)
 
     return new Promise<VideoMetadata>((resolve, reject) => {
       let duration: number
-      this.video.src = URL.createObjectURL(file)
+
+      const video: HTMLVideoElement = document.createElement('video')
+      const canvas: HTMLCanvasElement = document.createElement('canvas')
+      const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
+
+      video.src = URL.createObjectURL(file)
 
       const handleLoadedData = () => {
-        this.canvas.width = 1920 * 0.5
-        this.canvas.height = 1080 * 0.5
+        canvas.width = 1920 * 0.5
+        canvas.height = 1080 * 0.5
 
-        this.video.currentTime = 60
-        duration = Math.round(this.video.duration / 60)
+        video.currentTime = 60
+        duration = Math.round(video.duration / 60)
       }
 
       const handleSeek = () => {
-        this.context?.drawImage(
-          this.video,
-          0,
-          0,
-          this.canvas.width,
-          this.canvas.height,
-        )
-        const thumbUrl = this.canvas.toDataURL('image/jpeg', 0.25)
+        context?.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const thumbUrl = canvas.toDataURL('image/jpeg', 0.25)
 
         const videoMetadata = { duration, thumbUrl, id: key }
 
-        // causes throwing errors about file not found
-        // URL.revokeObjectURL(this.video.src)
+        URL.revokeObjectURL(video.src)
 
         resolve(videoMetadata)
       }
 
       const handleError = (e: ErrorEvent) => {
-        URL.revokeObjectURL(this.video.src)
+        URL.revokeObjectURL(video.src)
         reject(e)
       }
 
-      this.video.addEventListener('seeked', handleSeek, { once: true })
-      this.video.addEventListener('loadeddata', handleLoadedData, {
+      video.addEventListener('seeked', handleSeek, { once: true })
+      video.addEventListener('loadedmetadata', handleLoadedData, {
         once: true,
       })
-      this.video.addEventListener('error', handleError, { once: true })
+      video.addEventListener('error', handleError, { once: true })
     })
   }
 

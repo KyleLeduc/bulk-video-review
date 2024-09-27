@@ -86,7 +86,9 @@ export const useVideoStore = defineStore('videos', {
 
     async addVideosFromFiles(files: FileList) {
       const parsedVideos = await parseFileList(files)
-      this.addVideos(parsedVideos)
+      for await (const video of parsedVideos) {
+        this.addVideos([video])
+      }
     },
   },
 })

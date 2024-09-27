@@ -1,6 +1,6 @@
 <template>
   <main>
-    <div class="container" v-auto-animate>
+    <div class="container" ref="container">
       <VideoCard
         v-for="video in filteredVideos"
         :key="video.id"
@@ -13,6 +13,9 @@
 </template>
 
 <script setup lang="ts">
+import { watch, onMounted } from 'vue'
+import { useAutoAnimate } from '@formkit/auto-animate/vue'
+import { useDebounce } from '@/composables'
 import { useVideoStore } from '@/stores/videosStore'
 import { useAppStateStore } from '@/stores/appStateStore'
 import { storeToRefs } from 'pinia'
@@ -22,6 +25,23 @@ const videoStore = useVideoStore()
 const appStateStore = useAppStateStore()
 const { filteredVideos } = storeToRefs(videoStore)
 const { columnCount } = storeToRefs(appStateStore)
+
+const [container, enableAnimations] = useAutoAnimate({
+  easing: 'ease-in',
+  duration: 100,
+})
+
+const debouncedEnableAnimations = useDebounce(() => {
+  enableAnimations(true)
+}, 100)
+
+onMounted(() => {
+  enableAnimations(false)
+})
+
+watch(filteredVideos, () => {
+  debouncedEnableAnimations()
+})
 
 function handlePin(id: string) {
   videoStore.togglePinVideo(id)
