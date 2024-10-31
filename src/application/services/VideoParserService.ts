@@ -35,21 +35,21 @@ export async function* parseFileList(files: FileList) {
     }
   }
 
-  const filePromises = Array.from(files).map((file) => processFile(file))
+  const fileList = Array.from(files)
 
-  const batchSize = 20 // Adjust batch size as needed
-  for (let i = 0; i < filePromises.length; i += batchSize) {
-    const batch = filePromises.slice(i, i + batchSize)
-    const results = await Promise.allSettled(batch)
+  const batchSize = 10 // Adjust batch size as needed
+  for (let i = 0; i < fileList.length; i += batchSize) {
+    const batchFiles = fileList.slice(i, i + batchSize)
+
+    const batchPromises = batchFiles.map((file) => processFile(file))
+
+    const results = await Promise.allSettled(batchPromises)
 
     for (const result of results) {
       if (result.status === 'fulfilled' && result.value) {
         yield result.value
       }
     }
-
-    // Allow the browser to handle other tasks
-    await new Promise((resolve) => setTimeout(resolve, 50))
   }
 
   const endTime = performance.now()
