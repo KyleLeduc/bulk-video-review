@@ -29,15 +29,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-62C144.25,-62 204,-62 204,-62 210,-62 216,-68 216,-74 216,-74 216,-105 216,-105 216,-111 210,-117 204,-117 204,-117 144.25,-117 144.25,-117 138.25,-117 132.25,-111 132.25,-105 132.25,-105 132.25,-74 132.25,-74 132.25,-68 138.25,-62 144.25,-62"/>
 <text text-anchor="middle" x="174.12" y="-104.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M244,-44C244,-44 310.5,-44 310.5,-44 316.5,-44 322.5,-50 322.5,-56 322.5,-56 322.5,-87 322.5,-87 322.5,-93 316.5,-99 310.5,-99 310.5,-99 244,-99 244,-99 238,-99 232,-93 232,-87 232,-87 232,-56 232,-56 232,-50 238,-44 244,-44"/>
-<text text-anchor="middle" x="277.25" y="-86.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_src/views</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-39C28,-39 104.25,-39 104.25,-39 110.25,-39 116.25,-45 116.25,-51 116.25,-51 116.25,-113 116.25,-113 116.25,-119 110.25,-125 104.25,-125 104.25,-125 28,-125 28,-125 22,-125 16,-119 16,-113 16,-113 16,-51 16,-51 16,-45 22,-39 28,-39"/>
 <text text-anchor="middle" x="66.12" y="-112.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M244,-44C244,-44 310.5,-44 310.5,-44 316.5,-44 322.5,-50 322.5,-56 322.5,-56 322.5,-87 322.5,-87 322.5,-93 316.5,-99 310.5,-99 310.5,-99 244,-99 244,-99 238,-99 232,-93 232,-87 232,-87 232,-56 232,-56 232,-50 238,-44 244,-44"/>
+<text text-anchor="middle" x="277.25" y="-86.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <!-- src/application/index.ts -->
 <g id="node1" class="node">

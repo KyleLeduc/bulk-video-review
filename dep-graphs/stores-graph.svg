@@ -29,15 +29,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M136.25,-26C136.25,-26 250.25,-26 250.25,-26 256.25,-26 262.25,-32 262.25,-38 262.25,-38 262.25,-195 262.25,-195 262.25,-201 256.25,-207 250.25,-207 250.25,-207 136.25,-207 136.25,-207 130.25,-207 124.25,-201 124.25,-195 124.25,-195 124.25,-38 124.25,-38 124.25,-32 130.25,-26 136.25,-26"/>
 <text text-anchor="middle" x="193.25" y="-194.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">components</text>
 </g>
-<g id="clust4" class="cluster">
-<title>cluster_src/components/inputs</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M163.38,-62C163.38,-62 223.12,-62 223.12,-62 229.12,-62 235.12,-68 235.12,-74 235.12,-74 235.12,-105 235.12,-105 235.12,-111 229.12,-117 223.12,-117 223.12,-117 163.38,-117 163.38,-117 157.38,-117 151.38,-111 151.38,-105 151.38,-105 151.38,-74 151.38,-74 151.38,-68 157.38,-62 163.38,-62"/>
-<text text-anchor="middle" x="193.25" y="-104.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
-</g>
 <g id="clust5" class="cluster">
 <title>cluster_src/components/utils</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-125C144.25,-125 242.25,-125 242.25,-125 248.25,-125 254.25,-131 254.25,-137 254.25,-137 254.25,-168 254.25,-168 254.25,-174 248.25,-180 242.25,-180 242.25,-180 144.25,-180 144.25,-180 138.25,-180 132.25,-174 132.25,-168 132.25,-168 132.25,-137 132.25,-137 132.25,-131 138.25,-125 144.25,-125"/>
 <text text-anchor="middle" x="193.25" y="-167.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_src/components/inputs</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M163.38,-62C163.38,-62 223.12,-62 223.12,-62 229.12,-62 235.12,-68 235.12,-74 235.12,-74 235.12,-105 235.12,-105 235.12,-111 229.12,-117 223.12,-117 223.12,-117 163.38,-117 163.38,-117 157.38,-117 151.38,-111 151.38,-105 151.38,-105 151.38,-74 151.38,-74 151.38,-68 157.38,-62 163.38,-62"/>
+<text text-anchor="middle" x="193.25" y="-104.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_src/views</title>

@@ -33,7 +33,7 @@ const [container, enableAnimations] = useAutoAnimate({
 
 const debouncedEnableAnimations = useDebounce(() => {
   enableAnimations(true)
-}, 100)
+}, 3000)
 
 onMounted(() => {
   enableAnimations(false)
