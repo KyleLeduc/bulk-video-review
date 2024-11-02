@@ -60,9 +60,9 @@
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="140.6,-38.3 146.79,-36.85 141.05,-34.12 140.6,-38.3"/>
 </g>
 <!-- src/stores -->
-<g id="node6" class="node">
+<g id="node7" class="node">
 <title>src/stores</title>
-<g id="a_node6"><a xlink:href="src/stores" xlink:title="stores">
+<g id="a_node7"><a xlink:href="src/stores" xlink:title="stores">
 <polygon fill="#ffffcc" stroke="black" points="351.75,-42.62 299.89,-42.62 297.75,-40.49 297.75,-23.38 349.61,-23.38 351.75,-25.51 351.75,-42.62"/>
 <polyline fill="none" stroke="black" points="349.61,-40.49 297.75,-40.49"/>
 <polyline fill="none" stroke="black" points="349.61,-40.49 349.61,-23.38"/>
@@ -72,19 +72,19 @@
 </g>
 </g>
 <!-- src/components&#45;&gt;src/stores -->
-<g id="edge4" class="edge">
+<g id="edge5" class="edge">
 <title>src/components&#45;&gt;src/stores</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M284.87,-29.21C286.21,-29.34 287.55,-29.47 288.89,-29.6"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="288.44,-31.67 294.62,-30.16 288.85,-27.49 288.44,-31.67"/>
 </g>
 <!-- src/views&#45;&gt;src/components -->
-<g id="edge8" class="edge">
+<g id="edge9" class="edge">
 <title>src/views&#45;&gt;src/components</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M204.36,-34.87C205.61,-34.62 206.88,-34.38 208.16,-34.13"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="208.21,-36.26 213.7,-33.05 207.41,-32.13 208.21,-36.26"/>
 </g>
 <!-- src/views&#45;&gt;src/stores -->
-<g id="edge9" class="edge">
+<g id="edge10" class="edge">
 <title>src/views&#45;&gt;src/stores</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M204.41,-42.43C226.07,-43.95 257.49,-45.1 284.75,-42 286.04,-41.85 287.36,-41.68 288.68,-41.48"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="288.94,-43.57 294.48,-40.45 288.2,-39.43 288.94,-43.57"/>
@@ -105,24 +105,24 @@
 <g id="node5" class="node">
 <title>src/infrastructure</title>
 <g id="a_node5"><a xlink:href="src/infrastructure" xlink:title="infrastructure">
-<polygon fill="#ffffcc" stroke="black" points="508.75,-42.62 440.89,-42.62 438.75,-40.49 438.75,-23.38 506.61,-23.38 508.75,-25.51 508.75,-42.62"/>
-<polyline fill="none" stroke="black" points="506.61,-40.49 438.75,-40.49"/>
-<polyline fill="none" stroke="black" points="506.61,-40.49 506.61,-23.38"/>
-<polyline fill="none" stroke="black" points="506.61,-40.49 508.75,-42.62"/>
-<text text-anchor="start" x="446.75" y="-30.07" font-family="Helvetica,sans-Serif" font-size="9.00">infrastructure</text>
+<polygon fill="#ffffcc" stroke="black" points="508.75,-35.62 440.89,-35.62 438.75,-33.49 438.75,-16.38 506.61,-16.38 508.75,-18.51 508.75,-35.62"/>
+<polyline fill="none" stroke="black" points="506.61,-33.49 438.75,-33.49"/>
+<polyline fill="none" stroke="black" points="506.61,-33.49 506.61,-16.38"/>
+<polyline fill="none" stroke="black" points="506.61,-33.49 508.75,-35.62"/>
+<text text-anchor="start" x="446.75" y="-23.07" font-family="Helvetica,sans-Serif" font-size="9.00">infrastructure</text>
 </a>
 </g>
 </g>
 <!-- src/application&#45;&gt;src/infrastructure -->
 <g id="edge3" class="edge">
 <title>src/application&#45;&gt;src/infrastructure</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M426.05,-33C427.18,-33 428.32,-33 429.47,-33"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="429.31,-35.1 435.31,-33 429.31,-30.9 429.31,-35.1"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M426.05,-30.27C427.18,-30.17 428.32,-30.07 429.47,-29.96"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="429.53,-32.06 435.32,-29.43 429.15,-27.88 429.53,-32.06"/>
 </g>
 <!-- src/domain -->
-<g id="node7" class="node">
+<g id="node6" class="node">
 <title>src/domain</title>
-<g id="a_node7"><a xlink:href="src/domain" xlink:title="domain">
+<g id="a_node6"><a xlink:href="src/domain" xlink:title="domain">
 <polygon fill="#ffffcc" stroke="black" points="575.75,-42.62 523.89,-42.62 521.75,-40.49 521.75,-23.38 573.61,-23.38 575.75,-25.51 575.75,-42.62"/>
 <polyline fill="none" stroke="black" points="573.61,-40.49 521.75,-40.49"/>
 <polyline fill="none" stroke="black" points="573.61,-40.49 573.61,-23.38"/>
@@ -131,14 +131,20 @@
 </a>
 </g>
 </g>
+<!-- src/application&#45;&gt;src/domain -->
+<g id="edge4" class="edge">
+<title>src/application&#45;&gt;src/domain</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M425.85,-40.09C430.15,-40.88 434.55,-41.56 438.75,-42 469.69,-45.24 477.84,-45.52 508.75,-42 510.04,-41.85 511.36,-41.68 512.68,-41.48"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="512.94,-43.57 518.48,-40.45 512.2,-39.43 512.94,-43.57"/>
+</g>
 <!-- src/infrastructure&#45;&gt;src/domain -->
-<g id="edge5" class="edge">
+<g id="edge6" class="edge">
 <title>src/infrastructure&#45;&gt;src/domain</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M509.11,-33C510.28,-33 511.45,-33 512.61,-33"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="512.41,-35.1 518.41,-33 512.41,-30.9 512.41,-35.1"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M509.11,-29.3C510.28,-29.41 511.45,-29.52 512.61,-29.63"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="512.25,-31.71 518.42,-30.19 512.65,-27.52 512.25,-31.71"/>
 </g>
 <!-- src/stores&#45;&gt;src/application -->
-<g id="edge7" class="edge">
+<g id="edge8" class="edge">
 <title>src/stores&#45;&gt;src/application</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M352.04,-33C353.18,-33 354.34,-33 355.51,-33"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="355.46,-35.1 361.46,-33 355.46,-30.9 355.46,-35.1"/>
@@ -153,7 +159,7 @@
 </g>
 </g>
 <!-- src/main.ts&#45;&gt;src/App.vue -->
-<g id="edge6" class="edge">
+<g id="edge7" class="edge">
 <title>src/main.ts&#45;&gt;src/App.vue</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M70.44,-33C71.58,-33 72.74,-33 73.9,-33"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="73.77,-35.1 79.77,-33 73.77,-30.9 73.77,-35.1"/>
