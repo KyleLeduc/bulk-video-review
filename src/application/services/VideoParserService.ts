@@ -1,6 +1,6 @@
 import { FileVideoParser } from '@/domain'
 import { VideoMetadataService } from './VideoMetadataService'
-import type { ParsedVideo } from '@/types'
+import type { ParsedVideo, VideoStorageDto } from '@/types'
 
 export async function* parseFileList(files: FileList) {
   const startTime = performance.now()
@@ -9,19 +9,14 @@ export async function* parseFileList(files: FileList) {
 
   const processFile = async (file: File) => {
     try {
-      // try to get the video from storage
-      let videoDto = await storage.getVideo(await parser.generateHash(file))
+      let videoDto
+      const newVideoDto = await parser.transformVideoData(file)
 
-      if (!videoDto) {
-        // if we didn't find a video, create
-        const newVideoDto = await parser.transformVideoData(file)
-
-        if (newVideoDto) {
-          videoDto = await storage.postVideo(newVideoDto)
-        } else {
-          // we didn't find a video and couldn't create a new VideoEntity
-          return null
-        }
+      if (newVideoDto) {
+        videoDto = await storage.postVideo(newVideoDto)
+      } else {
+        // we didn't find a video and couldn't create a new VideoEntity
+        return null
       }
 
       const parsedVideo: ParsedVideo = {
@@ -36,11 +31,34 @@ export async function* parseFileList(files: FileList) {
     }
   }
 
+  const filesToProcess: File[] = []
+  const foundVideoEntities: { videoEntity: VideoStorageDto; file: File }[] = []
+
   const fileList = Array.from(files)
 
-  const batchSize = 10 // Adjust batch size as needed
-  for (let i = 0; i < fileList.length; i += batchSize) {
-    const batchFiles = fileList.slice(i, i + batchSize)
+  for (const file of fileList) {
+    // sort videos by already processed and new
+    const videoEntity = await storage.getVideo(await parser.generateHash(file))
+
+    if (videoEntity) {
+      foundVideoEntities.push({ videoEntity, file })
+    } else {
+      filesToProcess.push(file)
+    }
+  }
+
+  for (const { videoEntity, file } of foundVideoEntities) {
+    const parsedVideo: ParsedVideo = {
+      ...videoEntity,
+      url: URL.createObjectURL(file),
+      pinned: false,
+    }
+    yield parsedVideo
+  }
+
+  const batchSize = 3 // Adjust batch size as needed
+  for (let i = 0; i < filesToProcess.length; i += batchSize) {
+    const batchFiles = filesToProcess.slice(i, i + batchSize)
 
     const batchPromises = batchFiles.map((file) => processFile(file))
 
