@@ -19,7 +19,8 @@
     "dep-graph": "run-p dep:*",
     "prepare": "husky",
     "deploy:gh": "gh-pages -d dist",
-    "deploy": "run-s build deploy:gh"
+    "deploy": "run-s build deploy:gh",
+    "dev:container": "npm run dev -- --host 127.0.0.1"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
