@@ -1,4 +1,4 @@
-import type { VideoEntity } from '@/types'
+import type { VideoEntity } from '@/domain'
 import { getAllFromStore, transactionComplete } from './utils'
 
 export const handleAddVideoMetadataStore = async (

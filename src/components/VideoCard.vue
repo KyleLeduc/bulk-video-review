@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ParsedVideo } from '@/types'
+import type { ParsedVideo } from '@/domain'
 import { computed, reactive, ref } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
 import { useVideoStore } from '@/stores/videosStore'

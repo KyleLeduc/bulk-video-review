@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ParsedVideo } from '@/types'
+import type { ParsedVideo } from '@/domain'
 import { onMounted, reactive, ref } from 'vue'
 defineProps<{ video: ParsedVideo }>()
 const videoFrame = ref<HTMLVideoElement | null>(null)

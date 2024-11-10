@@ -1,6 +1,6 @@
 import { FileVideoParser } from '@/domain'
 import { VideoMetadataService } from './VideoMetadataService'
-import type { ParsedVideo, VideoStorageDto } from '@/types'
+import type { ParsedVideo, VideoStorageDto } from '@/domain'
 
 export async function* parseFileList(files: FileList) {
   const startTime = performance.now()

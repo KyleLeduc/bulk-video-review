@@ -1,4 +1,4 @@
-import type { ParsedVideo } from '@/types'
+import type { ParsedVideo } from '@/domain'
 
 interface Filters {
   minDuration?: number

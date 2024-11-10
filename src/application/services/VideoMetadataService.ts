@@ -1,4 +1,4 @@
-import type { VideoStorageDto, VideoEntity, VideoMetadataEntity } from '@/types'
+import type { VideoStorageDto, VideoEntity, MetadataEntity } from '@/domain'
 import { MetadataRepository, VideoRepository } from '@/infrastructure'
 import { VideoStorageDtoMapper } from './VideoStorageDtoMapper'
 
@@ -52,10 +52,7 @@ class VideoMetadataService {
     return VideoStorageDtoMapper.toDto(videoEntity, metadata)
   }
 
-  async updateVotes(
-    id: string,
-    delta: number,
-  ): Promise<VideoMetadataEntity | null> {
+  async updateVotes(id: string, delta: number): Promise<MetadataEntity | null> {
     try {
       const metadata = await this.metadataRepo.getMetadata(id)
 

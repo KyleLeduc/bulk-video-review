@@ -1,10 +1,10 @@
-import type { VideoEntity, VideoMetadata } from '@/types'
+import { ParsedVideoData, type VideoEntity } from '@/domain'
 
 export class FileVideoParser {
   private readonly generateMetadata = async (file: File) => {
     const key = await this.generateHash(file)
 
-    return new Promise<VideoMetadata>((resolve, reject) => {
+    return new Promise<ParsedVideoData>((resolve, reject) => {
       let duration: number
 
       const video: HTMLVideoElement = document.createElement('video')
@@ -25,7 +25,7 @@ export class FileVideoParser {
         context?.drawImage(video, 0, 0, canvas.width, canvas.height)
         const thumbUrl = canvas.toDataURL('image/jpeg', 0.25)
 
-        const videoMetadata = { duration, thumbUrl, id: key }
+        const videoMetadata = new ParsedVideoData(thumbUrl, key, duration)
 
         URL.revokeObjectURL(video.src)
 
