@@ -1,5 +1,6 @@
 import type { VideoStorageDto, VideoEntity, VideoMetadataEntity } from '@/types'
 import { MetadataRepository, VideoRepository } from '@/infrastructure'
+import { VideoStorageDtoMapper } from './VideoStorageDtoMapper'
 
 /**
  * IndexedDb bridge to handle storing video metadata
@@ -36,7 +37,7 @@ class VideoMetadataService {
     const metadata = await this.metadataRepo.getMetadata(id)
 
     if (!videoData) return undefined
-    return { ...videoData, ...metadata }
+    return VideoStorageDtoMapper.toDto(videoData, metadata)
   }
 
   async postVideo(videoMetadata: VideoEntity): Promise<VideoStorageDto> {
@@ -48,7 +49,7 @@ class VideoMetadataService {
 
     const videoEntity = await this.videoRepo.postVideo(videoMetadata)
 
-    return { ...videoEntity, ...metadata }
+    return VideoStorageDtoMapper.toDto(videoEntity, metadata)
   }
 
   async updateVotes(
