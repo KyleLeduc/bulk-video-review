@@ -19,8 +19,7 @@
     "dep-graph": "run-p dep:*",
     "prepare": "husky",
     "deploy:gh": "gh-pages -d dist",
-    "deploy": "run-s build deploy:gh",
-    "dev:container": "npm run dev -- --host 127.0.0.1"
+    "deploy": "run-s build deploy:gh"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
@@ -56,4 +55,3 @@
     "vue-tsc": "^2.0.22"
   }
 }
-
