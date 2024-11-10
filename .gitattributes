@@ -1,2 +1,3 @@
-*.ts text eol=crlf
-*.vue text eol=crlf
+* text=auto eol=lf
+*.ts text eol=lf
+*.vue text eol=lf
