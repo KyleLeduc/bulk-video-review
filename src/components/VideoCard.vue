@@ -7,7 +7,12 @@
       alt=""
       srcset=""
     />
-    <VideoEmbed ref="videoElement" v-else :video="props.video" />
+    <VideoEmbed
+      v-else
+      ref="videoElement"
+      :video="props.video"
+      :options="embedInitOptions"
+    />
 
     <div class="cardNav">
       <div class="pin" @click="handlePinVideo">📌</div>
@@ -59,20 +64,9 @@ interface State {
   }
 }
 
-// const votes = computed(() => {
-//   // todo get votes to videos
-//   return props.video.
-// })
-
 /**
  * todo
- * toggling starts vid muted
- *
- * todo
  * color border based on votes
- *
- * todo
- * pin switches to video muted & not playing
  */
 
 const state = reactive<State>({
@@ -80,6 +74,12 @@ const state = reactive<State>({
   thumbsLoaded: false,
   interval: { id: 0, index: 0 },
 })
+
+const embedInitOptions = {
+  playing: false,
+  muted: true,
+  volume: 0.5,
+}
 
 const isVidLoaded = computed(() => {
   return videoElement.value !== null
@@ -91,14 +91,13 @@ const handleMute = () =>
 const handleSkip = (duration: number) =>
   videoElement.value && videoElement.value.controls.skip(duration)
 
-// const handlePlay = () => {
-//   if (videoElement.value) {
-//     videoElement.value.controls.togglePlay()
-//   }
-// }
-
 function handlePinVideo() {
   videoStore.updateVotes(props.video.id, 2)
+
+  embedInitOptions.playing = false
+  embedInitOptions.muted = true
+
+  state.showVideo = true
 
   emit('pinVideo', props.video.id)
 }
@@ -109,6 +108,8 @@ function handleRemoveVideo() {
 }
 
 function loadVideo() {
+  embedInitOptions.playing = true
+
   state.showVideo = !state.showVideo
   if (state.showVideo === true) {
     videoStore.updateVotes(props.video.id, 1)
