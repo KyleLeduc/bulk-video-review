@@ -13,7 +13,27 @@
 <script setup lang="ts">
 import type { ParsedVideo } from '@/domain'
 import { onMounted, reactive, ref } from 'vue'
-defineProps<{ video: ParsedVideo }>()
+
+interface VideoEmbedInitOptions {
+  playing: boolean
+  muted: boolean
+  volume: number
+}
+
+const props = withDefaults(
+  defineProps<{
+    video: ParsedVideo
+    options?: VideoEmbedInitOptions
+  }>(),
+  {
+    options: (): VideoEmbedInitOptions => ({
+      playing: true,
+      muted: true,
+      volume: 0.5,
+    }),
+  },
+)
+
 const videoFrame = ref<HTMLVideoElement | null>(null)
 
 const state = reactive({
@@ -48,8 +68,12 @@ defineExpose({ controls, state })
 
 onMounted(() => {
   if (videoFrame.value) {
-    state.isMuted = videoFrame.value.muted
+    state.isMuted = props.options.muted
+    videoFrame.value.volume = props.options.volume
+    videoFrame.value.muted = props.options.muted
+    if (props.options.playing) {
+      videoFrame.value.play()
+    }
   }
-  videoFrame.value?.play()
 })
 </script>
