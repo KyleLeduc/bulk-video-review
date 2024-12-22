@@ -9,6 +9,16 @@ export async function* parseFileList(
   const parser = new FileVideoParser()
   const storage = VideoMetadataService.getInstance()
 
+  const { filesToProcess, foundVideos } = await filterExistingFromNewVideos(
+    files,
+    storage,
+    parser,
+  )
+
+  for (const video of foundVideos) {
+    yield video
+  }
+
   const processFile = async (file: File) => {
     try {
       const newVideoDto = await parser.transformVideoData(file)
@@ -27,28 +37,6 @@ export async function* parseFileList(
       console.error('file input error', e)
 
       return null
-    }
-  }
-
-  const filesToProcess = []
-  const foundVideoEntities = []
-  const fileList = Array.from(files)
-
-  for (const file of fileList) {
-    const videoEntity = await storage.getVideo(await parser.generateHash(file))
-
-    if (videoEntity) {
-      foundVideoEntities.push({ videoEntity, file })
-    } else {
-      filesToProcess.push(file)
-    }
-  }
-
-  for (const { videoEntity, file } of foundVideoEntities) {
-    yield {
-      ...videoEntity,
-      url: URL.createObjectURL(file),
-      pinned: false,
     }
   }
 
@@ -71,4 +59,29 @@ export async function* parseFileList(
 
   const endTime = performance.now()
   console.log(`Total time taken: ${endTime - startTime} milliseconds`)
+}
+
+const filterExistingFromNewVideos = async (
+  fileList: FileList,
+  storage: VideoMetadataService,
+  parser: FileVideoParser,
+) => {
+  const foundVideos = []
+  const filesToProcess = []
+
+  for (const file of fileList) {
+    const videoEntity = await storage.getVideo(await parser.generateHash(file))
+
+    if (videoEntity) {
+      foundVideos.push({
+        ...videoEntity,
+        url: URL.createObjectURL(file),
+        pinned: false,
+      })
+    } else {
+      filesToProcess.push(file)
+    }
+  }
+
+  return { foundVideos, filesToProcess }
 }
