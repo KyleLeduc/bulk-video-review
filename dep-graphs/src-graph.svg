@@ -16,28 +16,28 @@
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_src/application</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M512.25,-151C512.25,-151 957.75,-151 957.75,-151 963.75,-151 969.75,-157 969.75,-163 969.75,-163 969.75,-266 969.75,-266 969.75,-272 963.75,-278 957.75,-278 957.75,-278 512.25,-278 512.25,-278 506.25,-278 500.25,-272 500.25,-266 500.25,-266 500.25,-163 500.25,-163 500.25,-157 506.25,-151 512.25,-151"/>
-<text text-anchor="middle" x="735" y="-265.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M512.25,-159C512.25,-159 957.75,-159 957.75,-159 963.75,-159 969.75,-165 969.75,-171 969.75,-171 969.75,-305 969.75,-305 969.75,-311 963.75,-317 957.75,-317 957.75,-317 512.25,-317 512.25,-317 506.25,-317 500.25,-311 500.25,-305 500.25,-305 500.25,-171 500.25,-171 500.25,-165 506.25,-159 512.25,-159"/>
+<text text-anchor="middle" x="735" y="-304.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_src/application/services</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M582.25,-165C582.25,-165 949.75,-165 949.75,-165 955.75,-165 961.75,-171 961.75,-177 961.75,-177 961.75,-239 961.75,-239 961.75,-245 955.75,-251 949.75,-251 949.75,-251 582.25,-251 582.25,-251 576.25,-251 570.25,-245 570.25,-239 570.25,-239 570.25,-177 570.25,-177 570.25,-171 576.25,-165 582.25,-165"/>
-<text text-anchor="middle" x="766" y="-238.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M582.25,-173C582.25,-173 949.75,-173 949.75,-173 955.75,-173 961.75,-179 961.75,-185 961.75,-185 961.75,-278 961.75,-278 961.75,-284 955.75,-290 949.75,-290 949.75,-290 582.25,-290 582.25,-290 576.25,-290 570.25,-284 570.25,-278 570.25,-278 570.25,-185 570.25,-185 570.25,-179 576.25,-173 582.25,-173"/>
+<text text-anchor="middle" x="766" y="-277.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_src/components</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M265.25,-213C265.25,-213 480.25,-213 480.25,-213 486.25,-213 492.25,-219 492.25,-225 492.25,-225 492.25,-382 492.25,-382 492.25,-388 486.25,-394 480.25,-394 480.25,-394 265.25,-394 265.25,-394 259.25,-394 253.25,-388 253.25,-382 253.25,-382 253.25,-225 253.25,-225 253.25,-219 259.25,-213 265.25,-213"/>
-<text text-anchor="middle" x="372.75" y="-381.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">components</text>
-</g>
-<g id="clust6" class="cluster">
-<title>cluster_src/components/utils</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M273.25,-284C273.25,-284 371.25,-284 371.25,-284 377.25,-284 383.25,-290 383.25,-296 383.25,-296 383.25,-327 383.25,-327 383.25,-333 377.25,-339 371.25,-339 371.25,-339 273.25,-339 273.25,-339 267.25,-339 261.25,-333 261.25,-327 261.25,-327 261.25,-296 261.25,-296 261.25,-290 267.25,-284 273.25,-284"/>
-<text text-anchor="middle" x="322.25" y="-326.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M265.25,-205C265.25,-205 480.25,-205 480.25,-205 486.25,-205 492.25,-211 492.25,-217 492.25,-217 492.25,-374 492.25,-374 492.25,-380 486.25,-386 480.25,-386 480.25,-386 265.25,-386 265.25,-386 259.25,-386 253.25,-380 253.25,-374 253.25,-374 253.25,-217 253.25,-217 253.25,-211 259.25,-205 265.25,-205"/>
+<text text-anchor="middle" x="372.75" y="-373.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">components</text>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_src/components/inputs</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M292.38,-221C292.38,-221 352.12,-221 352.12,-221 358.12,-221 364.12,-227 364.12,-233 364.12,-233 364.12,-264 364.12,-264 364.12,-270 358.12,-276 352.12,-276 352.12,-276 292.38,-276 292.38,-276 286.38,-276 280.38,-270 280.38,-264 280.38,-264 280.38,-233 280.38,-233 280.38,-227 286.38,-221 292.38,-221"/>
-<text text-anchor="middle" x="322.25" y="-263.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M292.38,-213C292.38,-213 352.12,-213 352.12,-213 358.12,-213 364.12,-219 364.12,-225 364.12,-225 364.12,-256 364.12,-256 364.12,-262 358.12,-268 352.12,-268 352.12,-268 292.38,-268 292.38,-268 286.38,-268 280.38,-262 280.38,-256 280.38,-256 280.38,-225 280.38,-225 280.38,-219 286.38,-213 292.38,-213"/>
+<text text-anchor="middle" x="322.25" y="-255.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/components/utils</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M273.25,-276C273.25,-276 371.25,-276 371.25,-276 377.25,-276 383.25,-282 383.25,-288 383.25,-288 383.25,-319 383.25,-319 383.25,-325 377.25,-331 371.25,-331 371.25,-331 273.25,-331 273.25,-331 267.25,-331 261.25,-325 261.25,-319 261.25,-319 261.25,-288 261.25,-288 261.25,-282 267.25,-276 273.25,-276"/>
+<text text-anchor="middle" x="322.25" y="-318.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_src/domain</title>
@@ -49,6 +49,11 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1294.62,-153C1294.62,-153 1340.62,-153 1340.62,-153 1346.62,-153 1352.62,-159 1352.62,-165 1352.62,-165 1352.62,-196 1352.62,-196 1352.62,-202 1346.62,-208 1340.62,-208 1340.62,-208 1294.62,-208 1294.62,-208 1288.62,-208 1282.62,-202 1282.62,-196 1282.62,-196 1282.62,-165 1282.62,-165 1282.62,-159 1288.62,-153 1294.62,-153"/>
 <text text-anchor="middle" x="1317.62" y="-195.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">constants</text>
 </g>
+<g id="clust9" class="cluster">
+<title>cluster_src/domain/entities</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M1278.38,-340C1278.38,-340 1570.25,-340 1570.25,-340 1576.25,-340 1582.25,-346 1582.25,-352 1582.25,-352 1582.25,-414 1582.25,-414 1582.25,-420 1576.25,-426 1570.25,-426 1570.25,-426 1278.38,-426 1278.38,-426 1272.38,-426 1266.38,-420 1266.38,-414 1266.38,-414 1266.38,-352 1266.38,-352 1266.38,-346 1272.38,-340 1278.38,-340"/>
+<text text-anchor="middle" x="1424.31" y="-413.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
+</g>
 <g id="clust11" class="cluster">
 <title>cluster_src/domain/services</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1275.75,-434C1275.75,-434 1359.5,-434 1359.5,-434 1365.5,-434 1371.5,-440 1371.5,-446 1371.5,-446 1371.5,-477 1371.5,-477 1371.5,-483 1365.5,-489 1359.5,-489 1359.5,-489 1275.75,-489 1275.75,-489 1269.75,-489 1263.75,-483 1263.75,-477 1263.75,-477 1263.75,-446 1263.75,-446 1263.75,-440 1269.75,-434 1275.75,-434"/>
@@ -59,15 +64,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1266.75,-226C1266.75,-226 1368.5,-226 1368.5,-226 1374.5,-226 1380.5,-232 1380.5,-238 1380.5,-238 1380.5,-300 1380.5,-300 1380.5,-306 1374.5,-312 1368.5,-312 1368.5,-312 1266.75,-312 1266.75,-312 1260.75,-312 1254.75,-306 1254.75,-300 1254.75,-300 1254.75,-238 1254.75,-238 1254.75,-232 1260.75,-226 1266.75,-226"/>
 <text text-anchor="middle" x="1317.62" y="-299.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repositories</text>
 </g>
-<g id="clust9" class="cluster">
-<title>cluster_src/domain/entities</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M1278.38,-340C1278.38,-340 1570.25,-340 1570.25,-340 1576.25,-340 1582.25,-346 1582.25,-352 1582.25,-352 1582.25,-414 1582.25,-414 1582.25,-420 1576.25,-426 1570.25,-426 1570.25,-426 1278.38,-426 1278.38,-426 1272.38,-426 1266.38,-420 1266.38,-414 1266.38,-414 1266.38,-352 1266.38,-352 1266.38,-346 1272.38,-340 1278.38,-340"/>
-<text text-anchor="middle" x="1424.31" y="-413.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
-</g>
 <g id="clust12" class="cluster">
 <title>cluster_src/domain/valueObjects</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1400.5,-434C1400.5,-434 1491,-434 1491,-434 1497,-434 1503,-440 1503,-446 1503,-446 1503,-508 1503,-508 1503,-514 1497,-520 1491,-520 1491,-520 1400.5,-520 1400.5,-520 1394.5,-520 1388.5,-514 1388.5,-508 1388.5,-508 1388.5,-446 1388.5,-446 1388.5,-440 1394.5,-434 1400.5,-434"/>
 <text text-anchor="middle" x="1445.75" y="-507.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">valueObjects</text>
+</g>
+<g id="clust16" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M403.25,-111C403.25,-111 479.5,-111 479.5,-111 485.5,-111 491.5,-117 491.5,-123 491.5,-123 491.5,-185 491.5,-185 491.5,-191 485.5,-197 479.5,-197 479.5,-197 403.25,-197 403.25,-197 397.25,-197 391.25,-191 391.25,-185 391.25,-185 391.25,-123 391.25,-123 391.25,-117 397.25,-111 403.25,-111"/>
+<text text-anchor="middle" x="441.38" y="-184.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <g id="clust13" class="cluster">
 <title>cluster_src/infrastructure</title>
@@ -84,22 +89,17 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M989.75,-24C989.75,-24 1089.25,-24 1089.25,-24 1095.25,-24 1101.25,-30 1101.25,-36 1101.25,-36 1101.25,-98 1101.25,-98 1101.25,-104 1095.25,-110 1089.25,-110 1089.25,-110 989.75,-110 989.75,-110 983.75,-110 977.75,-104 977.75,-98 977.75,-98 977.75,-36 977.75,-36 977.75,-30 983.75,-24 989.75,-24"/>
 <text text-anchor="middle" x="1039.5" y="-97.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repository</text>
 </g>
-<g id="clust16" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M403.25,-119C403.25,-119 479.5,-119 479.5,-119 485.5,-119 491.5,-125 491.5,-131 491.5,-131 491.5,-193 491.5,-193 491.5,-199 485.5,-205 479.5,-205 479.5,-205 403.25,-205 403.25,-205 397.25,-205 391.25,-199 391.25,-193 391.25,-193 391.25,-131 391.25,-131 391.25,-125 397.25,-119 403.25,-119"/>
-<text text-anchor="middle" x="441.38" y="-192.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust17" class="cluster">
 <title>cluster_src/views</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M157,-150C157,-150 233.25,-150 233.25,-150 239.25,-150 245.25,-156 245.25,-162 245.25,-162 245.25,-224 245.25,-224 245.25,-230 239.25,-236 233.25,-236 233.25,-236 157,-236 157,-236 151,-236 145,-230 145,-224 145,-224 145,-162 145,-162 145,-156 151,-150 157,-150"/>
-<text text-anchor="middle" x="195.12" y="-223.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M157,-142C157,-142 233.25,-142 233.25,-142 239.25,-142 245.25,-148 245.25,-154 245.25,-154 245.25,-216 245.25,-216 245.25,-222 239.25,-228 233.25,-228 233.25,-228 157,-228 157,-228 151,-228 145,-222 145,-216 145,-216 145,-154 145,-154 145,-148 151,-142 157,-142"/>
+<text text-anchor="middle" x="195.12" y="-215.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
 </g>
 <!-- src/App.vue -->
 <g id="node1" class="node">
 <title>src/App.vue</title>
 <g id="a_node1"><a xlink:href="src/App.vue" xlink:title="App.vue">
-<path fill="#41f083" stroke="black" d="M130.58,-208.62C130.58,-208.62 89.42,-208.62 89.42,-208.62 86.21,-208.62 83,-205.42 83,-202.21 83,-202.21 83,-195.79 83,-195.79 83,-192.58 86.21,-189.38 89.42,-189.38 89.42,-189.38 130.58,-189.38 130.58,-189.38 133.79,-189.38 137,-192.58 137,-195.79 137,-195.79 137,-202.21 137,-202.21 137,-205.42 133.79,-208.62 130.58,-208.62"/>
-<text text-anchor="start" x="93.88" y="-196.07" font-family="Helvetica,sans-Serif" font-size="9.00">App.vue</text>
+<path fill="#41f083" stroke="black" d="M130.58,-200.62C130.58,-200.62 89.42,-200.62 89.42,-200.62 86.21,-200.62 83,-197.42 83,-194.21 83,-194.21 83,-187.79 83,-187.79 83,-184.58 86.21,-181.38 89.42,-181.38 89.42,-181.38 130.58,-181.38 130.58,-181.38 133.79,-181.38 137,-184.58 137,-187.79 137,-187.79 137,-194.21 137,-194.21 137,-197.42 133.79,-200.62 130.58,-200.62"/>
+<text text-anchor="start" x="93.88" y="-188.07" font-family="Helvetica,sans-Serif" font-size="9.00">App.vue</text>
 </a>
 </g>
 </g>
@@ -107,571 +107,598 @@
 <g id="node2" class="node">
 <title>src/components/utils/DiagnosticsPanel.vue</title>
 <g id="a_node2"><a xlink:href="src/components/utils/DiagnosticsPanel.vue" xlink:title="DiagnosticsPanel.vue">
-<path fill="#41f083" stroke="black" d="M368.83,-311.62C368.83,-311.62 275.67,-311.62 275.67,-311.62 272.46,-311.62 269.25,-308.42 269.25,-305.21 269.25,-305.21 269.25,-298.79 269.25,-298.79 269.25,-295.58 272.46,-292.38 275.67,-292.38 275.67,-292.38 368.83,-292.38 368.83,-292.38 372.04,-292.38 375.25,-295.58 375.25,-298.79 375.25,-298.79 375.25,-305.21 375.25,-305.21 375.25,-308.42 372.04,-311.62 368.83,-311.62"/>
-<text text-anchor="start" x="277.25" y="-299.07" font-family="Helvetica,sans-Serif" font-size="9.00">DiagnosticsPanel.vue</text>
+<path fill="#41f083" stroke="black" d="M368.83,-303.62C368.83,-303.62 275.67,-303.62 275.67,-303.62 272.46,-303.62 269.25,-300.42 269.25,-297.21 269.25,-297.21 269.25,-290.79 269.25,-290.79 269.25,-287.58 272.46,-284.38 275.67,-284.38 275.67,-284.38 368.83,-284.38 368.83,-284.38 372.04,-284.38 375.25,-287.58 375.25,-290.79 375.25,-290.79 375.25,-297.21 375.25,-297.21 375.25,-300.42 372.04,-303.62 368.83,-303.62"/>
+<text text-anchor="start" x="277.25" y="-291.07" font-family="Helvetica,sans-Serif" font-size="9.00">DiagnosticsPanel.vue</text>
 </a>
 </g>
 </g>
 <!-- src/App.vue&#45;&gt;src/components/utils/DiagnosticsPanel.vue -->
 <g id="edge1" class="edge">
 <title>src/App.vue&#45;&gt;src/components/utils/DiagnosticsPanel.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M117.18,-208.81C123.27,-217.78 133.35,-230.85 145,-239 180.75,-263.99 227.47,-280.1 263.83,-289.76"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="263.09,-291.74 269.43,-291.21 264.14,-287.68 263.09,-291.74"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M117.18,-200.81C123.27,-209.78 133.35,-222.85 145,-231 180.75,-255.99 227.47,-272.1 263.83,-281.76"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="263.09,-283.74 269.43,-283.21 264.14,-279.68 263.09,-283.74"/>
 </g>
 <!-- src/views/NavBar.vue -->
 <g id="node3" class="node">
 <title>src/views/NavBar.vue</title>
 <g id="a_node3"><a xlink:href="src/views/NavBar.vue" xlink:title="NavBar.vue">
-<path fill="#41f083" stroke="black" d="M219.96,-177.62C219.96,-177.62 170.29,-177.62 170.29,-177.62 167.08,-177.62 163.88,-174.42 163.88,-171.21 163.88,-171.21 163.88,-164.79 163.88,-164.79 163.88,-161.58 167.08,-158.38 170.29,-158.38 170.29,-158.38 219.96,-158.38 219.96,-158.38 223.17,-158.38 226.38,-161.58 226.38,-164.79 226.38,-164.79 226.38,-171.21 226.38,-171.21 226.38,-174.42 223.17,-177.62 219.96,-177.62"/>
-<text text-anchor="start" x="171.88" y="-165.07" font-family="Helvetica,sans-Serif" font-size="9.00">NavBar.vue</text>
+<path fill="#41f083" stroke="black" d="M219.96,-169.62C219.96,-169.62 170.29,-169.62 170.29,-169.62 167.08,-169.62 163.88,-166.42 163.88,-163.21 163.88,-163.21 163.88,-156.79 163.88,-156.79 163.88,-153.58 167.08,-150.38 170.29,-150.38 170.29,-150.38 219.96,-150.38 219.96,-150.38 223.17,-150.38 226.38,-153.58 226.38,-156.79 226.38,-156.79 226.38,-163.21 226.38,-163.21 226.38,-166.42 223.17,-169.62 219.96,-169.62"/>
+<text text-anchor="start" x="171.88" y="-157.07" font-family="Helvetica,sans-Serif" font-size="9.00">NavBar.vue</text>
 </a>
 </g>
 </g>
 <!-- src/App.vue&#45;&gt;src/views/NavBar.vue -->
 <g id="edge2" class="edge">
 <title>src/App.vue&#45;&gt;src/views/NavBar.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M130.93,-189.04C135.5,-186.92 140.37,-184.78 145,-183 148.23,-181.75 151.61,-180.54 155.02,-179.38"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="155.57,-181.41 160.62,-177.55 154.26,-177.42 155.57,-181.41"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M130.93,-181.04C135.5,-178.92 140.37,-176.78 145,-175 148.23,-173.75 151.61,-172.54 155.02,-171.38"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="155.57,-173.41 160.62,-169.55 154.26,-169.42 155.57,-173.41"/>
 </g>
 <!-- src/views/VideoGallery.vue -->
 <g id="node4" class="node">
 <title>src/views/VideoGallery.vue</title>
 <g id="a_node4"><a xlink:href="src/views/VideoGallery.vue" xlink:title="VideoGallery.vue">
-<path fill="#41f083" stroke="black" d="M230.83,-208.62C230.83,-208.62 159.42,-208.62 159.42,-208.62 156.21,-208.62 153,-205.42 153,-202.21 153,-202.21 153,-195.79 153,-195.79 153,-192.58 156.21,-189.38 159.42,-189.38 159.42,-189.38 230.83,-189.38 230.83,-189.38 234.04,-189.38 237.25,-192.58 237.25,-195.79 237.25,-195.79 237.25,-202.21 237.25,-202.21 237.25,-205.42 234.04,-208.62 230.83,-208.62"/>
-<text text-anchor="start" x="161" y="-196.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoGallery.vue</text>
+<path fill="#41f083" stroke="black" d="M230.83,-200.62C230.83,-200.62 159.42,-200.62 159.42,-200.62 156.21,-200.62 153,-197.42 153,-194.21 153,-194.21 153,-187.79 153,-187.79 153,-184.58 156.21,-181.38 159.42,-181.38 159.42,-181.38 230.83,-181.38 230.83,-181.38 234.04,-181.38 237.25,-184.58 237.25,-187.79 237.25,-187.79 237.25,-194.21 237.25,-194.21 237.25,-197.42 234.04,-200.62 230.83,-200.62"/>
+<text text-anchor="start" x="161" y="-188.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoGallery.vue</text>
 </a>
 </g>
 </g>
 <!-- src/App.vue&#45;&gt;src/views/VideoGallery.vue -->
 <g id="edge3" class="edge">
 <title>src/App.vue&#45;&gt;src/views/VideoGallery.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M137.3,-199C139.42,-199 141.61,-199 143.83,-199"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="143.47,-201.1 149.47,-199 143.47,-196.9 143.47,-201.1"/>
-</g>
-<!-- src/stores/appStateStore.ts -->
-<g id="node16" class="node">
-<title>src/stores/appStateStore.ts</title>
-<g id="a_node16"><a xlink:href="src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
-<path fill="#ddfeff" stroke="black" d="M477.08,-146.62C477.08,-146.62 405.67,-146.62 405.67,-146.62 402.46,-146.62 399.25,-143.42 399.25,-140.21 399.25,-140.21 399.25,-133.79 399.25,-133.79 399.25,-130.58 402.46,-127.38 405.67,-127.38 405.67,-127.38 477.08,-127.38 477.08,-127.38 480.29,-127.38 483.5,-130.58 483.5,-133.79 483.5,-133.79 483.5,-140.21 483.5,-140.21 483.5,-143.42 480.29,-146.62 477.08,-146.62"/>
-<text text-anchor="start" x="407.25" y="-134.07" font-family="Helvetica,sans-Serif" font-size="9.00">appStateStore.ts</text>
-</a>
-</g>
-</g>
-<!-- src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts -->
-<g id="edge19" class="edge">
-<title>src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M367.34,-292C373.52,-288.8 379.15,-284.57 383.25,-279 400,-256.21 373.72,-174.19 391.25,-152 391.66,-151.48 392.1,-150.97 392.55,-150.48"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="393.54,-152.38 396.85,-146.96 390.88,-149.13 393.54,-152.38"/>
-</g>
-<!-- src/stores/videosStore.ts -->
-<g id="node14" class="node">
-<title>src/stores/videosStore.ts</title>
-<g id="a_node14"><a xlink:href="src/stores/videosStore.ts" xlink:title="videosStore.ts">
-<path fill="#ddfeff" stroke="black" d="M472.21,-177.62C472.21,-177.62 410.54,-177.62 410.54,-177.62 407.33,-177.62 404.12,-174.42 404.12,-171.21 404.12,-171.21 404.12,-164.79 404.12,-164.79 404.12,-161.58 407.33,-158.38 410.54,-158.38 410.54,-158.38 472.21,-158.38 472.21,-158.38 475.42,-158.38 478.62,-161.58 478.62,-164.79 478.62,-164.79 478.62,-171.21 478.62,-171.21 478.62,-174.42 475.42,-177.62 472.21,-177.62"/>
-<text text-anchor="start" x="412.12" y="-165.07" font-family="Helvetica,sans-Serif" font-size="9.00">videosStore.ts</text>
-</a>
-</g>
-</g>
-<!-- src/views/NavBar.vue&#45;&gt;src/stores/videosStore.ts -->
-<g id="edge47" class="edge">
-<title>src/views/NavBar.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M226.57,-168C268.94,-168 346.03,-168 395.14,-168"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="394.95,-170.1 400.95,-168 394.95,-165.9 394.95,-170.1"/>
-</g>
-<!-- src/components/inputs/FileInput.vue -->
-<g id="node15" class="node">
-<title>src/components/inputs/FileInput.vue</title>
-<g id="a_node15"><a xlink:href="src/components/inputs/FileInput.vue" xlink:title="FileInput.vue">
-<path fill="#41f083" stroke="black" d="M349.71,-248.62C349.71,-248.62 294.79,-248.62 294.79,-248.62 291.58,-248.62 288.38,-245.42 288.38,-242.21 288.38,-242.21 288.38,-235.79 288.38,-235.79 288.38,-232.58 291.58,-229.38 294.79,-229.38 294.79,-229.38 349.71,-229.38 349.71,-229.38 352.92,-229.38 356.12,-232.58 356.12,-235.79 356.12,-235.79 356.12,-242.21 356.12,-242.21 356.12,-245.42 352.92,-248.62 349.71,-248.62"/>
-<text text-anchor="start" x="296.38" y="-236.07" font-family="Helvetica,sans-Serif" font-size="9.00">FileInput.vue</text>
-</a>
-</g>
-</g>
-<!-- src/views/NavBar.vue&#45;&gt;src/components/inputs/FileInput.vue -->
-<g id="edge45" class="edge">
-<title>src/views/NavBar.vue&#45;&gt;src/components/inputs/FileInput.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M226.63,-175.56C232.94,-177.6 239.43,-180.08 245.25,-183 266.9,-193.88 288.88,-210.86 303.6,-223.28"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="301.99,-224.67 307.91,-226.98 304.73,-221.48 301.99,-224.67"/>
-</g>
-<!-- src/views/NavBar.vue&#45;&gt;src/stores/appStateStore.ts -->
-<g id="edge46" class="edge">
-<title>src/views/NavBar.vue&#45;&gt;src/stores/appStateStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M226.57,-164.14C267.5,-158.94 340.81,-149.64 390.02,-143.39"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="390.23,-145.48 395.92,-142.64 389.7,-141.31 390.23,-145.48"/>
-</g>
-<!-- src/components/VideoCard.vue -->
-<g id="node12" class="node">
-<title>src/components/VideoCard.vue</title>
-<g id="a_node12"><a xlink:href="src/components/VideoCard.vue" xlink:title="VideoCard.vue">
-<path fill="#41f083" stroke="black" d="M353.83,-366.62C353.83,-366.62 290.67,-366.62 290.67,-366.62 287.46,-366.62 284.25,-363.42 284.25,-360.21 284.25,-360.21 284.25,-353.79 284.25,-353.79 284.25,-350.58 287.46,-347.38 290.67,-347.38 290.67,-347.38 353.83,-347.38 353.83,-347.38 357.04,-347.38 360.25,-350.58 360.25,-353.79 360.25,-353.79 360.25,-360.21 360.25,-360.21 360.25,-363.42 357.04,-366.62 353.83,-366.62"/>
-<text text-anchor="start" x="292.25" y="-354.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoCard.vue</text>
-</a>
-</g>
-</g>
-<!-- src/views/VideoGallery.vue&#45;&gt;src/components/VideoCard.vue -->
-<g id="edge48" class="edge">
-<title>src/views/VideoGallery.vue&#45;&gt;src/components/VideoCard.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M196.97,-208.77C199.75,-234.79 211.06,-306.18 253.25,-342 259.54,-347.34 267.32,-350.9 275.34,-353.25"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="274.81,-355.28 281.13,-354.64 275.79,-351.2 274.81,-355.28"/>
-</g>
-<!-- src/views/VideoGallery.vue&#45;&gt;src/stores/videosStore.ts -->
-<g id="edge50" class="edge">
-<title>src/views/VideoGallery.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M237.4,-199.38C275.57,-199.02 333.72,-196.66 383.25,-187 390.84,-185.52 398.82,-183.31 406.33,-180.91"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="406.98,-182.9 412,-179 405.65,-178.92 406.98,-182.9"/>
-</g>
-<!-- src/views/VideoGallery.vue&#45;&gt;src/stores/appStateStore.ts -->
-<g id="edge49" class="edge">
-<title>src/views/VideoGallery.vue&#45;&gt;src/stores/appStateStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M237.5,-190.69C284.11,-181.12 356.82,-165.49 383.25,-156 386.99,-154.66 387.56,-153.47 391.25,-152 392.86,-151.36 394.52,-150.72 396.2,-150.1"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="396.89,-152.08 401.85,-148.12 395.5,-148.12 396.89,-152.08"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M137.3,-191C139.42,-191 141.61,-191 143.83,-191"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="143.47,-193.1 149.47,-191 143.47,-188.9 143.47,-193.1"/>
 </g>
 <!-- src/application/index.ts -->
 <g id="node5" class="node">
 <title>src/application/index.ts</title>
 <g id="a_node5"><a xlink:href="src/application/index.ts" xlink:title="index.ts">
-<path fill="#ddfeff" stroke="black" d="M555.83,-185.62C555.83,-185.62 514.67,-185.62 514.67,-185.62 511.46,-185.62 508.25,-182.42 508.25,-179.21 508.25,-179.21 508.25,-172.79 508.25,-172.79 508.25,-169.58 511.46,-166.38 514.67,-166.38 514.67,-166.38 555.83,-166.38 555.83,-166.38 559.04,-166.38 562.25,-169.58 562.25,-172.79 562.25,-172.79 562.25,-179.21 562.25,-179.21 562.25,-182.42 559.04,-185.62 555.83,-185.62"/>
-<text text-anchor="start" x="519.5" y="-173.07" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
+<path fill="#ddfeff" stroke="black" d="M555.83,-200.62C555.83,-200.62 514.67,-200.62 514.67,-200.62 511.46,-200.62 508.25,-197.42 508.25,-194.21 508.25,-194.21 508.25,-187.79 508.25,-187.79 508.25,-184.58 511.46,-181.38 514.67,-181.38 514.67,-181.38 555.83,-181.38 555.83,-181.38 559.04,-181.38 562.25,-184.58 562.25,-187.79 562.25,-187.79 562.25,-194.21 562.25,-194.21 562.25,-197.42 559.04,-200.62 555.83,-200.62"/>
+<text text-anchor="start" x="519.5" y="-188.07" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
 </a>
 </g>
+</g>
+<!-- src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/application/index.ts -->
+<g id="edge20" class="edge">
+<title>src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/application/index.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M362.15,-283.93C369.75,-280.69 377.22,-276.47 383.25,-271 389.14,-265.66 385.51,-260.5 391.25,-255 421.77,-225.76 467.93,-208.44 499.49,-199.34"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="499.84,-201.42 505.07,-197.79 498.72,-197.37 499.84,-201.42"/>
+</g>
+<!-- src/stores/appStateStore.ts -->
+<g id="node17" class="node">
+<title>src/stores/appStateStore.ts</title>
+<g id="a_node17"><a xlink:href="src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
+<path fill="#ddfeff" stroke="black" d="M477.08,-138.62C477.08,-138.62 405.67,-138.62 405.67,-138.62 402.46,-138.62 399.25,-135.42 399.25,-132.21 399.25,-132.21 399.25,-125.79 399.25,-125.79 399.25,-122.58 402.46,-119.38 405.67,-119.38 405.67,-119.38 477.08,-119.38 477.08,-119.38 480.29,-119.38 483.5,-122.58 483.5,-125.79 483.5,-125.79 483.5,-132.21 483.5,-132.21 483.5,-135.42 480.29,-138.62 477.08,-138.62"/>
+<text text-anchor="start" x="407.25" y="-126.08" font-family="Helvetica,sans-Serif" font-size="9.00">appStateStore.ts</text>
+</a>
+</g>
+</g>
+<!-- src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts -->
+<g id="edge21" class="edge">
+<title>src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M367.34,-284C373.52,-280.8 379.15,-276.57 383.25,-271 400,-248.21 373.72,-166.19 391.25,-144 391.66,-143.48 392.1,-142.97 392.55,-142.48"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="393.54,-144.38 396.85,-138.96 390.88,-141.13 393.54,-144.38"/>
+</g>
+<!-- src/stores/videosStore.ts -->
+<g id="node15" class="node">
+<title>src/stores/videosStore.ts</title>
+<g id="a_node15"><a xlink:href="src/stores/videosStore.ts" xlink:title="videosStore.ts">
+<path fill="#ddfeff" stroke="black" d="M472.21,-169.62C472.21,-169.62 410.54,-169.62 410.54,-169.62 407.33,-169.62 404.12,-166.42 404.12,-163.21 404.12,-163.21 404.12,-156.79 404.12,-156.79 404.12,-153.58 407.33,-150.38 410.54,-150.38 410.54,-150.38 472.21,-150.38 472.21,-150.38 475.42,-150.38 478.62,-153.58 478.62,-156.79 478.62,-156.79 478.62,-163.21 478.62,-163.21 478.62,-166.42 475.42,-169.62 472.21,-169.62"/>
+<text text-anchor="start" x="412.12" y="-157.07" font-family="Helvetica,sans-Serif" font-size="9.00">videosStore.ts</text>
+</a>
+</g>
+</g>
+<!-- src/views/NavBar.vue&#45;&gt;src/stores/videosStore.ts -->
+<g id="edge50" class="edge">
+<title>src/views/NavBar.vue&#45;&gt;src/stores/videosStore.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M226.57,-160C268.94,-160 346.03,-160 395.14,-160"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="394.95,-162.1 400.95,-160 394.95,-157.9 394.95,-162.1"/>
+</g>
+<!-- src/components/inputs/FileInput.vue -->
+<g id="node16" class="node">
+<title>src/components/inputs/FileInput.vue</title>
+<g id="a_node16"><a xlink:href="src/components/inputs/FileInput.vue" xlink:title="FileInput.vue">
+<path fill="#41f083" stroke="black" d="M349.71,-240.62C349.71,-240.62 294.79,-240.62 294.79,-240.62 291.58,-240.62 288.38,-237.42 288.38,-234.21 288.38,-234.21 288.38,-227.79 288.38,-227.79 288.38,-224.58 291.58,-221.38 294.79,-221.38 294.79,-221.38 349.71,-221.38 349.71,-221.38 352.92,-221.38 356.12,-224.58 356.12,-227.79 356.12,-227.79 356.12,-234.21 356.12,-234.21 356.12,-237.42 352.92,-240.62 349.71,-240.62"/>
+<text text-anchor="start" x="296.38" y="-228.07" font-family="Helvetica,sans-Serif" font-size="9.00">FileInput.vue</text>
+</a>
+</g>
+</g>
+<!-- src/views/NavBar.vue&#45;&gt;src/components/inputs/FileInput.vue -->
+<g id="edge48" class="edge">
+<title>src/views/NavBar.vue&#45;&gt;src/components/inputs/FileInput.vue</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M226.63,-167.56C232.94,-169.6 239.43,-172.08 245.25,-175 266.9,-185.88 288.88,-202.86 303.6,-215.28"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="301.99,-216.67 307.91,-218.98 304.73,-213.48 301.99,-216.67"/>
+</g>
+<!-- src/views/NavBar.vue&#45;&gt;src/stores/appStateStore.ts -->
+<g id="edge49" class="edge">
+<title>src/views/NavBar.vue&#45;&gt;src/stores/appStateStore.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M226.57,-156.14C267.5,-150.94 340.81,-141.64 390.02,-135.39"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="390.23,-137.48 395.92,-134.64 389.7,-133.31 390.23,-137.48"/>
+</g>
+<!-- src/components/VideoCard.vue -->
+<g id="node13" class="node">
+<title>src/components/VideoCard.vue</title>
+<g id="a_node13"><a xlink:href="src/components/VideoCard.vue" xlink:title="VideoCard.vue">
+<path fill="#41f083" stroke="black" d="M353.83,-358.62C353.83,-358.62 290.67,-358.62 290.67,-358.62 287.46,-358.62 284.25,-355.42 284.25,-352.21 284.25,-352.21 284.25,-345.79 284.25,-345.79 284.25,-342.58 287.46,-339.38 290.67,-339.38 290.67,-339.38 353.83,-339.38 353.83,-339.38 357.04,-339.38 360.25,-342.58 360.25,-345.79 360.25,-345.79 360.25,-352.21 360.25,-352.21 360.25,-355.42 357.04,-358.62 353.83,-358.62"/>
+<text text-anchor="start" x="292.25" y="-346.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoCard.vue</text>
+</a>
+</g>
+</g>
+<!-- src/views/VideoGallery.vue&#45;&gt;src/components/VideoCard.vue -->
+<g id="edge51" class="edge">
+<title>src/views/VideoGallery.vue&#45;&gt;src/components/VideoCard.vue</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M196.97,-200.77C199.75,-226.79 211.06,-298.18 253.25,-334 259.54,-339.34 267.32,-342.9 275.34,-345.25"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="274.81,-347.28 281.13,-346.64 275.79,-343.2 274.81,-347.28"/>
+</g>
+<!-- src/views/VideoGallery.vue&#45;&gt;src/stores/videosStore.ts -->
+<g id="edge53" class="edge">
+<title>src/views/VideoGallery.vue&#45;&gt;src/stores/videosStore.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M237.4,-191.38C275.57,-191.02 333.72,-188.66 383.25,-179 390.84,-177.52 398.82,-175.31 406.33,-172.91"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="406.98,-174.9 412,-171 405.65,-170.92 406.98,-174.9"/>
+</g>
+<!-- src/views/VideoGallery.vue&#45;&gt;src/stores/appStateStore.ts -->
+<g id="edge52" class="edge">
+<title>src/views/VideoGallery.vue&#45;&gt;src/stores/appStateStore.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M237.5,-182.69C284.11,-173.12 356.82,-157.49 383.25,-148 386.99,-146.66 387.56,-145.47 391.25,-144 392.86,-143.36 394.52,-142.72 396.2,-142.1"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="396.89,-144.08 401.85,-140.12 395.5,-140.12 396.89,-144.08"/>
 </g>
 <!-- src/application/services/FiltersService.ts -->
 <g id="node6" class="node">
 <title>src/application/services/FiltersService.ts</title>
 <g id="a_node6"><a xlink:href="src/application/services/FiltersService.ts" xlink:title="FiltersService.ts">
-<path fill="#ddfeff" stroke="black" d="M665.83,-223.62C665.83,-223.62 597.42,-223.62 597.42,-223.62 594.21,-223.62 591,-220.42 591,-217.21 591,-217.21 591,-210.79 591,-210.79 591,-207.58 594.21,-204.38 597.42,-204.38 597.42,-204.38 665.83,-204.38 665.83,-204.38 669.04,-204.38 672.25,-207.58 672.25,-210.79 672.25,-210.79 672.25,-217.21 672.25,-217.21 672.25,-220.42 669.04,-223.62 665.83,-223.62"/>
-<text text-anchor="start" x="599" y="-211.07" font-family="Helvetica,sans-Serif" font-size="9.00">FiltersService.ts</text>
+<path fill="#ddfeff" stroke="black" d="M665.83,-262.62C665.83,-262.62 597.42,-262.62 597.42,-262.62 594.21,-262.62 591,-259.42 591,-256.21 591,-256.21 591,-249.79 591,-249.79 591,-246.58 594.21,-243.38 597.42,-243.38 597.42,-243.38 665.83,-243.38 665.83,-243.38 669.04,-243.38 672.25,-246.58 672.25,-249.79 672.25,-249.79 672.25,-256.21 672.25,-256.21 672.25,-259.42 669.04,-262.62 665.83,-262.62"/>
+<text text-anchor="start" x="599" y="-250.07" font-family="Helvetica,sans-Serif" font-size="9.00">FiltersService.ts</text>
 </a>
 </g>
 </g>
 <!-- src/application/index.ts&#45;&gt;src/application/services/FiltersService.ts -->
 <g id="edge4" class="edge">
 <title>src/application/index.ts&#45;&gt;src/application/services/FiltersService.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M548.86,-186.09C555.01,-190.6 562.7,-195.64 570.25,-199 574.06,-200.7 578.09,-202.22 582.19,-203.59"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="581.41,-205.55 587.76,-205.3 582.64,-201.53 581.41,-205.55"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M540.77,-200.87C546.21,-211.66 556.4,-228.64 570.25,-238 573.96,-240.5 578.05,-242.59 582.3,-244.33"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="581.4,-246.24 587.76,-246.26 582.8,-242.28 581.4,-246.24"/>
+</g>
+<!-- src/application/services/Hotkeys.ts -->
+<g id="node7" class="node">
+<title>src/application/services/Hotkeys.ts</title>
+<g id="a_node7"><a xlink:href="src/application/services/Hotkeys.ts" xlink:title="Hotkeys.ts">
+<path fill="#ddfeff" stroke="black" d="M654.58,-200.62C654.58,-200.62 608.67,-200.62 608.67,-200.62 605.46,-200.62 602.25,-197.42 602.25,-194.21 602.25,-194.21 602.25,-187.79 602.25,-187.79 602.25,-184.58 605.46,-181.38 608.67,-181.38 608.67,-181.38 654.58,-181.38 654.58,-181.38 657.79,-181.38 661,-184.58 661,-187.79 661,-187.79 661,-194.21 661,-194.21 661,-197.42 657.79,-200.62 654.58,-200.62"/>
+<text text-anchor="start" x="610.25" y="-188.07" font-family="Helvetica,sans-Serif" font-size="9.00">Hotkeys.ts</text>
+</a>
+</g>
+</g>
+<!-- src/application/index.ts&#45;&gt;src/application/services/Hotkeys.ts -->
+<g id="edge5" class="edge">
+<title>src/application/index.ts&#45;&gt;src/application/services/Hotkeys.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M562.54,-191C574.76,-191 589.32,-191 601.83,-191"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="604.64,-189.61 608.54,-197.71 600.44,-193.81 604.64,-189.61"/>
 </g>
 <!-- src/application/services/VideoMetadataService.ts -->
-<g id="node7" class="node">
+<g id="node8" class="node">
 <title>src/application/services/VideoMetadataService.ts</title>
-<g id="a_node7"><a xlink:href="src/application/services/VideoMetadataService.ts" xlink:title="VideoMetadataService.ts">
-<path fill="#ddfeff" stroke="black" d="M808.08,-192.62C808.08,-192.62 704.42,-192.62 704.42,-192.62 701.21,-192.62 698,-189.42 698,-186.21 698,-186.21 698,-179.79 698,-179.79 698,-176.58 701.21,-173.38 704.42,-173.38 704.42,-173.38 808.08,-173.38 808.08,-173.38 811.29,-173.38 814.5,-176.58 814.5,-179.79 814.5,-179.79 814.5,-186.21 814.5,-186.21 814.5,-189.42 811.29,-192.62 808.08,-192.62"/>
-<text text-anchor="start" x="706" y="-180.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoMetadataService.ts</text>
+<g id="a_node8"><a xlink:href="src/application/services/VideoMetadataService.ts" xlink:title="VideoMetadataService.ts">
+<path fill="#ddfeff" stroke="black" d="M808.08,-211.62C808.08,-211.62 704.42,-211.62 704.42,-211.62 701.21,-211.62 698,-208.42 698,-205.21 698,-205.21 698,-198.79 698,-198.79 698,-195.58 701.21,-192.38 704.42,-192.38 704.42,-192.38 808.08,-192.38 808.08,-192.38 811.29,-192.38 814.5,-195.58 814.5,-198.79 814.5,-198.79 814.5,-205.21 814.5,-205.21 814.5,-208.42 811.29,-211.62 808.08,-211.62"/>
+<text text-anchor="start" x="706" y="-199.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoMetadataService.ts</text>
 </a>
 </g>
 </g>
 <!-- src/application/index.ts&#45;&gt;src/application/services/VideoMetadataService.ts -->
-<g id="edge5" class="edge">
+<g id="edge6" class="edge">
 <title>src/application/index.ts&#45;&gt;src/application/services/VideoMetadataService.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M562.47,-168.34C565.08,-167.8 567.71,-167.33 570.25,-167 620.82,-160.42 634.32,-161.3 685,-167 692.94,-167.89 701.3,-169.34 709.36,-171"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="708.7,-173.01 715.01,-172.23 709.59,-168.9 708.7,-173.01"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M553.72,-180.99C558.88,-178.53 564.65,-176.25 570.25,-175 620.02,-163.87 634.86,-165.7 685,-175 699.2,-177.63 714.22,-183.02 726.72,-188.3"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="725.82,-190.2 732.16,-190.69 727.51,-186.35 725.82,-190.2"/>
 </g>
 <!-- src/application/services/VideoParserService.ts -->
-<g id="node8" class="node">
+<g id="node9" class="node">
 <title>src/application/services/VideoParserService.ts</title>
-<g id="a_node8"><a xlink:href="src/application/services/VideoParserService.ts" xlink:title="VideoParserService.ts">
-<path fill="#ddfeff" stroke="black" d="M678.58,-192.62C678.58,-192.62 584.67,-192.62 584.67,-192.62 581.46,-192.62 578.25,-189.42 578.25,-186.21 578.25,-186.21 578.25,-179.79 578.25,-179.79 578.25,-176.58 581.46,-173.38 584.67,-173.38 584.67,-173.38 678.58,-173.38 678.58,-173.38 681.79,-173.38 685,-176.58 685,-179.79 685,-179.79 685,-186.21 685,-186.21 685,-189.42 681.79,-192.62 678.58,-192.62"/>
-<text text-anchor="start" x="586.25" y="-180.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoParserService.ts</text>
+<g id="a_node9"><a xlink:href="src/application/services/VideoParserService.ts" xlink:title="VideoParserService.ts">
+<path fill="#ddfeff" stroke="black" d="M678.58,-231.62C678.58,-231.62 584.67,-231.62 584.67,-231.62 581.46,-231.62 578.25,-228.42 578.25,-225.21 578.25,-225.21 578.25,-218.79 578.25,-218.79 578.25,-215.58 581.46,-212.38 584.67,-212.38 584.67,-212.38 678.58,-212.38 678.58,-212.38 681.79,-212.38 685,-215.58 685,-218.79 685,-218.79 685,-225.21 685,-225.21 685,-228.42 681.79,-231.62 678.58,-231.62"/>
+<text text-anchor="start" x="586.25" y="-219.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoParserService.ts</text>
 </a>
 </g>
 </g>
 <!-- src/application/index.ts&#45;&gt;src/application/services/VideoParserService.ts -->
-<g id="edge6" class="edge">
+<g id="edge7" class="edge">
 <title>src/application/index.ts&#45;&gt;src/application/services/VideoParserService.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M562.54,-177.95C564.64,-178.11 566.81,-178.27 569.02,-178.43"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="568.6,-180.51 574.74,-178.85 568.91,-176.32 568.6,-180.51"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M555.75,-200.98C560.43,-203.14 565.46,-205.29 570.25,-207 572.59,-207.83 574.99,-208.63 577.43,-209.41"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="576.57,-211.34 582.92,-211.05 577.77,-207.32 576.57,-211.34"/>
 </g>
 <!-- src/domain/index.ts -->
-<g id="node9" class="node">
+<g id="node10" class="node">
 <title>src/domain/index.ts</title>
-<g id="a_node9"><a xlink:href="src/domain/index.ts" xlink:title="index.ts">
-<path fill="#ddfeff" stroke="black" d="M1194.58,-267.62C1194.58,-267.62 1153.42,-267.62 1153.42,-267.62 1150.21,-267.62 1147,-264.42 1147,-261.21 1147,-261.21 1147,-254.79 1147,-254.79 1147,-251.58 1150.21,-248.38 1153.42,-248.38 1153.42,-248.38 1194.58,-248.38 1194.58,-248.38 1197.79,-248.38 1201,-251.58 1201,-254.79 1201,-254.79 1201,-261.21 1201,-261.21 1201,-264.42 1197.79,-267.62 1194.58,-267.62"/>
-<text text-anchor="start" x="1158.25" y="-255.07" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
+<g id="a_node10"><a xlink:href="src/domain/index.ts" xlink:title="index.ts">
+<path fill="#ddfeff" stroke="black" d="M1194.58,-257.62C1194.58,-257.62 1153.42,-257.62 1153.42,-257.62 1150.21,-257.62 1147,-254.42 1147,-251.21 1147,-251.21 1147,-244.79 1147,-244.79 1147,-241.58 1150.21,-238.38 1153.42,-238.38 1153.42,-238.38 1194.58,-238.38 1194.58,-238.38 1197.79,-238.38 1201,-241.58 1201,-244.79 1201,-244.79 1201,-251.21 1201,-251.21 1201,-254.42 1197.79,-257.62 1194.58,-257.62"/>
+<text text-anchor="start" x="1158.25" y="-245.07" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
 </a>
 </g>
 </g>
 <!-- src/application/services/FiltersService.ts&#45;&gt;src/domain/index.ts -->
-<g id="edge7" class="edge">
+<g id="edge8" class="edge">
 <title>src/application/services/FiltersService.ts&#45;&gt;src/domain/index.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M653.59,-224.02C666.17,-229.52 682.65,-235.85 698,-239 860.7,-272.42 1061.16,-265.04 1139.45,-260.35"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1139.27,-262.47 1145.13,-260 1139.01,-258.27 1139.27,-262.47"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M672.36,-252.63C774.4,-251.69 1044.31,-249.19 1139.33,-248.31"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1139.16,-250.41 1145.14,-248.26 1139.12,-246.21 1139.16,-250.41"/>
 </g>
 <!-- src/application/services/VideoMetadataService.ts&#45;&gt;src/domain/index.ts -->
-<g id="edge9" class="edge">
+<g id="edge10" class="edge">
 <title>src/application/services/VideoMetadataService.ts&#45;&gt;src/domain/index.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M790.23,-193.08C801.91,-196.34 815.21,-199.7 827.5,-202 947.76,-224.49 982.2,-202.78 1101.25,-231 1115.67,-234.42 1131.13,-239.97 1143.99,-245.16"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1143.09,-247.06 1149.44,-247.41 1144.69,-243.18 1143.09,-247.06"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M796.42,-212.1C806.49,-214.37 817.35,-216.54 827.5,-218 948.16,-235.37 980.23,-220.33 1101.25,-235 1113.74,-236.51 1127.34,-238.81 1139.32,-241.06"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1138.76,-243.09 1145.05,-242.15 1139.55,-238.96 1138.76,-243.09"/>
 </g>
 <!-- src/application/services/VideoStorageDtoMapper.ts -->
-<g id="node10" class="node">
+<g id="node11" class="node">
 <title>src/application/services/VideoStorageDtoMapper.ts</title>
-<g id="a_node10"><a xlink:href="src/application/services/VideoStorageDtoMapper.ts" xlink:title="VideoStorageDtoMapper.ts">
-<path fill="#ddfeff" stroke="black" d="M947.33,-195.62C947.33,-195.62 833.92,-195.62 833.92,-195.62 830.71,-195.62 827.5,-192.42 827.5,-189.21 827.5,-189.21 827.5,-182.79 827.5,-182.79 827.5,-179.58 830.71,-176.38 833.92,-176.38 833.92,-176.38 947.33,-176.38 947.33,-176.38 950.54,-176.38 953.75,-179.58 953.75,-182.79 953.75,-182.79 953.75,-189.21 953.75,-189.21 953.75,-192.42 950.54,-195.62 947.33,-195.62"/>
-<text text-anchor="start" x="835.5" y="-183.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoStorageDtoMapper.ts</text>
+<g id="a_node11"><a xlink:href="src/application/services/VideoStorageDtoMapper.ts" xlink:title="VideoStorageDtoMapper.ts">
+<path fill="#ddfeff" stroke="black" d="M947.33,-211.62C947.33,-211.62 833.92,-211.62 833.92,-211.62 830.71,-211.62 827.5,-208.42 827.5,-205.21 827.5,-205.21 827.5,-198.79 827.5,-198.79 827.5,-195.58 830.71,-192.38 833.92,-192.38 833.92,-192.38 947.33,-192.38 947.33,-192.38 950.54,-192.38 953.75,-195.58 953.75,-198.79 953.75,-198.79 953.75,-205.21 953.75,-205.21 953.75,-208.42 950.54,-211.62 947.33,-211.62"/>
+<text text-anchor="start" x="835.5" y="-199.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoStorageDtoMapper.ts</text>
 </a>
 </g>
 </g>
 <!-- src/application/services/VideoMetadataService.ts&#45;&gt;src/application/services/VideoStorageDtoMapper.ts -->
-<g id="edge8" class="edge">
+<g id="edge9" class="edge">
 <title>src/application/services/VideoMetadataService.ts&#45;&gt;src/application/services/VideoStorageDtoMapper.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M814.93,-184.31C816.06,-184.33 817.2,-184.36 818.34,-184.38"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="818.04,-186.48 824.09,-184.51 818.14,-182.28 818.04,-186.48"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M814.93,-202C816.06,-202 817.2,-202 818.34,-202"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="818.09,-204.1 824.09,-202 818.09,-199.9 818.09,-204.1"/>
 </g>
 <!-- src/infrastructure/index.ts -->
-<g id="node11" class="node">
+<g id="node12" class="node">
 <title>src/infrastructure/index.ts</title>
-<g id="a_node11"><a xlink:href="src/infrastructure/index.ts" xlink:title="index.ts">
+<g id="a_node12"><a xlink:href="src/infrastructure/index.ts" xlink:title="index.ts">
 <path fill="#ddfeff" stroke="black" d="M911.21,-82.62C911.21,-82.62 870.04,-82.62 870.04,-82.62 866.83,-82.62 863.62,-79.42 863.62,-76.21 863.62,-76.21 863.62,-69.79 863.62,-69.79 863.62,-66.58 866.83,-63.38 870.04,-63.38 870.04,-63.38 911.21,-63.38 911.21,-63.38 914.42,-63.38 917.62,-66.58 917.62,-69.79 917.62,-69.79 917.62,-76.21 917.62,-76.21 917.62,-79.42 914.42,-82.62 911.21,-82.62"/>
 <text text-anchor="start" x="874.88" y="-70.08" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
 </a>
 </g>
 </g>
 <!-- src/application/services/VideoMetadataService.ts&#45;&gt;src/infrastructure/index.ts -->
-<g id="edge10" class="edge">
+<g id="edge11" class="edge">
 <title>src/application/services/VideoMetadataService.ts&#45;&gt;src/infrastructure/index.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M769,-173.24C792,-154.12 843.15,-111.62 870.88,-88.58"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="872.11,-90.28 875.39,-84.83 869.43,-87.05 872.11,-90.28"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M767.64,-191.88C790.45,-169.65 845.1,-116.39 872.85,-89.35"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="874.29,-90.88 877.12,-85.19 871.36,-87.87 874.29,-90.88"/>
 </g>
 <!-- src/application/services/VideoParserService.ts&#45;&gt;src/application/services/VideoMetadataService.ts -->
-<g id="edge11" class="edge">
+<g id="edge12" class="edge">
 <title>src/application/services/VideoParserService.ts&#45;&gt;src/application/services/VideoMetadataService.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M685.34,-183C686.64,-183 687.94,-183 689.25,-183"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="688.86,-185.1 694.86,-183 688.86,-180.9 688.86,-185.1"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M685.34,-213.4C686.64,-213.19 687.94,-212.98 689.25,-212.76"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="689.32,-214.88 694.9,-211.84 688.64,-210.74 689.32,-214.88"/>
 </g>
 <!-- src/application/services/VideoParserService.ts&#45;&gt;src/domain/index.ts -->
-<g id="edge12" class="edge">
+<g id="edge13" class="edge">
 <title>src/application/services/VideoParserService.ts&#45;&gt;src/domain/index.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M670.49,-193.06C679.47,-195.22 689.04,-197.35 698,-199 861.3,-229.02 1059.03,-248.12 1137.98,-255.06"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1137.4,-257.12 1143.56,-255.54 1137.76,-252.93 1137.4,-257.12"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M685.42,-224.54C795.06,-229.82 1044.87,-241.84 1137.54,-246.29"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1137.41,-248.39 1143.5,-246.58 1137.61,-244.19 1137.41,-248.39"/>
 </g>
 <!-- src/domain/constants/index.ts -->
-<g id="node17" class="node">
+<g id="node18" class="node">
 <title>src/domain/constants/index.ts</title>
-<g id="a_node17"><a xlink:href="src/domain/constants/index.ts" xlink:title="index.ts">
+<g id="a_node18"><a xlink:href="src/domain/constants/index.ts" xlink:title="index.ts">
 <path fill="#ddfeff" stroke="black" d="M1338.21,-180.62C1338.21,-180.62 1297.04,-180.62 1297.04,-180.62 1293.83,-180.62 1290.62,-177.42 1290.62,-174.21 1290.62,-174.21 1290.62,-167.79 1290.62,-167.79 1290.62,-164.58 1293.83,-161.38 1297.04,-161.38 1297.04,-161.38 1338.21,-161.38 1338.21,-161.38 1341.42,-161.38 1344.62,-164.58 1344.62,-167.79 1344.62,-167.79 1344.62,-174.21 1344.62,-174.21 1344.62,-177.42 1341.42,-180.62 1338.21,-180.62"/>
 <text text-anchor="start" x="1301.88" y="-168.07" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/index.ts&#45;&gt;src/domain/constants/index.ts -->
-<g id="edge23" class="edge">
+<g id="edge25" class="edge">
 <title>src/domain/index.ts&#45;&gt;src/domain/constants/index.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1182.9,-247.98C1196.03,-232.05 1223.98,-201.09 1254.75,-185 1262.95,-180.71 1272.43,-177.73 1281.47,-175.66"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1281.86,-177.72 1287.33,-174.48 1281.03,-173.61 1281.86,-177.72"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1184.34,-238.26C1198.31,-224.27 1226.09,-198.69 1254.75,-185 1263.02,-181.05 1272.46,-178.19 1281.43,-176.12"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1281.76,-178.2 1287.21,-174.93 1280.91,-174.09 1281.76,-178.2"/>
 </g>
 <!-- src/domain/entities/Metadata.ts -->
-<g id="node18" class="node">
+<g id="node19" class="node">
 <title>src/domain/entities/Metadata.ts</title>
-<g id="a_node18"><a xlink:href="src/domain/entities/Metadata.ts" xlink:title="Metadata.ts">
+<g id="a_node19"><a xlink:href="src/domain/entities/Metadata.ts" xlink:title="Metadata.ts">
 <path fill="#ddfeff" stroke="black" d="M1567.83,-398.62C1567.83,-398.62 1517.42,-398.62 1517.42,-398.62 1514.21,-398.62 1511,-395.42 1511,-392.21 1511,-392.21 1511,-385.79 1511,-385.79 1511,-382.58 1514.21,-379.38 1517.42,-379.38 1517.42,-379.38 1567.83,-379.38 1567.83,-379.38 1571.04,-379.38 1574.25,-382.58 1574.25,-385.79 1574.25,-385.79 1574.25,-392.21 1574.25,-392.21 1574.25,-395.42 1571.04,-398.62 1567.83,-398.62"/>
 <text text-anchor="start" x="1519" y="-386.07" font-family="Helvetica,sans-Serif" font-size="9.00">Metadata.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/index.ts&#45;&gt;src/domain/entities/Metadata.ts -->
-<g id="edge24" class="edge">
+<g id="edge26" class="edge">
 <title>src/domain/index.ts&#45;&gt;src/domain/entities/Metadata.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1184.79,-267.73C1198.88,-281.05 1226.33,-304.5 1254.75,-315 1307.38,-334.44 1325.05,-317.5 1380.5,-326 1435.61,-334.45 1460.79,-316.58 1503,-353 1510.56,-359.52 1504.27,-366.62 1511,-374 1511.1,-374.11 1511.21,-374.23 1511.32,-374.34"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1183.08,-257.89C1196.26,-273.22 1224.01,-302.26 1254.75,-315 1306.58,-336.48 1325.05,-317.5 1380.5,-326 1435.61,-334.45 1460.79,-316.58 1503,-353 1510.56,-359.52 1504.27,-366.62 1511,-374 1511.1,-374.11 1511.21,-374.23 1511.32,-374.34"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1509.63,-375.66 1515.56,-377.95 1512.35,-372.46 1509.63,-375.66"/>
 </g>
 <!-- src/domain/entities/ParsedVideo.ts -->
-<g id="node19" class="node">
+<g id="node20" class="node">
 <title>src/domain/entities/ParsedVideo.ts</title>
-<g id="a_node19"><a xlink:href="src/domain/entities/ParsedVideo.ts" xlink:title="ParsedVideo.ts">
+<g id="a_node20"><a xlink:href="src/domain/entities/ParsedVideo.ts" xlink:title="ParsedVideo.ts">
 <path fill="#ddfeff" stroke="black" d="M1350.71,-398.62C1350.71,-398.62 1284.54,-398.62 1284.54,-398.62 1281.33,-398.62 1278.12,-395.42 1278.12,-392.21 1278.12,-392.21 1278.12,-385.79 1278.12,-385.79 1278.12,-382.58 1281.33,-379.38 1284.54,-379.38 1284.54,-379.38 1350.71,-379.38 1350.71,-379.38 1353.92,-379.38 1357.12,-382.58 1357.12,-385.79 1357.12,-385.79 1357.12,-392.21 1357.12,-392.21 1357.12,-395.42 1353.92,-398.62 1350.71,-398.62"/>
 <text text-anchor="start" x="1286.12" y="-386.07" font-family="Helvetica,sans-Serif" font-size="9.00">ParsedVideo.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/index.ts&#45;&gt;src/domain/entities/ParsedVideo.ts -->
-<g id="edge25" class="edge">
+<g id="edge27" class="edge">
 <title>src/domain/index.ts&#45;&gt;src/domain/entities/ParsedVideo.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1178.86,-267.9C1188.2,-290.52 1214.3,-346.13 1254.75,-374 1259.66,-377.38 1265.24,-380 1271,-382.03"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1270.01,-383.93 1276.36,-383.71 1271.26,-379.92 1270.01,-383.93"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1178.35,-258.03C1186.92,-282.09 1212.04,-343.37 1254.75,-374 1259.59,-377.47 1265.14,-380.15 1270.88,-382.21"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1269.88,-384.09 1276.23,-383.9 1271.14,-380.09 1269.88,-384.09"/>
 </g>
 <!-- src/domain/entities/VideoStorageDto.ts -->
-<g id="node20" class="node">
+<g id="node21" class="node">
 <title>src/domain/entities/VideoStorageDto.ts</title>
-<g id="a_node20"><a xlink:href="src/domain/entities/VideoStorageDto.ts" xlink:title="VideoStorageDto.ts">
+<g id="a_node21"><a xlink:href="src/domain/entities/VideoStorageDto.ts" xlink:title="VideoStorageDto.ts">
 <path fill="#ddfeff" stroke="black" d="M1487.08,-378.62C1487.08,-378.62 1404.42,-378.62 1404.42,-378.62 1401.21,-378.62 1398,-375.42 1398,-372.21 1398,-372.21 1398,-365.79 1398,-365.79 1398,-362.58 1401.21,-359.38 1404.42,-359.38 1404.42,-359.38 1487.08,-359.38 1487.08,-359.38 1490.29,-359.38 1493.5,-362.58 1493.5,-365.79 1493.5,-365.79 1493.5,-372.21 1493.5,-372.21 1493.5,-375.42 1490.29,-378.62 1487.08,-378.62"/>
 <text text-anchor="start" x="1406" y="-366.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoStorageDto.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/index.ts&#45;&gt;src/domain/entities/VideoStorageDto.ts -->
-<g id="edge27" class="edge">
+<g id="edge29" class="edge">
 <title>src/domain/index.ts&#45;&gt;src/domain/entities/VideoStorageDto.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1183.37,-267.97C1196.74,-283.13 1224.49,-311.61 1254.75,-325 1306.32,-347.82 1333.23,-311.25 1380.5,-342 1386.19,-345.7 1383.02,-350.99 1388.5,-355 1389.39,-355.65 1390.3,-356.27 1391.24,-356.86"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1182,-258.07C1194.44,-275.09 1222.19,-309.23 1254.75,-325 1305.51,-349.59 1333.23,-311.25 1380.5,-342 1386.19,-345.7 1383.02,-350.99 1388.5,-355 1389.39,-355.65 1390.3,-356.27 1391.24,-356.86"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1390.11,-358.64 1396.39,-359.64 1392.11,-354.94 1390.11,-358.64"/>
 </g>
 <!-- src/domain/entities/Video.ts -->
-<g id="node21" class="node">
+<g id="node22" class="node">
 <title>src/domain/entities/Video.ts</title>
-<g id="a_node21"><a xlink:href="src/domain/entities/Video.ts" xlink:title="Video.ts">
+<g id="a_node22"><a xlink:href="src/domain/entities/Video.ts" xlink:title="Video.ts">
 <path fill="#ddfeff" stroke="black" d="M1563.21,-367.62C1563.21,-367.62 1522.04,-367.62 1522.04,-367.62 1518.83,-367.62 1515.62,-364.42 1515.62,-361.21 1515.62,-361.21 1515.62,-354.79 1515.62,-354.79 1515.62,-351.58 1518.83,-348.38 1522.04,-348.38 1522.04,-348.38 1563.21,-348.38 1563.21,-348.38 1566.42,-348.38 1569.62,-351.58 1569.62,-354.79 1569.62,-354.79 1569.62,-361.21 1569.62,-361.21 1569.62,-364.42 1566.42,-367.62 1563.21,-367.62"/>
 <text text-anchor="start" x="1526.12" y="-355.07" font-family="Helvetica,sans-Serif" font-size="9.00">Video.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/index.ts&#45;&gt;src/domain/entities/Video.ts -->
-<g id="edge26" class="edge">
+<g id="edge28" class="edge">
 <title>src/domain/index.ts&#45;&gt;src/domain/entities/Video.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1192.04,-248.04C1207.73,-239.48 1231.96,-227.78 1254.75,-223 1309.11,-211.6 1461.5,-215.09 1503,-252 1529.04,-275.16 1537.54,-317.31 1540.3,-340.88"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1200.03,-238C1215.52,-232.35 1235.96,-225.88 1254.75,-223 1309.65,-214.6 1461.5,-215.09 1503,-252 1529.04,-275.16 1537.54,-317.31 1540.3,-340.88"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1538.19,-340.85 1540.88,-346.61 1542.37,-340.42 1538.19,-340.85"/>
 </g>
 <!-- src/domain/repositories/IMetadataRepository.ts -->
-<g id="node23" class="node">
+<g id="node24" class="node">
 <title>src/domain/repositories/IMetadataRepository.ts</title>
-<g id="a_node23"><a xlink:href="src/domain/repositories/IMetadataRepository.ts" xlink:title="IMetadataRepository.ts">
+<g id="a_node24"><a xlink:href="src/domain/repositories/IMetadataRepository.ts" xlink:title="IMetadataRepository.ts">
 <path fill="#ddfeff" stroke="black" d="M1366.08,-284.62C1366.08,-284.62 1269.17,-284.62 1269.17,-284.62 1265.96,-284.62 1262.75,-281.42 1262.75,-278.21 1262.75,-278.21 1262.75,-271.79 1262.75,-271.79 1262.75,-268.58 1265.96,-265.38 1269.17,-265.38 1269.17,-265.38 1366.08,-265.38 1366.08,-265.38 1369.29,-265.38 1372.5,-268.58 1372.5,-271.79 1372.5,-271.79 1372.5,-278.21 1372.5,-278.21 1372.5,-281.42 1369.29,-284.62 1366.08,-284.62"/>
 <text text-anchor="start" x="1270.75" y="-272.07" font-family="Helvetica,sans-Serif" font-size="9.00">IMetadataRepository.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/index.ts&#45;&gt;src/domain/repositories/IMetadataRepository.ts -->
-<g id="edge28" class="edge">
+<g id="edge30" class="edge">
 <title>src/domain/index.ts&#45;&gt;src/domain/repositories/IMetadataRepository.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1201.31,-261.16C1216.42,-262.97 1236.08,-265.33 1254.87,-267.59"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1254.59,-269.67 1260.8,-268.3 1255.09,-265.5 1254.59,-269.67"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1201.31,-253.02C1216.84,-255.98 1237.18,-259.85 1256.45,-263.53"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1255.99,-265.58 1262.28,-264.64 1256.78,-261.45 1255.99,-265.58"/>
 </g>
 <!-- src/domain/repositories/IVideoRepository.ts -->
-<g id="node24" class="node">
+<g id="node25" class="node">
 <title>src/domain/repositories/IVideoRepository.ts</title>
-<g id="a_node24"><a xlink:href="src/domain/repositories/IVideoRepository.ts" xlink:title="IVideoRepository.ts">
+<g id="a_node25"><a xlink:href="src/domain/repositories/IVideoRepository.ts" xlink:title="IVideoRepository.ts">
 <path fill="#ddfeff" stroke="black" d="M1358.96,-253.62C1358.96,-253.62 1276.29,-253.62 1276.29,-253.62 1273.08,-253.62 1269.88,-250.42 1269.88,-247.21 1269.88,-247.21 1269.88,-240.79 1269.88,-240.79 1269.88,-237.58 1273.08,-234.38 1276.29,-234.38 1276.29,-234.38 1358.96,-234.38 1358.96,-234.38 1362.17,-234.38 1365.38,-237.58 1365.38,-240.79 1365.38,-240.79 1365.38,-247.21 1365.38,-247.21 1365.38,-250.42 1362.17,-253.62 1358.96,-253.62"/>
 <text text-anchor="start" x="1277.88" y="-241.07" font-family="Helvetica,sans-Serif" font-size="9.00">IVideoRepository.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/index.ts&#45;&gt;src/domain/repositories/IVideoRepository.ts -->
-<g id="edge29" class="edge">
+<g id="edge31" class="edge">
 <title>src/domain/index.ts&#45;&gt;src/domain/repositories/IVideoRepository.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1201.31,-255.4C1218.41,-253.71 1241.34,-251.44 1262.24,-249.38"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1262.27,-251.48 1268.03,-248.8 1261.85,-247.3 1262.27,-251.48"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1201.31,-247.26C1218.41,-246.77 1241.34,-246.13 1262.24,-245.54"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1262.09,-247.64 1268.02,-245.37 1261.97,-243.44 1262.09,-247.64"/>
 </g>
 <!-- src/domain/services/FileVideoParser.ts -->
-<g id="node25" class="node">
+<g id="node26" class="node">
 <title>src/domain/services/FileVideoParser.ts</title>
-<g id="a_node25"><a xlink:href="src/domain/services/FileVideoParser.ts" xlink:title="FileVideoParser.ts">
+<g id="a_node26"><a xlink:href="src/domain/services/FileVideoParser.ts" xlink:title="FileVideoParser.ts">
 <path fill="#ddfeff" stroke="black" d="M1357.08,-461.62C1357.08,-461.62 1278.17,-461.62 1278.17,-461.62 1274.96,-461.62 1271.75,-458.42 1271.75,-455.21 1271.75,-455.21 1271.75,-448.79 1271.75,-448.79 1271.75,-445.58 1274.96,-442.38 1278.17,-442.38 1278.17,-442.38 1357.08,-442.38 1357.08,-442.38 1360.29,-442.38 1363.5,-445.58 1363.5,-448.79 1363.5,-448.79 1363.5,-455.21 1363.5,-455.21 1363.5,-458.42 1360.29,-461.62 1357.08,-461.62"/>
 <text text-anchor="start" x="1279.75" y="-449.07" font-family="Helvetica,sans-Serif" font-size="9.00">FileVideoParser.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/index.ts&#45;&gt;src/domain/services/FileVideoParser.ts -->
-<g id="edge30" class="edge">
+<g id="edge32" class="edge">
 <title>src/domain/index.ts&#45;&gt;src/domain/services/FileVideoParser.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1176.9,-268.06C1182.92,-297.17 1204.19,-382.35 1254.75,-429 1258.58,-432.53 1263,-435.54 1267.69,-438.09"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1266.71,-439.95 1273.03,-440.66 1268.53,-436.17 1266.71,-439.95"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1176.56,-257.78C1181.85,-287.71 1201.78,-379.07 1254.75,-429 1258.49,-432.52 1262.82,-435.52 1267.41,-438.06"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1266.31,-439.86 1272.62,-440.61 1268.15,-436.09 1266.31,-439.86"/>
 </g>
 <!-- src/domain/valueObjects/Thumbs.ts -->
-<g id="node26" class="node">
+<g id="node27" class="node">
 <title>src/domain/valueObjects/Thumbs.ts</title>
-<g id="a_node26"><a xlink:href="src/domain/valueObjects/Thumbs.ts" xlink:title="Thumbs.ts">
+<g id="a_node27"><a xlink:href="src/domain/valueObjects/Thumbs.ts" xlink:title="Thumbs.ts">
 <path fill="#ddfeff" stroke="black" d="M1469.46,-492.62C1469.46,-492.62 1422.04,-492.62 1422.04,-492.62 1418.83,-492.62 1415.62,-489.42 1415.62,-486.21 1415.62,-486.21 1415.62,-479.79 1415.62,-479.79 1415.62,-476.58 1418.83,-473.38 1422.04,-473.38 1422.04,-473.38 1469.46,-473.38 1469.46,-473.38 1472.67,-473.38 1475.88,-476.58 1475.88,-479.79 1475.88,-479.79 1475.88,-486.21 1475.88,-486.21 1475.88,-489.42 1472.67,-492.62 1469.46,-492.62"/>
 <text text-anchor="start" x="1423.62" y="-480.07" font-family="Helvetica,sans-Serif" font-size="9.00">Thumbs.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/index.ts&#45;&gt;src/domain/valueObjects/Thumbs.ts -->
-<g id="edge31" class="edge">
+<g id="edge33" class="edge">
 <title>src/domain/index.ts&#45;&gt;src/domain/valueObjects/Thumbs.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1174.72,-268.08C1174.31,-305.54 1178.49,-437.42 1254.75,-492 1301.49,-525.45 1372.5,-509.26 1413.17,-495.46"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1413.76,-497.48 1418.73,-493.51 1412.37,-493.51 1413.76,-497.48"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1174.57,-257.96C1173.54,-296.24 1175.56,-434.57 1254.75,-492 1301.28,-525.74 1372.37,-509.44 1413.11,-495.55"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1413.72,-497.56 1418.68,-493.59 1412.32,-493.6 1413.72,-497.56"/>
 </g>
 <!-- src/application/services/VideoStorageDtoMapper.ts&#45;&gt;src/domain/index.ts -->
-<g id="edge13" class="edge">
+<g id="edge14" class="edge">
 <title>src/application/services/VideoStorageDtoMapper.ts&#45;&gt;src/domain/index.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M954.11,-188.62C996.59,-191.92 1053.52,-199.34 1101.25,-216 1120.16,-222.6 1139.65,-234.38 1153.53,-243.79"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1152.12,-245.37 1158.25,-247.06 1154.51,-241.92 1152.12,-245.37"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M954.23,-203.28C996.26,-205.2 1052.63,-209.86 1101.25,-221 1115.7,-224.31 1131.16,-229.85 1144.01,-235.05"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1143.11,-236.96 1149.46,-237.31 1144.72,-233.08 1143.11,-236.96"/>
 </g>
 <!-- src/infrastructure/repository/MetadataRepository.ts -->
-<g id="node29" class="node">
+<g id="node30" class="node">
 <title>src/infrastructure/repository/MetadataRepository.ts</title>
-<g id="a_node29"><a xlink:href="src/infrastructure/repository/MetadataRepository.ts" xlink:title="MetadataRepository.ts">
-<path fill="#ddfeff" stroke="black" d="M1086.83,-82.62C1086.83,-82.62 992.17,-82.62 992.17,-82.62 988.96,-82.62 985.75,-79.42 985.75,-76.21 985.75,-76.21 985.75,-69.79 985.75,-69.79 985.75,-66.58 988.96,-63.38 992.17,-63.38 992.17,-63.38 1086.83,-63.38 1086.83,-63.38 1090.04,-63.38 1093.25,-66.58 1093.25,-69.79 1093.25,-69.79 1093.25,-76.21 1093.25,-76.21 1093.25,-79.42 1090.04,-82.62 1086.83,-82.62"/>
-<text text-anchor="start" x="993.75" y="-70.08" font-family="Helvetica,sans-Serif" font-size="9.00">MetadataRepository.ts</text>
+<g id="a_node30"><a xlink:href="src/infrastructure/repository/MetadataRepository.ts" xlink:title="MetadataRepository.ts">
+<path fill="#ddfeff" stroke="black" d="M1086.83,-51.62C1086.83,-51.62 992.17,-51.62 992.17,-51.62 988.96,-51.62 985.75,-48.42 985.75,-45.21 985.75,-45.21 985.75,-38.79 985.75,-38.79 985.75,-35.58 988.96,-32.38 992.17,-32.38 992.17,-32.38 1086.83,-32.38 1086.83,-32.38 1090.04,-32.38 1093.25,-35.58 1093.25,-38.79 1093.25,-38.79 1093.25,-45.21 1093.25,-45.21 1093.25,-48.42 1090.04,-51.62 1086.83,-51.62"/>
+<text text-anchor="start" x="993.75" y="-39.08" font-family="Helvetica,sans-Serif" font-size="9.00">MetadataRepository.ts</text>
 </a>
 </g>
 </g>
 <!-- src/infrastructure/index.ts&#45;&gt;src/infrastructure/repository/MetadataRepository.ts -->
-<g id="edge36" class="edge">
+<g id="edge38" class="edge">
 <title>src/infrastructure/index.ts&#45;&gt;src/infrastructure/repository/MetadataRepository.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M917.88,-73C934.2,-73 955.9,-73 976.4,-73"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="976.37,-75.1 982.37,-73 976.37,-70.9 976.37,-75.1"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M917.88,-67.46C935.73,-63.69 960.02,-58.56 982.13,-53.9"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="982.4,-55.99 987.84,-52.69 981.53,-51.88 982.4,-55.99"/>
 </g>
 <!-- src/infrastructure/repository/VideoRepository.ts -->
-<g id="node30" class="node">
+<g id="node31" class="node">
 <title>src/infrastructure/repository/VideoRepository.ts</title>
-<g id="a_node30"><a xlink:href="src/infrastructure/repository/VideoRepository.ts" xlink:title="VideoRepository.ts">
-<path fill="#ddfeff" stroke="black" d="M1079.71,-51.62C1079.71,-51.62 999.29,-51.62 999.29,-51.62 996.08,-51.62 992.88,-48.42 992.88,-45.21 992.88,-45.21 992.88,-38.79 992.88,-38.79 992.88,-35.58 996.08,-32.38 999.29,-32.38 999.29,-32.38 1079.71,-32.38 1079.71,-32.38 1082.92,-32.38 1086.12,-35.58 1086.12,-38.79 1086.12,-38.79 1086.12,-45.21 1086.12,-45.21 1086.12,-48.42 1082.92,-51.62 1079.71,-51.62"/>
-<text text-anchor="start" x="1000.88" y="-39.08" font-family="Helvetica,sans-Serif" font-size="9.00">VideoRepository.ts</text>
+<g id="a_node31"><a xlink:href="src/infrastructure/repository/VideoRepository.ts" xlink:title="VideoRepository.ts">
+<path fill="#ddfeff" stroke="black" d="M1079.71,-82.62C1079.71,-82.62 999.29,-82.62 999.29,-82.62 996.08,-82.62 992.88,-79.42 992.88,-76.21 992.88,-76.21 992.88,-69.79 992.88,-69.79 992.88,-66.58 996.08,-63.38 999.29,-63.38 999.29,-63.38 1079.71,-63.38 1079.71,-63.38 1082.92,-63.38 1086.12,-66.58 1086.12,-69.79 1086.12,-69.79 1086.12,-76.21 1086.12,-76.21 1086.12,-79.42 1082.92,-82.62 1079.71,-82.62"/>
+<text text-anchor="start" x="1000.88" y="-70.08" font-family="Helvetica,sans-Serif" font-size="9.00">VideoRepository.ts</text>
 </a>
 </g>
 </g>
 <!-- src/infrastructure/index.ts&#45;&gt;src/infrastructure/repository/VideoRepository.ts -->
-<g id="edge37" class="edge">
+<g id="edge39" class="edge">
 <title>src/infrastructure/index.ts&#45;&gt;src/infrastructure/repository/VideoRepository.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M917.88,-67.46C936.17,-63.6 961.22,-58.31 983.75,-53.56"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="984.17,-55.61 989.61,-52.32 983.3,-51.5 984.17,-55.61"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M917.88,-73C936.17,-73 961.22,-73 983.75,-73"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="983.54,-75.1 989.54,-73 983.54,-70.9 983.54,-75.1"/>
 </g>
 <!-- src/components/VideoCard.vue&#45;&gt;src/domain/index.ts -->
-<g id="edge15" class="edge">
+<g id="edge16" class="edge">
 <title>src/components/VideoCard.vue&#45;&gt;src/domain/index.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M360.63,-353.14C368.76,-350.88 376.84,-347.39 383.25,-342 389.95,-336.37 384.17,-329.15 391.25,-324 442.94,-286.43 470.35,-309 534.25,-309 534.25,-309 534.25,-309 891.62,-309 985.68,-309 1009.41,-300.3 1101.25,-280 1114.01,-277.18 1127.79,-273.19 1139.83,-269.38"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1140.18,-271.48 1145.25,-267.64 1138.9,-267.48 1140.18,-271.48"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M360.43,-338.96C370.37,-336.63 381.16,-334.42 391.25,-333 454.26,-324.12 470.62,-326 534.25,-326 534.25,-326 534.25,-326 891.62,-326 987.73,-326 1095.81,-283.22 1145.42,-261.03"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1146.04,-263.05 1150.64,-258.66 1144.31,-259.22 1146.04,-263.05"/>
 </g>
 <!-- src/components/VideoEmbed.vue -->
-<g id="node13" class="node">
+<g id="node14" class="node">
 <title>src/components/VideoEmbed.vue</title>
-<g id="a_node13"><a xlink:href="src/components/VideoEmbed.vue" xlink:title="VideoEmbed.vue">
-<path fill="#41f083" stroke="black" d="M477.83,-349.62C477.83,-349.62 404.92,-349.62 404.92,-349.62 401.71,-349.62 398.5,-346.42 398.5,-343.21 398.5,-343.21 398.5,-336.79 398.5,-336.79 398.5,-333.58 401.71,-330.38 404.92,-330.38 404.92,-330.38 477.83,-330.38 477.83,-330.38 481.04,-330.38 484.25,-333.58 484.25,-336.79 484.25,-336.79 484.25,-343.21 484.25,-343.21 484.25,-346.42 481.04,-349.62 477.83,-349.62"/>
-<text text-anchor="start" x="406.5" y="-337.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoEmbed.vue</text>
+<g id="a_node14"><a xlink:href="src/components/VideoEmbed.vue" xlink:title="VideoEmbed.vue">
+<path fill="#41f083" stroke="black" d="M477.83,-358.62C477.83,-358.62 404.92,-358.62 404.92,-358.62 401.71,-358.62 398.5,-355.42 398.5,-352.21 398.5,-352.21 398.5,-345.79 398.5,-345.79 398.5,-342.58 401.71,-339.38 404.92,-339.38 404.92,-339.38 477.83,-339.38 477.83,-339.38 481.04,-339.38 484.25,-342.58 484.25,-345.79 484.25,-345.79 484.25,-352.21 484.25,-352.21 484.25,-355.42 481.04,-358.62 477.83,-358.62"/>
+<text text-anchor="start" x="406.5" y="-346.07" font-family="Helvetica,sans-Serif" font-size="9.00">VideoEmbed.vue</text>
 </a>
 </g>
 </g>
 <!-- src/components/VideoCard.vue&#45;&gt;src/components/VideoEmbed.vue -->
-<g id="edge14" class="edge">
+<g id="edge15" class="edge">
 <title>src/components/VideoCard.vue&#45;&gt;src/components/VideoEmbed.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M360.63,-351.57C369.75,-350.25 379.67,-348.81 389.31,-347.41"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="389.43,-349.52 395.06,-346.58 388.82,-345.36 389.43,-349.52"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M360.63,-349C369.75,-349 379.67,-349 389.31,-349"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="389.03,-351.1 395.03,-349 389.03,-346.9 389.03,-351.1"/>
 </g>
 <!-- src/components/VideoCard.vue&#45;&gt;src/stores/videosStore.ts -->
-<g id="edge16" class="edge">
+<g id="edge17" class="edge">
 <title>src/components/VideoCard.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M360.62,-355.1C369.25,-352.84 377.56,-348.86 383.25,-342 402.03,-319.39 378.15,-236.31 391.25,-210 396.62,-199.22 406.12,-190.1 415.34,-183.14"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="416.42,-184.94 420.12,-179.77 414.01,-181.51 416.42,-184.94"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M360.62,-347.1C369.25,-344.84 377.56,-340.86 383.25,-334 402.03,-311.39 378.15,-228.31 391.25,-202 396.62,-191.22 406.12,-182.1 415.34,-175.14"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="416.42,-176.94 420.12,-171.77 414.01,-173.51 416.42,-176.94"/>
 </g>
 <!-- src/components/VideoEmbed.vue&#45;&gt;src/domain/index.ts -->
-<g id="edge17" class="edge">
+<g id="edge18" class="edge">
 <title>src/components/VideoEmbed.vue&#45;&gt;src/domain/index.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M484.59,-336.83C522.72,-334.24 580.4,-331 630.62,-331 630.62,-331 630.62,-331 891.62,-331 985.13,-331 1014.06,-346.8 1101.25,-313 1123.79,-304.26 1145.17,-286.13 1158.64,-273.08"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1160.06,-274.62 1162.83,-268.9 1157.1,-271.65 1160.06,-274.62"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M484.61,-347.24C522.76,-345.8 580.44,-344 630.62,-344 630.62,-344 630.62,-344 891.62,-344 985,-344 1017.55,-371.4 1101.25,-330 1130.22,-315.67 1152.48,-283.94 1164.08,-264.42"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1165.81,-265.64 1166.98,-259.39 1162.17,-263.54 1165.81,-265.64"/>
 </g>
 <!-- src/stores/videosStore.ts&#45;&gt;src/application/index.ts -->
-<g id="edge43" class="edge">
+<g id="edge46" class="edge">
 <title>src/stores/videosStore.ts&#45;&gt;src/application/index.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M478.95,-171.18C485.62,-171.77 492.57,-172.37 499.2,-172.95"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="498.81,-175.02 504.97,-173.45 499.18,-170.84 498.81,-175.02"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M472.2,-170.06C480.94,-173.01 490.56,-176.26 499.57,-179.3"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="498.75,-181.24 505.11,-181.17 500.09,-177.26 498.75,-181.24"/>
 </g>
 <!-- src/stores/videosStore.ts&#45;&gt;src/domain/index.ts -->
-<g id="edge44" class="edge">
+<g id="edge47" class="edge">
 <title>src/stores/videosStore.ts&#45;&gt;src/domain/index.ts</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M460.19,-178.09C471.36,-185.42 484.98,-196.43 492.25,-210 499.74,-224 488.66,-270.15 500.25,-281 542.6,-320.64 572.62,-287 630.62,-287 630.62,-287 630.62,-287 891.62,-287 981.49,-287 1086.66,-272.18 1139.33,-263.73"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1139.63,-265.81 1145.22,-262.77 1138.96,-261.66 1139.63,-265.81"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M478.78,-156.92C516.68,-153.98 577.77,-150 630.62,-150 630.62,-150 630.62,-150 891.62,-150 987.51,-150 1013.29,-162.84 1101.25,-201 1120.68,-209.43 1140.66,-223 1154.59,-233.39"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1153.29,-235.04 1159.34,-237 1155.83,-231.7 1153.29,-235.04"/>
 </g>
 <!-- src/components/inputs/FileInput.vue&#45;&gt;src/stores/videosStore.ts -->
-<g id="edge18" class="edge">
+<g id="edge19" class="edge">
 <title>src/components/inputs/FileInput.vue&#45;&gt;src/stores/videosStore.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M339.78,-228.98C359.75,-216.87 393.5,-196.42 416.34,-182.57"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="417.3,-184.45 421.34,-179.54 415.12,-180.85 417.3,-184.45"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M339.78,-220.98C359.75,-208.87 393.5,-188.42 416.34,-174.57"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="417.3,-176.45 421.34,-171.54 415.12,-172.85 417.3,-176.45"/>
+</g>
+<!-- src/stores/appStateStore.ts&#45;&gt;src/application/index.ts -->
+<g id="edge45" class="edge">
+<title>src/stores/appStateStore.ts&#45;&gt;src/application/index.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M482.97,-139.09C486.21,-140.53 489.35,-142.16 492.25,-144 504.31,-151.68 515.01,-163.77 522.58,-173.76"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="520.75,-174.81 525.97,-178.43 524.15,-172.34 520.75,-174.81"/>
 </g>
 <!-- src/domain/entities/ParsedVideo.ts&#45;&gt;src/domain/entities/VideoStorageDto.ts -->
-<g id="edge20" class="edge">
+<g id="edge22" class="edge">
 <title>src/domain/entities/ParsedVideo.ts&#45;&gt;src/domain/entities/VideoStorageDto.ts</title>
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1357.5,-382.84C1367.95,-381.18 1379.44,-379.36 1390.56,-377.59"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1390.71,-379.7 1396.3,-376.68 1390.05,-375.55 1390.71,-379.7"/>
 </g>
 <!-- src/domain/entities/VideoStorageDto.ts&#45;&gt;src/domain/entities/Metadata.ts -->
-<g id="edge21" class="edge">
+<g id="edge23" class="edge">
 <title>src/domain/entities/VideoStorageDto.ts&#45;&gt;src/domain/entities/Metadata.ts</title>
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1493.91,-378.94C1497.1,-379.61 1500.29,-380.29 1503.43,-380.95"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1502.84,-382.97 1509.14,-382.15 1503.7,-378.86 1502.84,-382.97"/>
 </g>
 <!-- src/domain/entities/VideoStorageDto.ts&#45;&gt;src/domain/entities/Video.ts -->
-<g id="edge22" class="edge">
+<g id="edge24" class="edge">
 <title>src/domain/entities/VideoStorageDto.ts&#45;&gt;src/domain/entities/Video.ts</title>
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1493.91,-363.53C1498.62,-362.99 1503.33,-362.44 1507.86,-361.92"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1508.05,-364.01 1513.77,-361.23 1507.57,-359.83 1508.05,-364.01"/>
 </g>
 <!-- src/domain/entities/VideoMetadata.ts -->
-<g id="node22" class="node">
+<g id="node23" class="node">
 <title>src/domain/entities/VideoMetadata.ts</title>
-<g id="a_node22"><a xlink:href="src/domain/entities/VideoMetadata.ts" xlink:title="no&#45;orphans">
+<g id="a_node23"><a xlink:href="src/domain/entities/VideoMetadata.ts" xlink:title="no&#45;orphans">
 <path fill="#ccffcc" stroke="orange" d="M1354.46,-367.62C1354.46,-367.62 1280.79,-367.62 1280.79,-367.62 1277.58,-367.62 1274.38,-364.42 1274.38,-361.21 1274.38,-361.21 1274.38,-354.79 1274.38,-354.79 1274.38,-351.58 1277.58,-348.38 1280.79,-348.38 1280.79,-348.38 1354.46,-348.38 1354.46,-348.38 1357.67,-348.38 1360.88,-351.58 1360.88,-354.79 1360.88,-354.79 1360.88,-361.21 1360.88,-361.21 1360.88,-364.42 1357.67,-367.62 1354.46,-367.62"/>
 <text text-anchor="start" x="1282.38" y="-355.07" font-family="Helvetica,sans-Serif" font-size="9.00" fill="orange">VideoMetadata.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/repositories/IMetadataRepository.ts&#45;&gt;src/domain/entities/Metadata.ts -->
-<g id="edge32" class="edge">
+<g id="edge34" class="edge">
 <title>src/domain/repositories/IMetadataRepository.ts&#45;&gt;src/domain/entities/Metadata.ts</title>
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1372.96,-273.93C1420.73,-274.24 1485.33,-278.13 1503,-296 1514.06,-307.18 1503.56,-350.05 1512.12,-372.43"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1510.2,-373.3 1514.9,-377.58 1513.9,-371.3 1510.2,-373.3"/>
 </g>
 <!-- src/domain/repositories/IVideoRepository.ts&#45;&gt;src/domain/entities/Video.ts -->
-<g id="edge33" class="edge">
+<g id="edge35" class="edge">
 <title>src/domain/repositories/IVideoRepository.ts&#45;&gt;src/domain/entities/Video.ts</title>
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1365.59,-251.51C1373.24,-252.7 1381.09,-253.9 1388.5,-255 1413.91,-258.78 1482.48,-255.54 1503,-271 1525.37,-287.86 1535.05,-320.53 1539.04,-340.69"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1536.95,-340.96 1540.07,-346.5 1541.09,-340.22 1536.95,-340.96"/>
 </g>
 <!-- src/domain/services/FileVideoParser.ts&#45;&gt;src/domain/entities/Video.ts -->
-<g id="edge34" class="edge">
+<g id="edge36" class="edge">
 <title>src/domain/services/FileVideoParser.ts&#45;&gt;src/domain/entities/Video.ts</title>
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1349.65,-441.9C1398.86,-425.72 1490.54,-394.78 1503,-385 1508.04,-381.04 1506.18,-377.22 1511,-373 1511.26,-372.78 1511.52,-372.55 1511.78,-372.33"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1512.84,-374.16 1516.51,-368.98 1510.4,-370.74 1512.84,-374.16"/>
 </g>
 <!-- src/domain/valueObjects/ParsedVideoData.ts -->
-<g id="node27" class="node">
+<g id="node28" class="node">
 <title>src/domain/valueObjects/ParsedVideoData.ts</title>
-<g id="a_node27"><a xlink:href="src/domain/valueObjects/ParsedVideoData.ts" xlink:title="ParsedVideoData.ts">
+<g id="a_node28"><a xlink:href="src/domain/valueObjects/ParsedVideoData.ts" xlink:title="ParsedVideoData.ts">
 <path fill="#ddfeff" stroke="black" d="M1488.58,-461.62C1488.58,-461.62 1402.92,-461.62 1402.92,-461.62 1399.71,-461.62 1396.5,-458.42 1396.5,-455.21 1396.5,-455.21 1396.5,-448.79 1396.5,-448.79 1396.5,-445.58 1399.71,-442.38 1402.92,-442.38 1402.92,-442.38 1488.58,-442.38 1488.58,-442.38 1491.79,-442.38 1495,-445.58 1495,-448.79 1495,-448.79 1495,-455.21 1495,-455.21 1495,-458.42 1491.79,-461.62 1488.58,-461.62"/>
 <text text-anchor="start" x="1404.5" y="-449.07" font-family="Helvetica,sans-Serif" font-size="9.00">ParsedVideoData.ts</text>
 </a>
 </g>
 </g>
 <!-- src/domain/services/FileVideoParser.ts&#45;&gt;src/domain/valueObjects/ParsedVideoData.ts -->
-<g id="edge35" class="edge">
+<g id="edge37" class="edge">
 <title>src/domain/services/FileVideoParser.ts&#45;&gt;src/domain/valueObjects/ParsedVideoData.ts</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1363.8,-452C1371.4,-452 1379.38,-452 1387.24,-452"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1387.02,-454.1 1393.02,-452 1387.02,-449.9 1387.02,-454.1"/>
 </g>
 <!-- src/infrastructure/database/DatabaseConnection.ts -->
-<g id="node28" class="node">
+<g id="node29" class="node">
 <title>src/infrastructure/database/DatabaseConnection.ts</title>
-<g id="a_node28"><a xlink:href="src/infrastructure/database/DatabaseConnection.ts" xlink:title="DatabaseConnection.ts">
+<g id="a_node29"><a xlink:href="src/infrastructure/database/DatabaseConnection.ts" xlink:title="DatabaseConnection.ts">
 <path fill="#ddfeff" stroke="black" d="M1224.33,-66.62C1224.33,-66.62 1123.67,-66.62 1123.67,-66.62 1120.46,-66.62 1117.25,-63.42 1117.25,-60.21 1117.25,-60.21 1117.25,-53.79 1117.25,-53.79 1117.25,-50.58 1120.46,-47.38 1123.67,-47.38 1123.67,-47.38 1224.33,-47.38 1224.33,-47.38 1227.54,-47.38 1230.75,-50.58 1230.75,-53.79 1230.75,-53.79 1230.75,-60.21 1230.75,-60.21 1230.75,-63.42 1227.54,-66.62 1224.33,-66.62"/>
 <text text-anchor="start" x="1125.25" y="-54.08" font-family="Helvetica,sans-Serif" font-size="9.00">DatabaseConnection.ts</text>
 </a>
 </g>
 </g>
 <!-- src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/domain/index.ts -->
-<g id="edge39" class="edge">
+<g id="edge41" class="edge">
 <title>src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/domain/index.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1047.62,-82.95C1069.1,-112.94 1133.42,-202.73 1160.63,-240.72"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1158.88,-241.89 1164.08,-245.54 1162.29,-239.44 1158.88,-241.89"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1093.68,-50.92C1096.44,-52.64 1099,-54.64 1101.25,-57 1113.78,-70.1 1103.92,-79.67 1109.25,-97 1124.5,-146.57 1150.35,-202.1 1163.98,-229.98"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1162.07,-230.85 1166.6,-235.3 1165.83,-228.99 1162.07,-230.85"/>
 </g>
 <!-- src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/infrastructure/database/DatabaseConnection.ts -->
-<g id="edge38" class="edge">
+<g id="edge40" class="edge">
 <title>src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/infrastructure/database/DatabaseConnection.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1093.63,-66.58C1098.4,-66.01 1103.26,-65.42 1108.12,-64.83"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1108.11,-66.95 1113.82,-64.15 1107.61,-62.78 1108.11,-66.95"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1093.63,-48.01C1098.4,-48.55 1103.26,-49.11 1108.12,-49.65"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1107.62,-51.71 1113.82,-50.3 1108.09,-47.54 1107.62,-51.71"/>
 </g>
 <!-- src/infrastructure/repository/VideoRepository.ts&#45;&gt;src/domain/index.ts -->
-<g id="edge41" class="edge">
+<g id="edge43" class="edge">
 <title>src/infrastructure/repository/VideoRepository.ts&#45;&gt;src/domain/index.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1086.41,-47.23C1091.96,-49.53 1097.12,-52.68 1101.25,-57 1113.78,-70.1 1104.11,-79.61 1109.25,-97 1124.99,-150.3 1151.25,-210.58 1164.62,-239.97"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1162.65,-240.72 1167.07,-245.3 1166.47,-238.97 1162.65,-240.72"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1049.01,-82.71C1061.01,-96.51 1083.41,-122.7 1101.25,-146 1123.45,-174.98 1147.53,-210.04 1161.39,-230.59"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1159.56,-231.64 1164.65,-235.45 1163.05,-229.3 1159.56,-231.64"/>
 </g>
 <!-- src/infrastructure/repository/VideoRepository.ts&#45;&gt;src/infrastructure/database/DatabaseConnection.ts -->
-<g id="edge40" class="edge">
+<g id="edge42" class="edge">
 <title>src/infrastructure/repository/VideoRepository.ts&#45;&gt;src/infrastructure/database/DatabaseConnection.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1086.47,-47.2C1093.56,-48.01 1101,-48.85 1108.4,-49.69"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1107.86,-51.74 1114.06,-50.33 1108.33,-47.57 1107.86,-51.74"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1086.47,-67.45C1093.56,-66.59 1101,-65.69 1108.4,-64.8"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1108.35,-66.92 1114.06,-64.12 1107.85,-62.75 1108.35,-66.92"/>
 </g>
 <!-- src/main.ts -->
-<g id="node31" class="node">
+<g id="node32" class="node">
 <title>src/main.ts</title>
-<g id="a_node31"><a xlink:href="src/main.ts" xlink:title="main.ts">
-<path fill="#ddfeff" stroke="black" d="M63.58,-208.62C63.58,-208.62 22.42,-208.62 22.42,-208.62 19.21,-208.62 16,-205.42 16,-202.21 16,-202.21 16,-195.79 16,-195.79 16,-192.58 19.21,-189.38 22.42,-189.38 22.42,-189.38 63.58,-189.38 63.58,-189.38 66.79,-189.38 70,-192.58 70,-195.79 70,-195.79 70,-202.21 70,-202.21 70,-205.42 66.79,-208.62 63.58,-208.62"/>
-<text text-anchor="start" x="27.62" y="-196.07" font-family="Helvetica,sans-Serif" font-size="9.00">main.ts</text>
+<g id="a_node32"><a xlink:href="src/main.ts" xlink:title="main.ts">
+<path fill="#ddfeff" stroke="black" d="M63.58,-200.62C63.58,-200.62 22.42,-200.62 22.42,-200.62 19.21,-200.62 16,-197.42 16,-194.21 16,-194.21 16,-187.79 16,-187.79 16,-184.58 19.21,-181.38 22.42,-181.38 22.42,-181.38 63.58,-181.38 63.58,-181.38 66.79,-181.38 70,-184.58 70,-187.79 70,-187.79 70,-194.21 70,-194.21 70,-197.42 66.79,-200.62 63.58,-200.62"/>
+<text text-anchor="start" x="27.62" y="-188.07" font-family="Helvetica,sans-Serif" font-size="9.00">main.ts</text>
 </a>
 </g>
 </g>
 <!-- src/main.ts&#45;&gt;src/App.vue -->
-<g id="edge42" class="edge">
+<g id="edge44" class="edge">
 <title>src/main.ts&#45;&gt;src/App.vue</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M70.44,-199C71.58,-199 72.74,-199 73.9,-199"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="73.77,-201.1 79.77,-199 73.77,-196.9 73.77,-201.1"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M70.44,-191C71.58,-191 72.74,-191 73.9,-191"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="73.77,-193.1 79.77,-191 73.77,-188.9 73.77,-193.1"/>
 </g>
 </g>
 </svg>
