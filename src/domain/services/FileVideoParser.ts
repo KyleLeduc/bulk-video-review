@@ -28,8 +28,6 @@ export class FileVideoParser {
 
         const videoMetadata = new ParsedVideoData(thumbUrl, key, duration)
 
-        URL.revokeObjectURL(video.src)
-
         resolve(videoMetadata)
       }
 

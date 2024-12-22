@@ -14,11 +14,6 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M20,-8C20,-8 499.25,-8 499.25,-8 505.25,-8 511.25,-14 511.25,-20 511.25,-20 511.25,-306 511.25,-306 511.25,-312 505.25,-318 499.25,-318 499.25,-318 20,-318 20,-318 14,-318 8,-312 8,-306 8,-306 8,-20 8,-20 8,-14 14,-8 20,-8"/>
 <text text-anchor="middle" x="259.62" y="-305.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
 </g>
-<g id="clust2" class="cluster">
-<title>cluster_src/application</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M445.25,-205C445.25,-205 491.25,-205 491.25,-205 497.25,-205 503.25,-211 503.25,-217 503.25,-217 503.25,-248 503.25,-248 503.25,-254 497.25,-260 491.25,-260 491.25,-260 445.25,-260 445.25,-260 439.25,-260 433.25,-254 433.25,-248 433.25,-248 433.25,-217 433.25,-217 433.25,-211 439.25,-205 445.25,-205"/>
-<text text-anchor="middle" x="468.25" y="-247.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_src/components</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M198.25,-16C198.25,-16 413.25,-16 413.25,-16 419.25,-16 425.25,-22 425.25,-28 425.25,-28 425.25,-185 425.25,-185 425.25,-191 419.25,-197 413.25,-197 413.25,-197 198.25,-197 198.25,-197 192.25,-197 186.25,-191 186.25,-185 186.25,-185 186.25,-28 186.25,-28 186.25,-22 192.25,-16 198.25,-16"/>
@@ -33,6 +28,11 @@
 <title>cluster_src/components/inputs</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M225.38,-115C225.38,-115 285.12,-115 285.12,-115 291.12,-115 297.12,-121 297.12,-127 297.12,-127 297.12,-158 297.12,-158 297.12,-164 291.12,-170 285.12,-170 285.12,-170 225.38,-170 225.38,-170 219.38,-170 213.38,-164 213.38,-158 213.38,-158 213.38,-127 213.38,-127 213.38,-121 219.38,-115 225.38,-115"/>
 <text text-anchor="middle" x="255.25" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_src/application</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M445.25,-205C445.25,-205 491.25,-205 491.25,-205 497.25,-205 503.25,-211 503.25,-217 503.25,-217 503.25,-248 503.25,-248 503.25,-254 497.25,-260 491.25,-260 491.25,-260 445.25,-260 445.25,-260 439.25,-260 433.25,-254 433.25,-248 433.25,-248 433.25,-217 433.25,-217 433.25,-211 439.25,-205 445.25,-205"/>
+<text text-anchor="middle" x="468.25" y="-247.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
 <g id="clust6" class="cluster">
 <title>cluster_src/domain</title>
