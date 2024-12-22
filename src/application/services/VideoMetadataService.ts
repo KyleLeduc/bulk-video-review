@@ -9,8 +9,8 @@ class VideoMetadataService {
   private static instance: VideoMetadataService
 
   private constructor(
-    private metadataRepo: MetadataRepository,
-    private videoRepo: VideoRepository,
+    private readonly metadataRepo: MetadataRepository,
+    private readonly videoRepo: VideoRepository,
   ) {}
 
   public static getInstance(): VideoMetadataService {
@@ -68,6 +68,16 @@ class VideoMetadataService {
 
       return null
     }
+  }
+
+  async wipeData(): Promise<void> {
+    const metadata = await this.metadataRepo.getAllMetadata()
+    const videos = await this.videoRepo.getAllVideos()
+
+    await Promise.all(
+      metadata.map((m) => this.metadataRepo.deleteMetadata(m.id)),
+    )
+    await Promise.all(videos.map((v) => this.videoRepo.deleteVideo(v.id)))
   }
 }
 

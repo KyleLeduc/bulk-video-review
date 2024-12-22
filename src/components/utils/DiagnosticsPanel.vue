@@ -1,19 +1,25 @@
 <template>
-  <section class="panel" v-if="diagnosticsPanelVisible">
+  <section class="panel" v-if="isDiagnosticsPanelOpen">
     <nav>
       <h1>Diagnostics Panel</h1>
       <button @click="handleCloseClicked">❌</button>
     </nav>
+    <section>
+      <h2>Database</h2>
+      <button @click="videoMetadataService.wipeData()">Wipe Database</button>
+    </section>
   </section>
 </template>
 
 <script setup lang="ts">
 import { useAppStateStore } from '@/stores/appStateStore'
 import { storeToRefs } from 'pinia'
+import { VideoMetadataService } from '@/application'
 
 const appState = useAppStateStore()
+const videoMetadataService = VideoMetadataService.getInstance()
 
-const { diagnosticsPanelVisible } = storeToRefs(appState)
+const { isDiagnosticsPanelOpen } = storeToRefs(appState)
 
 const handleCloseClicked = () => {
   appState.toggleDiagnosticsPanel(false)
@@ -31,6 +37,7 @@ const handleCloseClicked = () => {
   width: 300px;
   background-color: rgba(7, 59, 104, 0.95);
   color: azure;
+  height: 100vh;
 }
 
 nav {
