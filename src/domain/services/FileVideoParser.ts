@@ -12,7 +12,8 @@ export class FileVideoParser {
       const canvas: HTMLCanvasElement = document.createElement('canvas')
       const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
 
-      video.src = URL.createObjectURL(file)
+      const url = URL.createObjectURL(file)
+      video.src = url
 
       const handleLoadedData = () => {
         canvas.width = 1920 * 0.5
@@ -26,7 +27,7 @@ export class FileVideoParser {
         context?.drawImage(video, 0, 0, canvas.width, canvas.height)
         const thumbUrl = canvas.toDataURL('image/jpeg', 0.25)
 
-        const videoMetadata = new ParsedVideoData(thumbUrl, key, duration)
+        const videoMetadata = new ParsedVideoData(thumbUrl, key, duration, url)
 
         this.cleanupVideoElement(video, canvas)
 
@@ -35,6 +36,7 @@ export class FileVideoParser {
 
       const handleError = (e: ErrorEvent) => {
         this.cleanupVideoElement(video, canvas)
+        setTimeout(() => URL.revokeObjectURL(video.src), 1000)
 
         reject(e)
       }
@@ -76,8 +78,6 @@ export class FileVideoParser {
     canvas: HTMLCanvasElement,
   ) => {
     setTimeout(() => {
-      URL.revokeObjectURL(video.src)
-
       video.remove()
       canvas.remove()
     }, 1000)
@@ -90,9 +90,9 @@ export class FileVideoParser {
     }
 
     try {
-      const { thumbUrl, duration, id } = await this.generateMetadata(video)
+      const { thumbUrl, duration, id, url } = await this.generateMetadata(video)
 
-      const data: VideoEntity = {
+      const videoEntity: VideoEntity = {
         id,
         title: video.name,
         thumb: thumbUrl,
@@ -101,7 +101,7 @@ export class FileVideoParser {
         tags: [],
       }
 
-      return data
+      return { videoEntity, url }
     } catch (e) {
       console.error(e, video)
     }

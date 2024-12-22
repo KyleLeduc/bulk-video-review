@@ -3,5 +3,6 @@ export class ParsedVideoData {
     public readonly thumbUrl: string,
     public readonly id: string,
     public readonly duration: number,
+    public readonly url: string,
   ) {}
 }

@@ -36,13 +36,16 @@ export class FileParserService {
 
   readonly #processFile = async (file: File) => {
     try {
-      const newVideoDto = await this.parser.transformVideoData(file)
+      const result = await this.parser.transformVideoData(file)
+      if (!result) return null
 
-      if (newVideoDto) {
-        const videoDto = await this.storage.postVideo(newVideoDto)
+      const { videoEntity, url } = result
+
+      if (videoEntity) {
+        const videoDto = await this.storage.postVideo(videoEntity)
         return {
           ...videoDto,
-          url: URL.createObjectURL(file),
+          url,
           pinned: false,
         }
       }
