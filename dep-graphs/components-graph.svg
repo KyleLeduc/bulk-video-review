@@ -34,15 +34,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M445.25,-39C445.25,-39 491.25,-39 491.25,-39 497.25,-39 503.25,-45 503.25,-51 503.25,-51 503.25,-82 503.25,-82 503.25,-88 497.25,-94 491.25,-94 491.25,-94 445.25,-94 445.25,-94 439.25,-94 433.25,-88 433.25,-82 433.25,-82 433.25,-51 433.25,-51 433.25,-45 439.25,-39 445.25,-39"/>
 <text text-anchor="middle" x="468.25" y="-81.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M336.25,-205C336.25,-205 412.5,-205 412.5,-205 418.5,-205 424.5,-211 424.5,-217 424.5,-217 424.5,-279 424.5,-279 424.5,-285 418.5,-291 412.5,-291 412.5,-291 336.25,-291 336.25,-291 330.25,-291 324.25,-285 324.25,-279 324.25,-279 324.25,-217 324.25,-217 324.25,-211 330.25,-205 336.25,-205"/>
-<text text-anchor="middle" x="374.38" y="-278.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust7" class="cluster">
 <title>cluster_src/views</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M90,-174C90,-174 166.25,-174 166.25,-174 172.25,-174 178.25,-180 178.25,-186 178.25,-186 178.25,-248 178.25,-248 178.25,-254 172.25,-260 166.25,-260 166.25,-260 90,-260 90,-260 84,-260 78,-254 78,-248 78,-248 78,-186 78,-186 78,-180 84,-174 90,-174"/>
 <text text-anchor="middle" x="128.12" y="-247.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M336.25,-205C336.25,-205 412.5,-205 412.5,-205 418.5,-205 424.5,-211 424.5,-217 424.5,-217 424.5,-279 424.5,-279 424.5,-285 418.5,-291 412.5,-291 412.5,-291 336.25,-291 336.25,-291 330.25,-291 324.25,-285 324.25,-279 324.25,-279 324.25,-217 324.25,-217 324.25,-211 330.25,-205 336.25,-205"/>
+<text text-anchor="middle" x="374.38" y="-278.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <!-- src/App.vue -->
 <g id="node1" class="node">

@@ -16,6 +16,17 @@ class VideoRepository implements IVideoRepository {
     })
   }
 
+  async getAllVideos(): Promise<VideoEntity[]> {
+    const store = await this.db.getStore(storeNames.video)
+
+    return new Promise((resolve, reject) => {
+      const request = store.getAll()
+
+      request.onsuccess = () => resolve(request.result as VideoEntity[])
+      request.onerror = () => reject(request.error!)
+    })
+  }
+
   async postVideo(data: VideoEntity): Promise<VideoEntity> {
     const store = await this.db.getStore(storeNames.video, 'readwrite')
 
@@ -23,6 +34,17 @@ class VideoRepository implements IVideoRepository {
       const request = store.put(data)
 
       request.onsuccess = () => resolve(data)
+      request.onerror = () => reject(request.error!)
+    })
+  }
+
+  async deleteVideo(id: string): Promise<void> {
+    const store = await this.db.getStore(storeNames.video, 'readwrite')
+
+    return new Promise((resolve, reject) => {
+      const request = store.delete(id)
+
+      request.onsuccess = () => resolve()
       request.onerror = () => reject(request.error!)
     })
   }
