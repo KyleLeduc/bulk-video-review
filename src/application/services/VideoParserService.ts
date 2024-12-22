@@ -19,6 +19,25 @@ export async function* parseFileList(
     yield video
   }
 
+  if (filesToProcess.length > 0) {
+    for await (const video of processVideoFiles(
+      filesToProcess,
+      storage,
+      parser,
+    )) {
+      yield video
+    }
+  }
+
+  const endTime = performance.now()
+  console.log(`Total time taken: ${endTime - startTime} milliseconds`)
+}
+
+const processVideoFiles = async function* (
+  fileArray: File[],
+  storage: VideoMetadataService,
+  parser: FileVideoParser,
+) {
   const processFile = async (file: File) => {
     try {
       const newVideoDto = await parser.transformVideoData(file)
@@ -40,25 +59,15 @@ export async function* parseFileList(
     }
   }
 
-  const batchSize = 3
-  for (let i = 0; i < filesToProcess.length; i += batchSize) {
-    const batchFiles = filesToProcess.slice(i, i + batchSize)
+  for (const file of fileArray) {
+    try {
+      const video = await processFile(file)
 
-    const results = await Promise.allSettled(
-      batchFiles.map((file) => processFile(file)),
-    )
-
-    for (const result of results) {
-      if (result.status === 'fulfilled' && result.value) {
-        yield result.value
-      } else if (result.status === 'rejected') {
-        console.error('Failed to process file in batch:', result.reason)
-      }
+      if (video) yield video
+    } catch (e) {
+      console.error('Failed to process file:', e)
     }
   }
-
-  const endTime = performance.now()
-  console.log(`Total time taken: ${endTime - startTime} milliseconds`)
 }
 
 const filterExistingFromNewVideos = async (
