@@ -2,7 +2,7 @@ import type { ParsedVideo } from '@/domain'
 import {
   applyFilters,
   VideoMetadataService,
-  parseFileList,
+  FileParserService,
 } from '@/application'
 import { defineStore } from 'pinia'
 
@@ -85,7 +85,7 @@ export const useVideoStore = defineStore('videos', {
     },
 
     async addVideosFromFiles(files: FileList) {
-      const parsedVideos = parseFileList(files)
+      const parsedVideos = new FileParserService().parseFileList(files)
 
       for await (const video of parsedVideos) {
         this.addVideos([video])

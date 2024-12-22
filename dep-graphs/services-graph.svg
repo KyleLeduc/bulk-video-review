@@ -115,8 +115,8 @@
 <!-- src/application/index.ts&#45;&gt;src/application/services/VideoParserService.ts -->
 <g id="edge4" class="edge">
 <title>src/application/index.ts&#45;&gt;src/application/services/VideoParserService.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M78.29,-67.46C80.39,-67.81 82.56,-68.18 84.77,-68.56"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="84.25,-70.6 90.52,-69.53 84.96,-66.46 84.25,-70.6"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M78.29,-67.46C83.09,-68.27 88.25,-69.15 93.51,-70.04"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="96.31,-68.64 100.21,-76.74 92.11,-72.84 96.31,-68.64"/>
 </g>
 <!-- src/domain/index.ts -->
 <g id="node6" class="node">

@@ -39,15 +39,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M390.5,-146C390.5,-146 436.5,-146 436.5,-146 442.5,-146 448.5,-152 448.5,-158 448.5,-158 448.5,-189 448.5,-189 448.5,-195 442.5,-201 436.5,-201 436.5,-201 390.5,-201 390.5,-201 384.5,-201 378.5,-195 378.5,-189 378.5,-189 378.5,-158 378.5,-158 378.5,-152 384.5,-146 390.5,-146"/>
 <text text-anchor="middle" x="413.5" y="-188.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
 </g>
-<g id="clust8" class="cluster">
-<title>cluster_src/views</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-16C28,-16 104.25,-16 104.25,-16 110.25,-16 116.25,-22 116.25,-28 116.25,-28 116.25,-90 116.25,-90 116.25,-96 110.25,-102 104.25,-102 104.25,-102 28,-102 28,-102 22,-102 16,-96 16,-90 16,-90 16,-28 16,-28 16,-22 22,-16 28,-16"/>
-<text text-anchor="middle" x="66.12" y="-89.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
-</g>
 <g id="clust7" class="cluster">
 <title>cluster_src/stores</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-45C282.25,-45 358.5,-45 358.5,-45 364.5,-45 370.5,-51 370.5,-57 370.5,-57 370.5,-119 370.5,-119 370.5,-125 364.5,-131 358.5,-131 358.5,-131 282.25,-131 282.25,-131 276.25,-131 270.25,-125 270.25,-119 270.25,-119 270.25,-57 270.25,-57 270.25,-51 276.25,-45 282.25,-45"/>
 <text text-anchor="middle" x="320.38" y="-118.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
+<g id="clust8" class="cluster">
+<title>cluster_src/views</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-16C28,-16 104.25,-16 104.25,-16 110.25,-16 116.25,-22 116.25,-28 116.25,-28 116.25,-90 116.25,-90 116.25,-96 110.25,-102 104.25,-102 104.25,-102 28,-102 28,-102 22,-102 16,-96 16,-90 16,-90 16,-28 16,-28 16,-22 22,-16 28,-16"/>
+<text text-anchor="middle" x="66.12" y="-89.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
 </g>
 <!-- src/application/index.ts -->
 <g id="node1" class="node">

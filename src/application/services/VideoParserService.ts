@@ -2,48 +2,44 @@ import { FileVideoParser } from '@/domain'
 import { VideoMetadataService } from './VideoMetadataService'
 import type { ParsedVideo } from '@/domain'
 
-export async function* parseFileList(
-  files: FileList,
-): AsyncGenerator<ParsedVideo> {
-  const startTime = performance.now()
-  const parser = new FileVideoParser()
-  const storage = VideoMetadataService.getInstance()
+export class FileParserService {
+  constructor(
+    private readonly storage = VideoMetadataService.getInstance(),
+    private readonly parser = new FileVideoParser(),
+  ) {}
 
-  const { filesToProcess, foundVideos } = await filterExistingFromNewVideos(
-    files,
-    storage,
-    parser,
-  )
+  async *parseFileList(files: FileList): AsyncGenerator<ParsedVideo> {
+    const startTime = performance.now()
 
-  for (const video of foundVideos) {
-    yield video
-  }
+    const { filesToProcess, foundVideos } =
+      await this.#filterExistingFromNewVideos(files)
 
-  if (filesToProcess.length > 0) {
-    for await (const video of processVideoFiles(
-      filesToProcess,
-      storage,
-      parser,
-    )) {
+    for (const video of foundVideos) {
       yield video
     }
+
+    if (filesToProcess.length > 0) {
+      for (const file of filesToProcess) {
+        try {
+          const video = await this.#processFile(file)
+
+          if (video) yield video
+        } catch (e) {
+          console.error('Failed to process file:', e)
+        }
+      }
+    }
+
+    const endTime = performance.now()
+    console.log(`Total time taken: ${endTime - startTime} milliseconds`)
   }
 
-  const endTime = performance.now()
-  console.log(`Total time taken: ${endTime - startTime} milliseconds`)
-}
-
-const processVideoFiles = async function* (
-  fileArray: File[],
-  storage: VideoMetadataService,
-  parser: FileVideoParser,
-) {
-  const processFile = async (file: File) => {
+  readonly #processFile = async (file: File) => {
     try {
-      const newVideoDto = await parser.transformVideoData(file)
+      const newVideoDto = await this.parser.transformVideoData(file)
 
       if (newVideoDto) {
-        const videoDto = await storage.postVideo(newVideoDto)
+        const videoDto = await this.storage.postVideo(newVideoDto)
         return {
           ...videoDto,
           url: URL.createObjectURL(file),
@@ -59,38 +55,26 @@ const processVideoFiles = async function* (
     }
   }
 
-  for (const file of fileArray) {
-    try {
-      const video = await processFile(file)
+  readonly #filterExistingFromNewVideos = async (fileList: FileList) => {
+    const foundVideos = []
+    const filesToProcess = []
 
-      if (video) yield video
-    } catch (e) {
-      console.error('Failed to process file:', e)
+    for (const file of fileList) {
+      const videoEntity = await this.storage.getVideo(
+        await this.parser.generateHash(file),
+      )
+
+      if (videoEntity) {
+        foundVideos.push({
+          ...videoEntity,
+          url: URL.createObjectURL(file),
+          pinned: false,
+        })
+      } else {
+        filesToProcess.push(file)
+      }
     }
+
+    return { foundVideos, filesToProcess }
   }
-}
-
-const filterExistingFromNewVideos = async (
-  fileList: FileList,
-  storage: VideoMetadataService,
-  parser: FileVideoParser,
-) => {
-  const foundVideos = []
-  const filesToProcess = []
-
-  for (const file of fileList) {
-    const videoEntity = await storage.getVideo(await parser.generateHash(file))
-
-    if (videoEntity) {
-      foundVideos.push({
-        ...videoEntity,
-        url: URL.createObjectURL(file),
-        pinned: false,
-      })
-    } else {
-      filesToProcess.push(file)
-    }
-  }
-
-  return { foundVideos, filesToProcess }
 }
