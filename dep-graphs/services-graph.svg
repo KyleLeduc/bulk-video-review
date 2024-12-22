@@ -34,15 +34,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M713.5,-112C713.5,-112 759.5,-112 759.5,-112 765.5,-112 771.5,-118 771.5,-124 771.5,-124 771.5,-155 771.5,-155 771.5,-161 765.5,-167 759.5,-167 759.5,-167 713.5,-167 713.5,-167 707.5,-167 701.5,-161 701.5,-155 701.5,-155 701.5,-124 701.5,-124 701.5,-118 707.5,-112 713.5,-112"/>
 <text text-anchor="middle" x="736.5" y="-154.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_src/domain/services</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M575.5,-139C575.5,-139 659.25,-139 659.25,-139 665.25,-139 671.25,-145 671.25,-151 671.25,-151 671.25,-182 671.25,-182 671.25,-188 665.25,-194 659.25,-194 659.25,-194 575.5,-194 575.5,-194 569.5,-194 563.5,-188 563.5,-182 563.5,-182 563.5,-151 563.5,-151 563.5,-145 569.5,-139 575.5,-139"/>
-<text text-anchor="middle" x="617.38" y="-181.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
-</g>
 <g id="clust7" class="cluster">
 <title>cluster_src/domain/valueObjects</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M691.25,-175C691.25,-175 781.75,-175 781.75,-175 787.75,-175 793.75,-181 793.75,-187 793.75,-187 793.75,-218 793.75,-218 793.75,-224 787.75,-230 781.75,-230 781.75,-230 691.25,-230 691.25,-230 685.25,-230 679.25,-224 679.25,-218 679.25,-218 679.25,-187 679.25,-187 679.25,-181 685.25,-175 691.25,-175"/>
 <text text-anchor="middle" x="736.5" y="-217.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">valueObjects</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/domain/services</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M575.5,-139C575.5,-139 659.25,-139 659.25,-139 665.25,-139 671.25,-145 671.25,-151 671.25,-151 671.25,-182 671.25,-182 671.25,-188 665.25,-194 659.25,-194 659.25,-194 575.5,-194 575.5,-194 569.5,-194 563.5,-188 563.5,-182 563.5,-182 563.5,-151 563.5,-151 563.5,-145 569.5,-139 575.5,-139"/>
+<text text-anchor="middle" x="617.38" y="-181.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
 <g id="clust8" class="cluster">
 <title>cluster_src/infrastructure</title>

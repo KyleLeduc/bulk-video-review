@@ -28,11 +28,14 @@ export class FileVideoParser {
 
         const videoMetadata = new ParsedVideoData(thumbUrl, key, duration)
 
+        this.cleanupVideoElement(video, canvas)
+
         resolve(videoMetadata)
       }
 
       const handleError = (e: ErrorEvent) => {
-        URL.revokeObjectURL(video.src)
+        this.cleanupVideoElement(video, canvas)
+
         reject(e)
       }
 
@@ -66,6 +69,18 @@ export class FileVideoParser {
     ]
 
     return validVideoMimeTypes.includes(file.type)
+  }
+
+  private readonly cleanupVideoElement = (
+    video: HTMLVideoElement,
+    canvas: HTMLCanvasElement,
+  ) => {
+    setTimeout(() => {
+      URL.revokeObjectURL(video.src)
+
+      video.remove()
+      canvas.remove()
+    }, 1000)
   }
 
   transformVideoData = async (video: File) => {
