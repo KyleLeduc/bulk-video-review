@@ -85,10 +85,9 @@ export const useVideoStore = defineStore('videos', {
     },
 
     async addVideosFromFiles(files: FileList) {
-      const parsedVideos = await parseFileList(files)
+      const parsedVideos = parseFileList(files)
 
       for await (const video of parsedVideos) {
-        console.log('generator video', video)
         this.addVideos([video])
       }
     },
