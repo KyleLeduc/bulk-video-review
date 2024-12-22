@@ -15,6 +15,3 @@ import type { ParsedVideo } from './entities/ParsedVideo'
 import type { VideoStorageDto } from './entities/VideoStorageDto'
 
 export type { Thumbs, ParsedVideo, VideoStorageDto }
-
-import { ParsedVideoData } from './valueObjects/ParsedVideoData'
-export { ParsedVideoData }

@@ -1,4 +1,5 @@
-import { ParsedVideoData, type VideoEntity } from '@/domain'
+import { ParsedVideoData } from '@/domain/valueObjects/ParsedVideoData'
+import type { VideoEntity } from '@/domain/entities/Video'
 
 export class FileVideoParser {
   private readonly generateMetadata = async (file: File) => {
