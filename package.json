@@ -16,6 +16,7 @@
     "dep:interactive": "depcruise src --include-only \"^src\" --config .interactive-dependency-cruiser.js --output-type dot | dot -T svg | depcruise-wrap-stream-in-html > ./dev/interactive-graph.html",
     "dep:archi": "depcruise src --include-only \"^src\" --output-type archi | dot -T svg > ./dep-graphs/archi-graph.svg",
     "dep:script": "ts-node ./scripts/generateDepGraphs.ts",
+    "multi-dev": "ts-node ./scripts/multiDev.ts",
     "dep-graph": "run-p dep:*",
     "prepare": "husky",
     "deploy:gh": "gh-pages -d dist",

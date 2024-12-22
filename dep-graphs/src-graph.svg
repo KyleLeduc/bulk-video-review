@@ -59,30 +59,30 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1278.38,-340C1278.38,-340 1570.25,-340 1570.25,-340 1576.25,-340 1582.25,-346 1582.25,-352 1582.25,-352 1582.25,-414 1582.25,-414 1582.25,-420 1576.25,-426 1570.25,-426 1570.25,-426 1278.38,-426 1278.38,-426 1272.38,-426 1266.38,-420 1266.38,-414 1266.38,-414 1266.38,-352 1266.38,-352 1266.38,-346 1272.38,-340 1278.38,-340"/>
 <text text-anchor="middle" x="1424.31" y="-413.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
 </g>
-<g id="clust12" class="cluster">
-<title>cluster_src/domain/valueObjects</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M1400.5,-434C1400.5,-434 1491,-434 1491,-434 1497,-434 1503,-440 1503,-446 1503,-446 1503,-508 1503,-508 1503,-514 1497,-520 1491,-520 1491,-520 1400.5,-520 1400.5,-520 1394.5,-520 1388.5,-514 1388.5,-508 1388.5,-508 1388.5,-446 1388.5,-446 1388.5,-440 1394.5,-434 1400.5,-434"/>
-<text text-anchor="middle" x="1445.75" y="-507.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">valueObjects</text>
-</g>
 <g id="clust11" class="cluster">
 <title>cluster_src/domain/services</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1275.75,-434C1275.75,-434 1359.5,-434 1359.5,-434 1365.5,-434 1371.5,-440 1371.5,-446 1371.5,-446 1371.5,-477 1371.5,-477 1371.5,-483 1365.5,-489 1359.5,-489 1359.5,-489 1275.75,-489 1275.75,-489 1269.75,-489 1263.75,-483 1263.75,-477 1263.75,-477 1263.75,-446 1263.75,-446 1263.75,-440 1269.75,-434 1275.75,-434"/>
 <text text-anchor="middle" x="1317.62" y="-476.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
+</g>
+<g id="clust12" class="cluster">
+<title>cluster_src/domain/valueObjects</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M1400.5,-434C1400.5,-434 1491,-434 1491,-434 1497,-434 1503,-440 1503,-446 1503,-446 1503,-508 1503,-508 1503,-514 1497,-520 1491,-520 1491,-520 1400.5,-520 1400.5,-520 1394.5,-520 1388.5,-514 1388.5,-508 1388.5,-508 1388.5,-446 1388.5,-446 1388.5,-440 1394.5,-434 1400.5,-434"/>
+<text text-anchor="middle" x="1445.75" y="-507.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">valueObjects</text>
 </g>
 <g id="clust13" class="cluster">
 <title>cluster_src/infrastructure</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M867.62,-16C867.62,-16 1234.75,-16 1234.75,-16 1240.75,-16 1246.75,-22 1246.75,-28 1246.75,-28 1246.75,-125 1246.75,-125 1246.75,-131 1240.75,-137 1234.75,-137 1234.75,-137 867.62,-137 867.62,-137 861.62,-137 855.62,-131 855.62,-125 855.62,-125 855.62,-28 855.62,-28 855.62,-22 861.62,-16 867.62,-16"/>
 <text text-anchor="middle" x="1051.19" y="-124.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">infrastructure</text>
 </g>
-<g id="clust14" class="cluster">
-<title>cluster_src/infrastructure/database</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M1121.25,-39C1121.25,-39 1226.75,-39 1226.75,-39 1232.75,-39 1238.75,-45 1238.75,-51 1238.75,-51 1238.75,-82 1238.75,-82 1238.75,-88 1232.75,-94 1226.75,-94 1226.75,-94 1121.25,-94 1121.25,-94 1115.25,-94 1109.25,-88 1109.25,-82 1109.25,-82 1109.25,-51 1109.25,-51 1109.25,-45 1115.25,-39 1121.25,-39"/>
-<text text-anchor="middle" x="1174" y="-81.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">database</text>
-</g>
 <g id="clust15" class="cluster">
 <title>cluster_src/infrastructure/repository</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M989.75,-24C989.75,-24 1089.25,-24 1089.25,-24 1095.25,-24 1101.25,-30 1101.25,-36 1101.25,-36 1101.25,-98 1101.25,-98 1101.25,-104 1095.25,-110 1089.25,-110 1089.25,-110 989.75,-110 989.75,-110 983.75,-110 977.75,-104 977.75,-98 977.75,-98 977.75,-36 977.75,-36 977.75,-30 983.75,-24 989.75,-24"/>
 <text text-anchor="middle" x="1039.5" y="-97.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repository</text>
+</g>
+<g id="clust14" class="cluster">
+<title>cluster_src/infrastructure/database</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M1121.25,-39C1121.25,-39 1226.75,-39 1226.75,-39 1232.75,-39 1238.75,-45 1238.75,-51 1238.75,-51 1238.75,-82 1238.75,-82 1238.75,-88 1232.75,-94 1226.75,-94 1226.75,-94 1121.25,-94 1121.25,-94 1115.25,-94 1109.25,-88 1109.25,-82 1109.25,-82 1109.25,-51 1109.25,-51 1109.25,-45 1115.25,-39 1121.25,-39"/>
+<text text-anchor="middle" x="1174" y="-81.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">database</text>
 </g>
 <g id="clust16" class="cluster">
 <title>cluster_src/stores</title>
