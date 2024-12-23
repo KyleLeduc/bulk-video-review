@@ -1,11 +1,11 @@
-import { FileVideoParser } from '@/domain'
+import { VideoFileParser } from '@/infrastructure'
 import { VideoMetadataService } from './VideoMetadataService'
 import type { ParsedVideo } from '@/domain'
 
 export class FileParserService {
   constructor(
     private readonly storage = VideoMetadataService.getInstance(),
-    private readonly parser = new FileVideoParser(),
+    private readonly parser = new VideoFileParser(),
   ) {}
 
   async *parseFileList(files: FileList): AsyncGenerator<ParsedVideo> {

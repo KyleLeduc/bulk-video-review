@@ -1,7 +1,7 @@
 import { ParsedVideoData } from '@/domain/valueObjects/ParsedVideoData'
 import type { VideoEntity } from '@/domain/entities/Video'
 
-export class FileVideoParser {
+export class VideoFileParser {
   readonly #canvas: HTMLCanvasElement = document.createElement('canvas')
   readonly #context: CanvasRenderingContext2D | null =
     this.#canvas.getContext('2d')

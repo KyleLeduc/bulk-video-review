@@ -128,8 +128,8 @@
 <!-- src/application&#45;&gt;src/domain -->
 <g id="edge3" class="edge">
 <title>src/application&#45;&gt;src/domain</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M425.85,-39.91C430.15,-39.12 434.55,-38.44 438.75,-38 463.47,-35.41 491.49,-36.53 512.93,-38.23"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="512.52,-40.3 518.68,-38.73 512.88,-36.12 512.52,-40.3"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M425.85,-39.91C430.15,-39.12 434.55,-38.44 438.75,-38 464.02,-35.35 492.75,-36.58 514.36,-38.35"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="514.02,-40.43 520.18,-38.86 514.39,-36.24 514.02,-40.43"/>
 </g>
 <!-- src/infrastructure -->
 <g id="node6" class="node">
