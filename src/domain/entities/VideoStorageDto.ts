@@ -1,4 +1,4 @@
-import type { VideoEntity } from './Video'
-import type { MetadataEntity } from './Metadata'
+import type { VideoEntity } from './VideoEntity'
+import type { MetadataEntity } from './MetadataEntity'
 
 export type VideoStorageDto = VideoEntity & MetadataEntity

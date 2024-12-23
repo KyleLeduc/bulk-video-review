@@ -1,15 +1,12 @@
-import { storeNames } from './constants'
-import type { IMetadataRepository } from './repositories/IMetadataRepository'
-import type { MetadataEntity } from './entities/Metadata'
-import type { VideoEntity } from './entities/Video'
-import type { IVideoRepository } from './repositories/IVideoRepository'
+export type {
+  MetadataEntity,
+  VideoEntity,
+  VideoStorageDto,
+  ParsedVideo,
+} from './entities'
 
-export { storeNames }
-export type { IMetadataRepository, MetadataEntity }
-export type { IVideoRepository, VideoEntity }
+export type { IMetadataRepository, IVideoRepository } from './repositories'
 
-import type { Thumbs } from './valueObjects/Thumbs'
-import type { ParsedVideo } from './entities/ParsedVideo'
-import type { VideoStorageDto } from './entities/VideoStorageDto'
+export { ParsedVideoData, type Thumbs } from './valueObjects'
 
-export type { Thumbs, ParsedVideo, VideoStorageDto }
+export { storeNames } from './constants'

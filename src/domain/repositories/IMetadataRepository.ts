@@ -1,4 +1,4 @@
-import type { MetadataEntity } from '../entities/Metadata'
+import type { MetadataEntity } from '../entities/MetadataEntity'
 
 export interface IMetadataRepository {
   getMetadata(id: string): Promise<MetadataEntity>

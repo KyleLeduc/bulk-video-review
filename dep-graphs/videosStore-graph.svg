@@ -19,11 +19,6 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M352.5,-16C352.5,-16 398.5,-16 398.5,-16 404.5,-16 410.5,-22 410.5,-28 410.5,-28 410.5,-59 410.5,-59 410.5,-65 404.5,-71 398.5,-71 398.5,-71 352.5,-71 352.5,-71 346.5,-71 340.5,-65 340.5,-59 340.5,-59 340.5,-28 340.5,-28 340.5,-22 346.5,-16 352.5,-16"/>
 <text text-anchor="middle" x="375.5" y="-58.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_src/infrastructure</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M350.5,-79C350.5,-79 401.5,-79 401.5,-79 407.5,-79 413.5,-85 413.5,-91 413.5,-91 413.5,-122 413.5,-122 413.5,-128 407.5,-134 401.5,-134 401.5,-134 350.5,-134 350.5,-134 344.5,-134 338.5,-128 338.5,-122 338.5,-122 338.5,-91 338.5,-91 338.5,-85 344.5,-79 350.5,-79"/>
-<text text-anchor="middle" x="376" y="-121.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">infrastructure</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_src/components</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M136.25,-79C136.25,-79 212,-79 212,-79 218,-79 224,-85 224,-91 224,-91 224,-185 224,-185 224,-191 218,-197 212,-197 212,-197 136.25,-197 136.25,-197 130.25,-197 124.25,-191 124.25,-185 124.25,-185 124.25,-91 124.25,-91 124.25,-85 130.25,-79 136.25,-79"/>
@@ -33,6 +28,11 @@
 <title>cluster_src/components/inputs</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-87C144.25,-87 204,-87 204,-87 210,-87 216,-93 216,-99 216,-99 216,-130 216,-130 216,-136 210,-142 204,-142 204,-142 144.25,-142 144.25,-142 138.25,-142 132.25,-136 132.25,-130 132.25,-130 132.25,-99 132.25,-99 132.25,-93 138.25,-87 144.25,-87"/>
 <text text-anchor="middle" x="174.12" y="-129.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/infrastructure</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M350.5,-79C350.5,-79 401.5,-79 401.5,-79 407.5,-79 413.5,-85 413.5,-91 413.5,-91 413.5,-122 413.5,-122 413.5,-128 407.5,-134 401.5,-134 401.5,-134 350.5,-134 350.5,-134 344.5,-134 338.5,-128 338.5,-122 338.5,-122 338.5,-91 338.5,-91 338.5,-85 344.5,-79 350.5,-79"/>
+<text text-anchor="middle" x="376" y="-121.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">infrastructure</text>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_src/domain</title>

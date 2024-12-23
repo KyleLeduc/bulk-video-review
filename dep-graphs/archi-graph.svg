@@ -80,12 +80,12 @@
 <!-- src/domain -->
 <g id="node5" class="node">
 <title>src/domain</title>
-<g id="a_node5"><a xlink:href="src/domain" xlink:title="no&#45;orphans">
-<polygon fill="#ccffcc" stroke="orange" points="575.75,-51.62 523.89,-51.62 521.75,-49.49 521.75,-32.38 573.61,-32.38 575.75,-34.51 575.75,-51.62"/>
-<polyline fill="none" stroke="orange" points="573.61,-49.49 521.75,-49.49"/>
-<polyline fill="none" stroke="orange" points="573.61,-49.49 573.61,-32.38"/>
-<polyline fill="none" stroke="orange" points="573.61,-49.49 575.75,-51.62"/>
-<text text-anchor="start" x="533" y="-39.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="orange">domain</text>
+<g id="a_node5"><a xlink:href="src/domain" xlink:title="domain">
+<polygon fill="#ffffcc" stroke="black" points="575.75,-51.62 523.89,-51.62 521.75,-49.49 521.75,-32.38 573.61,-32.38 575.75,-34.51 575.75,-51.62"/>
+<polyline fill="none" stroke="black" points="573.61,-49.49 521.75,-49.49"/>
+<polyline fill="none" stroke="black" points="573.61,-49.49 573.61,-32.38"/>
+<polyline fill="none" stroke="black" points="573.61,-49.49 575.75,-51.62"/>
+<text text-anchor="start" x="533" y="-39.08" font-family="Helvetica,sans-Serif" font-size="9.00">domain</text>
 </a>
 </g>
 </g>

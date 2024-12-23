@@ -1,5 +1,3 @@
-import { MetadataRepository } from './repository/MetadataRepository'
-import { VideoRepository } from './repository/VideoRepository'
+export { VideoRepository, MetadataRepository } from './repository/'
 
-export { MetadataRepository, VideoRepository }
 export { VideoFileParser, HTMLVideoProcessor } from './video'
