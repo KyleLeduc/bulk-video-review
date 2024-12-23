@@ -1,8 +1,9 @@
 export class ParsedVideoData {
   constructor(
-    public readonly thumbUrl: string,
     public readonly id: string,
-    public readonly duration: number,
-    public readonly url: string,
+    public readonly thumbUrls: string[] = [],
+    public thumbUrl: string = '',
+    public duration: number = 0,
+    public url: string = '',
   ) {}
 }

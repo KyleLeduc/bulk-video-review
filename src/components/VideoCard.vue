@@ -2,8 +2,11 @@
   <div class="card">
     <img
       class="thumb"
+      ref="thumbElement"
       v-if="!state.showVideo"
       :src="video.thumb"
+      @mouseenter="startThumbRotation"
+      @mouseleave="stopThumbRotation"
       alt=""
       srcset=""
     />
@@ -29,7 +32,7 @@
         <div>{{ props.video.votes }} 🗳️</div>
         <div v-if="!isVidLoaded" class="tab" @click="loadVideo">Thumbs</div>
         <div v-else class="tab video" @click="loadVideo">Video</div>
-        <div>⏱️ {{ props.video.duration }}</div>
+        <div>⏱️ {{ Math.floor(props.video.duration / 60) }}</div>
       </div>
       <div v-if="isVidLoaded" @click="handleSkip(30)">⏩</div>
       <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(60)">
@@ -57,11 +60,8 @@ const emit = defineEmits<{
 
 interface State {
   showVideo: boolean
-  thumbsLoaded: boolean
-  interval: {
-    id: number
-    index: number
-  }
+  rotateThumbs: boolean
+  thumbIndex: number
 }
 
 /**
@@ -71,9 +71,34 @@ interface State {
 
 const state = reactive<State>({
   showVideo: false,
-  thumbsLoaded: false,
-  interval: { id: 0, index: 0 },
+  rotateThumbs: false,
+  thumbIndex: 0,
 })
+
+const thumbElement = ref<HTMLImageElement | null>(null)
+const intervalId = ref<number | null>(null)
+
+const updateThumbSrc = () => {
+  if (thumbElement.value && props.video.thumbUrls.length > 0) {
+    state.thumbIndex = (state.thumbIndex + 1) % props.video.thumbUrls.length
+    thumbElement.value.src = props.video.thumbUrls[state.thumbIndex]
+  }
+}
+
+const startThumbRotation = () => {
+  if (intervalId.value === null) {
+    intervalId.value = window.setInterval(updateThumbSrc, 500)
+  }
+}
+
+const stopThumbRotation = () => {
+  if (intervalId.value !== null) {
+    clearInterval(intervalId.value)
+    intervalId.value = null
+  }
+
+  thumbElement.value && (thumbElement.value.src = props.video.thumb)
+}
 
 const embedInitOptions = {
   playing: false,

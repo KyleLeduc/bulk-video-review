@@ -2,11 +2,13 @@ import { ParsedVideoData } from '@/domain/valueObjects/ParsedVideoData'
 import type { VideoEntity } from '@/domain/entities/Video'
 
 export class FileVideoParser {
-  private readonly generateMetadata = async (file: File) => {
+  private readonly generateMetadata = async (
+    file: File,
+  ): Promise<ParsedVideoData> => {
     const key = await this.generateHash(file)
 
-    return new Promise<ParsedVideoData>((resolve, reject) => {
-      let duration: number
+    return new Promise((resolve, reject) => {
+      const videoMetadata = new ParsedVideoData(key)
 
       const video: HTMLVideoElement = document.createElement('video')
       const canvas: HTMLCanvasElement = document.createElement('canvas')
@@ -14,24 +16,35 @@ export class FileVideoParser {
 
       const url = URL.createObjectURL(file)
       video.src = url
+      videoMetadata.url = url
 
       const handleLoadedData = () => {
         canvas.width = 1920 * 0.5
         canvas.height = 1080 * 0.5
 
         video.currentTime = 60
-        duration = Math.round(video.duration / 60)
+        videoMetadata.duration = video.duration
       }
 
       const handleSeek = () => {
         context?.drawImage(video, 0, 0, canvas.width, canvas.height)
         const thumbUrl = canvas.toDataURL('image/jpeg', 0.25)
 
-        const videoMetadata = new ParsedVideoData(thumbUrl, key, duration, url)
+        videoMetadata.thumbUrls.push(thumbUrl)
+      }
 
-        this.cleanupVideoElement(video, canvas)
+      const seekToTime = (time: number) => {
+        return new Promise<void>((resolve) => {
+          const onSeeked = () => {
+            handleSeek()
+            video.removeEventListener('seeked', onSeeked)
 
-        resolve(videoMetadata)
+            resolve()
+          }
+
+          video.addEventListener('seeked', onSeeked)
+          video.currentTime = time
+        })
       }
 
       const handleError = (e: ErrorEvent) => {
@@ -41,10 +54,27 @@ export class FileVideoParser {
         reject(e)
       }
 
-      video.addEventListener('seeked', handleSeek, { once: true })
-      video.addEventListener('loadedmetadata', handleLoadedData, {
-        once: true,
-      })
+      video.addEventListener(
+        'loadedmetadata',
+        async () => {
+          handleLoadedData()
+
+          for (
+            let i = 60;
+            i < videoMetadata.duration;
+            i += videoMetadata.duration / 10
+          ) {
+            await seekToTime(Math.floor(i))
+          }
+
+          videoMetadata.thumbUrl = videoMetadata.thumbUrls[0]
+          this.cleanupVideoElement(video, canvas)
+          resolve(videoMetadata)
+        },
+        {
+          once: true,
+        },
+      )
       video.addEventListener('error', handleError, { once: true })
     })
   }
@@ -90,14 +120,15 @@ export class FileVideoParser {
     }
 
     try {
-      const { thumbUrl, duration, id, url } = await this.generateMetadata(video)
+      const { thumbUrl, duration, id, url, thumbUrls } =
+        await this.generateMetadata(video)
 
       const videoEntity: VideoEntity = {
         id,
         title: video.name,
         thumb: thumbUrl,
         duration,
-        thumbUrls: [thumbUrl],
+        thumbUrls,
         tags: [],
       }
 
