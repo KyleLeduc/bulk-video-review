@@ -2,81 +2,94 @@ import { ParsedVideoData } from '@/domain/valueObjects/ParsedVideoData'
 import type { VideoEntity } from '@/domain/entities/Video'
 
 export class FileVideoParser {
-  private readonly generateMetadata = async (
-    file: File,
-  ): Promise<ParsedVideoData> => {
+  readonly #canvas: HTMLCanvasElement = document.createElement('canvas')
+  readonly #context: CanvasRenderingContext2D | null =
+    this.#canvas.getContext('2d')
+  readonly #video: HTMLVideoElement = document.createElement('video')
+
+  readonly #generateMetadata = async (file: File): Promise<ParsedVideoData> => {
     const key = await this.generateHash(file)
 
     return new Promise((resolve, reject) => {
       const videoMetadata = new ParsedVideoData(key)
 
-      const video: HTMLVideoElement = document.createElement('video')
-      const canvas: HTMLCanvasElement = document.createElement('canvas')
-      const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
-
       const url = URL.createObjectURL(file)
-      video.src = url
+      this.#video.src = url
       videoMetadata.url = url
 
-      const handleLoadedData = () => {
-        canvas.width = 1920 * 0.5
-        canvas.height = 1080 * 0.5
-
-        video.currentTime = 60
-        videoMetadata.duration = video.duration
-      }
-
-      const handleSeek = () => {
-        context?.drawImage(video, 0, 0, canvas.width, canvas.height)
-        const thumbUrl = canvas.toDataURL('image/jpeg', 0.25)
-
-        videoMetadata.thumbUrls.push(thumbUrl)
-      }
-
-      const seekToTime = (time: number) => {
-        return new Promise<void>((resolve) => {
-          const onSeeked = () => {
-            handleSeek()
-            video.removeEventListener('seeked', onSeeked)
-
-            resolve()
-          }
-
-          video.addEventListener('seeked', onSeeked)
-          video.currentTime = time
-        })
-      }
-
-      const handleError = (e: ErrorEvent) => {
-        this.cleanupVideoElement(video, canvas)
-        setTimeout(() => URL.revokeObjectURL(video.src), 1000)
-
-        reject(e)
-      }
-
-      video.addEventListener(
+      this.#video.addEventListener(
         'loadedmetadata',
         async () => {
-          handleLoadedData()
+          this.#canvas.width = this.#video.videoWidth
+          this.#canvas.height = this.#video.videoHeight
 
-          for (
-            let i = 60;
-            i < videoMetadata.duration;
-            i += videoMetadata.duration / 10
-          ) {
-            await seekToTime(Math.floor(i))
+          videoMetadata.duration = this.#video.duration
+          const singleThumb = true
+
+          if (singleThumb) {
+            await this.seekToTime(30)
+            const thumbnail = this.captureThumbnail()
+
+            videoMetadata.thumbUrl = thumbnail
+            videoMetadata.thumbUrls.push(thumbnail)
+          } else {
+            const thumbnails = await this.generateThumbnails()
+            videoMetadata.thumbUrl = thumbnails[1]
+            videoMetadata.thumbUrls.push(...thumbnails)
           }
 
-          videoMetadata.thumbUrl = videoMetadata.thumbUrls[0]
-          this.cleanupVideoElement(video, canvas)
           resolve(videoMetadata)
         },
         {
           once: true,
         },
       )
-      video.addEventListener('error', handleError, { once: true })
+      this.#video.addEventListener(
+        'error',
+        (e) => {
+          setTimeout(() => URL.revokeObjectURL(this.#video.src), 1000)
+
+          reject(e)
+        },
+        { once: true },
+      )
     })
+  }
+
+  captureThumbnail = () => {
+    this.#context?.drawImage(
+      this.#video,
+      0,
+      0,
+      this.#canvas.width,
+      this.#canvas.height,
+    )
+    return this.#canvas.toDataURL('image/jpeg', 0.25)
+  }
+
+  seekToTime = async (time: number) => {
+    return new Promise<void>((resolve) => {
+      const onSeeked = () => {
+        this.#video.removeEventListener('seeked', onSeeked)
+
+        resolve()
+      }
+
+      this.#video.addEventListener('seeked', onSeeked)
+      this.#video.currentTime = time
+    })
+  }
+
+  generateThumbnails = async () => {
+    const thumbnails: string[] = []
+
+    for (let i = 60; i < this.#video.duration; i += this.#video.duration / 10) {
+      await this.seekToTime(Math.floor(i))
+
+      thumbnails.push(this.captureThumbnail())
+    }
+
+    return thumbnails
   }
 
   generateHash = async (file: File) => {
@@ -91,7 +104,7 @@ export class FileVideoParser {
     return hashHex
   }
 
-  private readonly isValidVideoType = (file: File) => {
+  readonly #isValidVideoType = (file: File) => {
     const validVideoMimeTypes = [
       'video/mp4', // MP4 (H.264/AAC)
       'video/webm', // WebM (VP8/VP9)
@@ -103,25 +116,15 @@ export class FileVideoParser {
     return validVideoMimeTypes.includes(file.type)
   }
 
-  private readonly cleanupVideoElement = (
-    video: HTMLVideoElement,
-    canvas: HTMLCanvasElement,
-  ) => {
-    setTimeout(() => {
-      video.remove()
-      canvas.remove()
-    }, 1000)
-  }
-
   transformVideoData = async (video: File) => {
-    if (!this.isValidVideoType(video)) {
+    if (!this.#isValidVideoType(video)) {
       console.log('invalid video type', video)
       return
     }
 
     try {
       const { thumbUrl, duration, id, url, thumbUrls } =
-        await this.generateMetadata(video)
+        await this.#generateMetadata(video)
 
       const videoEntity: VideoEntity = {
         id,

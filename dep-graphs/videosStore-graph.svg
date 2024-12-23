@@ -29,15 +29,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-48C144.25,-48 204,-48 204,-48 210,-48 216,-54 216,-60 216,-60 216,-91 216,-91 216,-97 210,-103 204,-103 204,-103 144.25,-103 144.25,-103 138.25,-103 132.25,-97 132.25,-91 132.25,-91 132.25,-60 132.25,-60 132.25,-54 138.25,-48 144.25,-48"/>
 <text text-anchor="middle" x="174.12" y="-90.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_src/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M244,-44C244,-44 310.5,-44 310.5,-44 316.5,-44 322.5,-50 322.5,-56 322.5,-56 322.5,-87 322.5,-87 322.5,-93 316.5,-99 310.5,-99 310.5,-99 244,-99 244,-99 238,-99 232,-93 232,-87 232,-87 232,-56 232,-56 232,-50 238,-44 244,-44"/>
-<text text-anchor="middle" x="277.25" y="-86.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust5" class="cluster">
 <title>cluster_src/domain</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M342.5,-103C342.5,-103 388.5,-103 388.5,-103 394.5,-103 400.5,-109 400.5,-115 400.5,-115 400.5,-146 400.5,-146 400.5,-152 394.5,-158 388.5,-158 388.5,-158 342.5,-158 342.5,-158 336.5,-158 330.5,-152 330.5,-146 330.5,-146 330.5,-115 330.5,-115 330.5,-109 336.5,-103 342.5,-103"/>
 <text text-anchor="middle" x="365.5" y="-145.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M244,-44C244,-44 310.5,-44 310.5,-44 316.5,-44 322.5,-50 322.5,-56 322.5,-56 322.5,-87 322.5,-87 322.5,-93 316.5,-99 310.5,-99 310.5,-99 244,-99 244,-99 238,-99 232,-93 232,-87 232,-87 232,-56 232,-56 232,-50 238,-44 244,-44"/>
+<text text-anchor="middle" x="277.25" y="-86.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_src/views</title>
