@@ -52,6 +52,16 @@ class VideoMetadataService {
     return VideoStorageDtoMapper.toDto(videoEntity, metadata)
   }
 
+  async updateVideo(
+    video: VideoStorageDto,
+  ): Promise<VideoStorageDto | undefined> {
+    const videoData = await this.videoRepo.postVideo(video)
+    const metadata = await this.metadataRepo.getMetadata(video.id)
+
+    if (!videoData) return undefined
+    return VideoStorageDtoMapper.toDto(videoData, metadata)
+  }
+
   async updateVotes(id: string, delta: number): Promise<MetadataEntity | null> {
     try {
       const metadata = await this.metadataRepo.getMetadata(id)

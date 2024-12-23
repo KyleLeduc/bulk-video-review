@@ -5,6 +5,8 @@ import {
   FileParserService,
 } from '@/application'
 import { defineStore } from 'pinia'
+import { HTMLVideoProcessor } from '@/infrastructure'
+import { toRaw } from 'vue'
 
 interface State {
   _videos: Map<string, ParsedVideo>
@@ -89,6 +91,23 @@ export const useVideoStore = defineStore('videos', {
 
       for await (const video of parsedVideos) {
         this.addVideos([video])
+      }
+    },
+
+    async updateVideoThumbnails(id: string) {
+      const video = toRaw(this._videos.get(id))
+
+      if (video && video.thumbUrls.length <= 1) {
+        const metadataService = VideoMetadataService.getInstance()
+        const vidProcessor = new HTMLVideoProcessor(video.url)
+        await vidProcessor.isReady
+
+        const thumbnail = await vidProcessor.generateThumbnails()
+
+        video.thumbUrls = thumbnail
+
+        await metadataService.updateVideo(video)
+        this._videos.set(id, video)
       }
     },
   },

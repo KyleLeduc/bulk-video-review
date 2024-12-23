@@ -7,7 +7,7 @@ export class HTMLVideoProcessor {
   isReady: Promise<void>
 
   constructor(video: HTMLVideoElement | string) {
-    this.isReady = new Promise((resolve) => {
+    this.isReady = new Promise((resolve, reject) => {
       this.#video.addEventListener(
         'loadedmetadata',
         async () => {
@@ -20,17 +20,19 @@ export class HTMLVideoProcessor {
           once: true,
         },
       )
+
+      this.#video.addEventListener(
+        'error',
+        (e) => {
+          console.error('Failed to load video:', e)
+
+          setTimeout(() => URL.revokeObjectURL(this.#video.src), 1000)
+
+          reject(e)
+        },
+        { once: true },
+      )
     })
-
-    this.#video.addEventListener(
-      'error',
-      (e) => {
-        console.error('Failed to load video:', e)
-
-        setTimeout(() => URL.revokeObjectURL(this.#video.src), 1000)
-      },
-      { once: true },
-    )
 
     if (typeof video === 'string') {
       this.#video.src = video

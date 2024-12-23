@@ -64,11 +64,6 @@ interface State {
   thumbIndex: number
 }
 
-/**
- * todo
- * color border based on votes
- */
-
 const state = reactive<State>({
   showVideo: false,
   rotateThumbs: false,
@@ -85,8 +80,10 @@ const updateThumbSrc = () => {
   }
 }
 
-const startThumbRotation = () => {
+const startThumbRotation = async () => {
   if (intervalId.value === null) {
+    videoStore.updateVideoThumbnails(props.video.id)
+
     intervalId.value = window.setInterval(updateThumbSrc, 500)
   }
 }
