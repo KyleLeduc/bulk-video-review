@@ -1,95 +1,34 @@
 import { ParsedVideoData } from '@/domain/valueObjects/ParsedVideoData'
 import type { VideoEntity } from '@/domain/entities/Video'
+import { HTMLVideoProcessor } from './HTMLVideoProcessor'
 
 export class VideoFileParser {
-  readonly #canvas: HTMLCanvasElement = document.createElement('canvas')
-  readonly #context: CanvasRenderingContext2D | null =
-    this.#canvas.getContext('2d')
-  readonly #video: HTMLVideoElement = document.createElement('video')
-
   readonly #generateMetadata = async (file: File): Promise<ParsedVideoData> => {
     const key = await this.generateHash(file)
+    const url = URL.createObjectURL(file)
 
-    return new Promise((resolve, reject) => {
-      const videoMetadata = new ParsedVideoData(key)
+    const videoMetadata = new ParsedVideoData(key)
+    const videoProcessor = new HTMLVideoProcessor(url)
 
-      const url = URL.createObjectURL(file)
-      this.#video.src = url
-      videoMetadata.url = url
+    await videoProcessor.isReady
 
-      this.#video.addEventListener(
-        'loadedmetadata',
-        async () => {
-          this.#canvas.width = this.#video.videoWidth
-          this.#canvas.height = this.#video.videoHeight
+    videoMetadata.url = videoProcessor.getVideoUrl()
+    videoMetadata.duration = videoProcessor.getDuration()
 
-          videoMetadata.duration = this.#video.duration
-          const singleThumb = true
+    const singleThumb = true
+    if (singleThumb) {
+      await videoProcessor.seekToTime(30)
+      const thumbnail = await videoProcessor.captureThumbnail()
 
-          if (singleThumb) {
-            await this.seekToTime(30)
-            const thumbnail = this.captureThumbnail()
-
-            videoMetadata.thumbUrl = thumbnail
-            videoMetadata.thumbUrls.push(thumbnail)
-          } else {
-            const thumbnails = await this.generateThumbnails()
-            videoMetadata.thumbUrl = thumbnails[1]
-            videoMetadata.thumbUrls.push(...thumbnails)
-          }
-
-          resolve(videoMetadata)
-        },
-        {
-          once: true,
-        },
-      )
-      this.#video.addEventListener(
-        'error',
-        (e) => {
-          setTimeout(() => URL.revokeObjectURL(this.#video.src), 1000)
-
-          reject(e)
-        },
-        { once: true },
-      )
-    })
-  }
-
-  captureThumbnail = () => {
-    this.#context?.drawImage(
-      this.#video,
-      0,
-      0,
-      this.#canvas.width,
-      this.#canvas.height,
-    )
-    return this.#canvas.toDataURL('image/jpeg', 0.25)
-  }
-
-  seekToTime = async (time: number) => {
-    return new Promise<void>((resolve) => {
-      const onSeeked = () => {
-        this.#video.removeEventListener('seeked', onSeeked)
-
-        resolve()
-      }
-
-      this.#video.addEventListener('seeked', onSeeked)
-      this.#video.currentTime = time
-    })
-  }
-
-  generateThumbnails = async () => {
-    const thumbnails: string[] = []
-
-    for (let i = 60; i < this.#video.duration; i += this.#video.duration / 10) {
-      await this.seekToTime(Math.floor(i))
-
-      thumbnails.push(this.captureThumbnail())
+      videoMetadata.thumbUrl = thumbnail
+      videoMetadata.thumbUrls.push(thumbnail)
+    } else {
+      const thumbnails = await videoProcessor.generateThumbnails()
+      videoMetadata.thumbUrl = thumbnails[1]
+      videoMetadata.thumbUrls.push(...thumbnails)
     }
 
-    return thumbnails
+    return videoMetadata
   }
 
   generateHash = async (file: File) => {
