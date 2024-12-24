@@ -1,10 +1,10 @@
 import { VideoFileParser } from '@/infrastructure'
-import { VideoMetadataService } from './VideoMetadataService'
+import { VideoMetadataFacade } from '@/infrastructure/services'
 import type { ParsedVideo } from '@/domain'
 
 export class FileParserService {
   constructor(
-    private readonly storage = VideoMetadataService.getInstance(),
+    private readonly storage = VideoMetadataFacade.getInstance(),
     private readonly parser = new VideoFileParser(),
   ) {}
 

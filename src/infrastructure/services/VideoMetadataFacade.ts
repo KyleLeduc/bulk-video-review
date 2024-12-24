@@ -1,30 +1,38 @@
-import type { VideoStorageDto, VideoEntity, MetadataEntity } from '@/domain'
-import { MetadataRepository, VideoRepository } from '@/infrastructure'
-import { VideoStorageDtoMapper } from './VideoStorageDtoMapper'
+import type {
+  VideoStorageDto,
+  VideoEntity,
+  MetadataEntity,
+  IVideoFacade,
+} from '@/domain'
+import {
+  MetadataRepository,
+  VideoRepository,
+} from '@/infrastructure/repository'
+import { VideoStorageDtoMapper } from '@/domain'
 
 /**
  * IndexedDb bridge to handle storing video metadata
  */
-class VideoMetadataService {
-  private static instance: VideoMetadataService
+export class VideoMetadataFacade implements IVideoFacade {
+  private static instance: VideoMetadataFacade
 
   private constructor(
     private readonly metadataRepo: MetadataRepository,
     private readonly videoRepo: VideoRepository,
   ) {}
 
-  public static getInstance(): VideoMetadataService {
-    if (!VideoMetadataService.instance) {
+  public static getInstance(): VideoMetadataFacade {
+    if (!VideoMetadataFacade.instance) {
       const metadataRepo = new MetadataRepository()
       const videoRepo = new VideoRepository()
 
-      VideoMetadataService.instance = new VideoMetadataService(
+      VideoMetadataFacade.instance = new VideoMetadataFacade(
         metadataRepo,
         videoRepo,
       )
     }
 
-    return VideoMetadataService.instance
+    return VideoMetadataFacade.instance
   }
 
   /**
@@ -90,5 +98,3 @@ class VideoMetadataService {
     await Promise.all(videos.map((v) => this.videoRepo.deleteVideo(v.id)))
   }
 }
-
-export { VideoMetadataService }

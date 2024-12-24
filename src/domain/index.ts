@@ -5,8 +5,16 @@ export type {
   ParsedVideo,
 } from './entities'
 
-export type { IMetadataRepository, IVideoRepository } from './repositories'
+export type {
+  IMetadataRepository,
+  IVideoRepository,
+  IVideoFacade,
+} from './repositories'
 
-export { ParsedVideoData, type Thumbs } from './valueObjects'
+export {
+  ParsedVideoData,
+  VideoStorageDtoMapper,
+  type Thumbs,
+} from './valueObjects'
 
 export { storeNames } from './constants'

@@ -1,11 +1,8 @@
 import type { ParsedVideo } from '@/domain'
-import {
-  applyFilters,
-  VideoMetadataService,
-  FileParserService,
-} from '@/application'
+import { applyFilters, FileParserService } from '@/application'
 import { defineStore } from 'pinia'
 import { HTMLVideoProcessor } from '@/infrastructure'
+import { VideoMetadataFacade } from '@/infrastructure/services'
 import { toRaw } from 'vue'
 
 interface State {
@@ -72,7 +69,7 @@ export const useVideoStore = defineStore('videos', {
       const video = this._videos.get(videoId)
 
       if (video) {
-        const metadataService = VideoMetadataService.getInstance()
+        const metadataService = VideoMetadataFacade.getInstance()
         metadataService
           .updateVotes(videoId, delta)
           .then((data) => {
@@ -98,7 +95,7 @@ export const useVideoStore = defineStore('videos', {
       const video = toRaw(this._videos.get(id))
 
       if (video && video.thumbUrls.length <= 1) {
-        const metadataService = VideoMetadataService.getInstance()
+        const metadataService = VideoMetadataFacade.getInstance()
         const vidProcessor = new HTMLVideoProcessor(video.url)
         await vidProcessor.isReady
 

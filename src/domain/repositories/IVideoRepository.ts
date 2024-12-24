@@ -1,4 +1,4 @@
-import type { VideoEntity } from '../entities/VideoEntity'
+import type { VideoEntity } from '../entities'
 
 export interface IVideoRepository {
   getVideo(id: string): Promise<VideoEntity>
