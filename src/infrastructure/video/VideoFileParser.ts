@@ -14,18 +14,11 @@ export class VideoFileParser {
     videoMetadata.url = videoProcessor.getVideoUrl()
     videoMetadata.duration = videoProcessor.getDuration()
 
-    const singleThumb = true
-    if (singleThumb) {
-      await videoProcessor.seekToTime(30)
-      const thumbnail = await videoProcessor.captureThumbnail()
+    const posterThumbnailTimestamp = Math.min(45, videoMetadata.duration / 10)
+    await videoProcessor.seekToTime(posterThumbnailTimestamp)
+    const thumbnail = await videoProcessor.captureThumbnail()
 
-      videoMetadata.thumbUrl = thumbnail
-      videoMetadata.thumbUrls.push(thumbnail)
-    } else {
-      const thumbnails = await videoProcessor.generateThumbnails()
-      videoMetadata.thumbUrl = thumbnails[1]
-      videoMetadata.thumbUrls.push(...thumbnails)
-    }
+    videoMetadata.thumbUrl = thumbnail
 
     return videoMetadata
   }
