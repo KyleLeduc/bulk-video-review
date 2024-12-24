@@ -4,10 +4,7 @@ import type {
   MetadataEntity,
   IVideoFacade,
 } from '@/domain'
-import {
-  MetadataRepository,
-  VideoRepository,
-} from '@/infrastructure/repository'
+import { MetadataRepository, VideoRepository } from '@infra/repository'
 import { VideoStorageDtoMapper } from '@/domain'
 
 /**

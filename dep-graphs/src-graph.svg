@@ -69,15 +69,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M712.75,-374C712.75,-374 1242.12,-374 1242.12,-374 1248.12,-374 1254.12,-380 1254.12,-386 1254.12,-386 1254.12,-560 1254.12,-560 1254.12,-566 1248.12,-572 1242.12,-572 1242.12,-572 712.75,-572 712.75,-572 706.75,-572 700.75,-566 700.75,-560 700.75,-560 700.75,-386 700.75,-386 700.75,-380 706.75,-374 712.75,-374"/>
 <text text-anchor="middle" x="977.44" y="-559.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">infrastructure</text>
 </g>
-<g id="clust14" class="cluster">
-<title>cluster_src/infrastructure/repository</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M929,-382C929,-382 1095.5,-382 1095.5,-382 1101.5,-382 1107.5,-388 1107.5,-394 1107.5,-394 1107.5,-456 1107.5,-456 1107.5,-462 1101.5,-468 1095.5,-468 1095.5,-468 929,-468 929,-468 923,-468 917,-462 917,-456 917,-456 917,-394 917,-394 917,-388 923,-382 929,-382"/>
-<text text-anchor="middle" x="1012.25" y="-455.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repository</text>
-</g>
 <g id="clust13" class="cluster">
 <title>cluster_src/infrastructure/database</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1127.5,-397C1127.5,-397 1233,-397 1233,-397 1239,-397 1245,-403 1245,-409 1245,-409 1245,-440 1245,-440 1245,-446 1239,-452 1233,-452 1233,-452 1127.5,-452 1127.5,-452 1121.5,-452 1115.5,-446 1115.5,-440 1115.5,-440 1115.5,-409 1115.5,-409 1115.5,-403 1121.5,-397 1127.5,-397"/>
 <text text-anchor="middle" x="1180.25" y="-439.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">database</text>
+</g>
+<g id="clust14" class="cluster">
+<title>cluster_src/infrastructure/repository</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M929,-382C929,-382 1095.5,-382 1095.5,-382 1101.5,-382 1107.5,-388 1107.5,-394 1107.5,-394 1107.5,-456 1107.5,-456 1107.5,-462 1101.5,-468 1095.5,-468 1095.5,-468 929,-468 929,-468 923,-468 917,-462 917,-456 917,-456 917,-394 917,-394 917,-388 923,-382 929,-382"/>
+<text text-anchor="middle" x="1012.25" y="-455.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repository</text>
 </g>
 <g id="clust15" class="cluster">
 <title>cluster_src/infrastructure/services</title>
@@ -89,15 +89,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M929,-476C929,-476 1234.12,-476 1234.12,-476 1240.12,-476 1246.12,-482 1246.12,-488 1246.12,-488 1246.12,-533 1246.12,-533 1246.12,-539 1240.12,-545 1234.12,-545 1234.12,-545 929,-545 929,-545 923,-545 917,-539 917,-533 917,-533 917,-488 917,-488 917,-482 923,-476 929,-476"/>
 <text text-anchor="middle" x="1081.56" y="-532.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">video</text>
 </g>
-<g id="clust18" class="cluster">
-<title>cluster_src/views</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M157,-414C157,-414 233.25,-414 233.25,-414 239.25,-414 245.25,-420 245.25,-426 245.25,-426 245.25,-488 245.25,-488 245.25,-494 239.25,-500 233.25,-500 233.25,-500 157,-500 157,-500 151,-500 145,-494 145,-488 145,-488 145,-426 145,-426 145,-420 151,-414 157,-414"/>
-<text text-anchor="middle" x="195.12" y="-487.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
-</g>
 <g id="clust17" class="cluster">
 <title>cluster_src/stores</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M403.25,-434C403.25,-434 479.5,-434 479.5,-434 485.5,-434 491.5,-440 491.5,-446 491.5,-446 491.5,-508 491.5,-508 491.5,-514 485.5,-520 479.5,-520 479.5,-520 403.25,-520 403.25,-520 397.25,-520 391.25,-514 391.25,-508 391.25,-508 391.25,-446 391.25,-446 391.25,-440 397.25,-434 403.25,-434"/>
 <text text-anchor="middle" x="441.38" y="-507.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
+<g id="clust18" class="cluster">
+<title>cluster_src/views</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M157,-414C157,-414 233.25,-414 233.25,-414 239.25,-414 245.25,-420 245.25,-426 245.25,-426 245.25,-488 245.25,-488 245.25,-494 239.25,-500 233.25,-500 233.25,-500 157,-500 157,-500 151,-500 145,-494 145,-488 145,-488 145,-426 145,-426 145,-420 151,-414 157,-414"/>
+<text text-anchor="middle" x="195.12" y="-487.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
 </g>
 <!-- src/App.vue -->
 <g id="node1" class="node">
@@ -163,7 +163,7 @@
 </g>
 </g>
 <!-- src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/infrastructure/services/index.ts -->
-<g id="edge16" class="edge">
+<g id="edge17" class="edge">
 <title>src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/infrastructure/services/index.ts</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M346.17,-308.99C359.31,-315.97 374.82,-326.63 383.25,-341 392.18,-356.22 378.82,-407.48 391.25,-420 407.15,-436.02 471.25,-422.71 492.25,-431 496.38,-432.63 496.03,-435.59 500.25,-437 526.39,-445.71 534.7,-437.69 562.25,-437 612.85,-435.74 671.36,-432.49 707.71,-430.26"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="707.58,-432.38 713.44,-429.91 707.32,-428.19 707.58,-432.38"/>
@@ -178,7 +178,7 @@
 </g>
 </g>
 <!-- src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts -->
-<g id="edge17" class="edge">
+<g id="edge16" class="edge">
 <title>src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M346.52,-309.12C359.62,-316.09 374.96,-326.7 383.25,-341 393.1,-357.99 379.97,-412.93 391.25,-429 393.44,-432.12 396.17,-434.83 399.21,-437.18"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="398.03,-438.92 404.21,-440.4 400.3,-435.39 398.03,-438.92"/>

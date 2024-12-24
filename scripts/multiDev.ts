@@ -1,4 +1,4 @@
-const { createServer } = require('vite')
+import { createServer } from 'vite'
 
 async function startServers() {
   const ports = [3000, 3001]

@@ -1,11 +1,8 @@
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import { existsSync, mkdirSync } from 'fs'
-import * as path from 'path'
 
 const execAsync = promisify(exec)
-
-console.log(path.resolve(__dirname, './test'))
 
 const graphCommandFactory = (focus: string) => {
   return `depcruise src --include-only "^src" --focus ${focus} --output-type dot | dot -T svg > ./dep-graphs/${focus}-graph.svg`
@@ -14,7 +11,7 @@ const graphCommandFactory = (focus: string) => {
 
 const outputDir = './dep-graphs'
 
-async function generateDepGraphs(commands) {
+async function generateDepGraphs(commands: string[]) {
   if (!existsSync(outputDir)) {
     mkdirSync(outputDir, { recursive: true })
   }

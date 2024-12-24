@@ -7,14 +7,23 @@
     "src/**/*.ts",
     "plugins/*.ts"
   ],
-  "exclude": ["src/**/__tests__/*"],
+  "exclude": [
+    "src/**/__tests__/*"
+  ],
   "compilerOptions": {
     "verbatimModuleSyntax": true,
     "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@plugins/*": ["plugins/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@infra": [
+        "src/infrastructure"
+      ],
+      "@infra/*": [
+        "src/infrastructure/*"
+      ],
     }
   }
 }

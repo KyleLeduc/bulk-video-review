@@ -14,7 +14,7 @@
 <script setup lang="ts">
 import { useAppStateStore } from '@/stores/appStateStore'
 import { storeToRefs } from 'pinia'
-import { VideoMetadataFacade } from '@/infrastructure/services'
+import { VideoMetadataFacade } from '@infra/services'
 
 const appState = useAppStateStore()
 const videoMetadataFacade = VideoMetadataFacade.getInstance()

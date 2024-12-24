@@ -1,8 +1,8 @@
 import type { ParsedVideo } from '@/domain'
 import { applyFilters, FileParserService } from '@/application'
 import { defineStore } from 'pinia'
-import { HTMLVideoProcessor } from '@/infrastructure'
-import { VideoMetadataFacade } from '@/infrastructure/services'
+import { HTMLVideoProcessor } from '@infra'
+import { VideoMetadataFacade } from '@infra/services'
 import { toRaw } from 'vue'
 
 interface State {

@@ -2,6 +2,7 @@
   "name": "bulk-video-review",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check build-only",
@@ -13,10 +14,10 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "dep:src": "depcruise src --include-only \"^src\" --output-type dot | dot -T svg > ./dep-graphs/src-graph.svg",
-    "dep:interactive": "depcruise src --include-only \"^src\" --config .interactive-dependency-cruiser.js --output-type dot | dot -T svg | depcruise-wrap-stream-in-html > ./dev/interactive-graph.html",
+    "dep:interactive": "depcruise src --include-only \"^src\" --config .interactive-dependency-cruiser.cjs --output-type dot | dot -T svg | depcruise-wrap-stream-in-html > ./dev/interactive-graph.html",
     "dep:archi": "depcruise src --include-only \"^src\" --output-type archi | dot -T svg > ./dep-graphs/archi-graph.svg",
-    "dep:script": "ts-node ./scripts/generateDepGraphs.ts",
-    "multi-dev": "ts-node ./scripts/multiDev.ts",
+    "dep:script": "npx tsx ./scripts/generateDepGraphs.ts",
+    "multi-dev": "npx tsx ./scripts/multiDev.ts",
     "dep-graph": "run-p dep:*",
     "prepare": "husky",
     "deploy:gh": "gh-pages -d dist",
@@ -49,9 +50,10 @@
     "prettier": "^3.3.2",
     "sass": "^1.77.6",
     "start-server-and-test": "^2.0.4",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5.5.2",
     "vite": "^5.3.1",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.22"
   }

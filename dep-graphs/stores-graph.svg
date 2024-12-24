@@ -19,30 +19,35 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M398.5,-205C398.5,-205 444.5,-205 444.5,-205 450.5,-205 456.5,-211 456.5,-217 456.5,-217 456.5,-248 456.5,-248 456.5,-254 450.5,-260 444.5,-260 444.5,-260 398.5,-260 398.5,-260 392.5,-260 386.5,-254 386.5,-248 386.5,-248 386.5,-217 386.5,-217 386.5,-211 392.5,-205 398.5,-205"/>
 <text text-anchor="middle" x="421.5" y="-247.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_src/domain</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M398.5,-16C398.5,-16 444.5,-16 444.5,-16 450.5,-16 456.5,-22 456.5,-28 456.5,-28 456.5,-59 456.5,-59 456.5,-65 450.5,-71 444.5,-71 444.5,-71 398.5,-71 398.5,-71 392.5,-71 386.5,-65 386.5,-59 386.5,-59 386.5,-28 386.5,-28 386.5,-22 392.5,-16 398.5,-16"/>
-<text text-anchor="middle" x="421.5" y="-58.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_src/components</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M136.25,-16C136.25,-16 250.25,-16 250.25,-16 256.25,-16 262.25,-22 262.25,-28 262.25,-28 262.25,-185 262.25,-185 262.25,-191 256.25,-197 250.25,-197 250.25,-197 136.25,-197 136.25,-197 130.25,-197 124.25,-191 124.25,-185 124.25,-185 124.25,-28 124.25,-28 124.25,-22 130.25,-16 136.25,-16"/>
 <text text-anchor="middle" x="193.25" y="-184.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">components</text>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_src/components/utils</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-52C144.25,-52 242.25,-52 242.25,-52 248.25,-52 254.25,-58 254.25,-64 254.25,-64 254.25,-95 254.25,-95 254.25,-101 248.25,-107 242.25,-107 242.25,-107 144.25,-107 144.25,-107 138.25,-107 132.25,-101 132.25,-95 132.25,-95 132.25,-64 132.25,-64 132.25,-58 138.25,-52 144.25,-52"/>
-<text text-anchor="middle" x="193.25" y="-94.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_src/components/inputs</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M163.38,-115C163.38,-115 223.12,-115 223.12,-115 229.12,-115 235.12,-121 235.12,-127 235.12,-127 235.12,-158 235.12,-158 235.12,-164 229.12,-170 223.12,-170 223.12,-170 163.38,-170 163.38,-170 157.38,-170 151.38,-164 151.38,-158 151.38,-158 151.38,-127 151.38,-127 151.38,-121 157.38,-115 163.38,-115"/>
 <text text-anchor="middle" x="193.25" y="-157.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
+<g id="clust5" class="cluster">
+<title>cluster_src/components/utils</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M144.25,-52C144.25,-52 242.25,-52 242.25,-52 248.25,-52 254.25,-58 254.25,-64 254.25,-64 254.25,-95 254.25,-95 254.25,-101 248.25,-107 242.25,-107 242.25,-107 144.25,-107 144.25,-107 138.25,-107 132.25,-101 132.25,-95 132.25,-95 132.25,-64 132.25,-64 132.25,-58 138.25,-52 144.25,-52"/>
+<text text-anchor="middle" x="193.25" y="-94.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
+</g>
+<g id="clust10" class="cluster">
+<title>cluster_src/views</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-172C28,-172 104.25,-172 104.25,-172 110.25,-172 116.25,-178 116.25,-184 116.25,-184 116.25,-246 116.25,-246 116.25,-252 110.25,-258 104.25,-258 104.25,-258 28,-258 28,-258 22,-258 16,-252 16,-246 16,-246 16,-184 16,-184 16,-178 22,-172 28,-172"/>
+<text text-anchor="middle" x="66.12" y="-245.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
+</g>
 <g id="clust9" class="cluster">
 <title>cluster_src/stores</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M282.25,-158C282.25,-158 358.5,-158 358.5,-158 364.5,-158 370.5,-164 370.5,-170 370.5,-170 370.5,-232 370.5,-232 370.5,-238 364.5,-244 358.5,-244 358.5,-244 282.25,-244 282.25,-244 276.25,-244 270.25,-238 270.25,-232 270.25,-232 270.25,-170 270.25,-170 270.25,-164 276.25,-158 282.25,-158"/>
 <text text-anchor="middle" x="320.38" y="-231.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/domain</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M398.5,-16C398.5,-16 444.5,-16 444.5,-16 450.5,-16 456.5,-22 456.5,-28 456.5,-28 456.5,-59 456.5,-59 456.5,-65 450.5,-71 444.5,-71 444.5,-71 398.5,-71 398.5,-71 392.5,-71 386.5,-65 386.5,-59 386.5,-59 386.5,-28 386.5,-28 386.5,-22 392.5,-16 398.5,-16"/>
+<text text-anchor="middle" x="421.5" y="-58.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_src/infrastructure</title>
@@ -53,11 +58,6 @@
 <title>cluster_src/infrastructure/services</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M398.5,-87C398.5,-87 444.5,-87 444.5,-87 450.5,-87 456.5,-93 456.5,-99 456.5,-99 456.5,-130 456.5,-130 456.5,-136 450.5,-142 444.5,-142 444.5,-142 398.5,-142 398.5,-142 392.5,-142 386.5,-136 386.5,-130 386.5,-130 386.5,-99 386.5,-99 386.5,-93 392.5,-87 398.5,-87"/>
 <text text-anchor="middle" x="421.5" y="-129.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
-</g>
-<g id="clust10" class="cluster">
-<title>cluster_src/views</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M28,-172C28,-172 104.25,-172 104.25,-172 110.25,-172 116.25,-178 116.25,-184 116.25,-184 116.25,-246 116.25,-246 116.25,-252 110.25,-258 104.25,-258 104.25,-258 28,-258 28,-258 22,-258 16,-252 16,-246 16,-246 16,-184 16,-184 16,-178 22,-172 28,-172"/>
-<text text-anchor="middle" x="66.12" y="-245.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
 </g>
 <!-- src/application/index.ts -->
 <g id="node1" class="node">
@@ -120,9 +120,9 @@
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="407.96,-51.01 410.36,-45.13 404.81,-48.23 407.96,-51.01"/>
 </g>
 <!-- src/infrastructure/services/index.ts -->
-<g id="node7" class="node">
+<g id="node8" class="node">
 <title>src/infrastructure/services/index.ts</title>
-<g id="a_node7"><a xlink:href="src/infrastructure/services/index.ts" xlink:title="index.ts">
+<g id="a_node8"><a xlink:href="src/infrastructure/services/index.ts" xlink:title="index.ts">
 <path fill="#ddfeff" stroke="black" d="M442.08,-114.62C442.08,-114.62 400.92,-114.62 400.92,-114.62 397.71,-114.62 394.5,-111.42 394.5,-108.21 394.5,-108.21 394.5,-101.79 394.5,-101.79 394.5,-98.58 397.71,-95.38 400.92,-95.38 400.92,-95.38 442.08,-95.38 442.08,-95.38 445.29,-95.38 448.5,-98.58 448.5,-101.79 448.5,-101.79 448.5,-108.21 448.5,-108.21 448.5,-111.42 445.29,-114.62 442.08,-114.62"/>
 <text text-anchor="start" x="405.75" y="-102.08" font-family="Helvetica,sans-Serif" font-size="9.00">index.ts</text>
 </a>
@@ -173,26 +173,26 @@
 </a>
 </g>
 </g>
-<!-- src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/infrastructure/services/index.ts -->
-<g id="edge4" class="edge">
-<title>src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/infrastructure/services/index.ts</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M246.72,-78.12C289.51,-84.74 348.72,-93.9 385.8,-99.63"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="385.03,-101.64 391.28,-100.48 385.67,-97.49 385.03,-101.64"/>
-</g>
 <!-- src/stores/appStateStore.ts -->
-<g id="node8" class="node">
+<g id="node7" class="node">
 <title>src/stores/appStateStore.ts</title>
-<g id="a_node8"><a xlink:href="src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
+<g id="a_node7"><a xlink:href="src/stores/appStateStore.ts" xlink:title="appStateStore.ts">
 <path fill="#ddfeff" stroke="black" d="M356.08,-216.62C356.08,-216.62 284.67,-216.62 284.67,-216.62 281.46,-216.62 278.25,-213.42 278.25,-210.21 278.25,-210.21 278.25,-203.79 278.25,-203.79 278.25,-200.58 281.46,-197.38 284.67,-197.38 284.67,-197.38 356.08,-197.38 356.08,-197.38 359.29,-197.38 362.5,-200.58 362.5,-203.79 362.5,-203.79 362.5,-210.21 362.5,-210.21 362.5,-213.42 359.29,-216.62 356.08,-216.62"/>
 <text text-anchor="start" x="286.25" y="-204.07" font-family="Helvetica,sans-Serif" font-size="9.00">appStateStore.ts</text>
 </a>
 </g>
 </g>
 <!-- src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts -->
-<g id="edge5" class="edge">
+<g id="edge4" class="edge">
 <title>src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/stores/appStateStore.ts</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M221.88,-80.02C236.37,-86.77 252.98,-97.17 262.25,-112 271.72,-127.15 258.92,-178.19 270.25,-192 270.52,-192.33 270.79,-192.65 271.08,-192.96"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="269.57,-194.44 275.52,-196.66 272.25,-191.21 269.57,-194.44"/>
+</g>
+<!-- src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/infrastructure/services/index.ts -->
+<g id="edge5" class="edge">
+<title>src/components/utils/DiagnosticsPanel.vue&#45;&gt;src/infrastructure/services/index.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M246.72,-78.12C289.51,-84.74 348.72,-93.9 385.8,-99.63"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="385.03,-101.64 391.28,-100.48 385.67,-97.49 385.03,-101.64"/>
 </g>
 <!-- src/stores/appStateStore.ts&#45;&gt;src/application/index.ts -->
 <g id="edge6" class="edge">
