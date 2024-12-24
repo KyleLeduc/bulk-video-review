@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ParsedVideo } from '@/domain'
+import type { ParsedVideo } from '@domain/entities'
 import { onMounted, reactive, ref } from 'vue'
 
 interface VideoEmbedInitOptions {

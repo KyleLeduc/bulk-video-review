@@ -1,6 +1,6 @@
 import { VideoFileParser } from '@infra/video'
 import { VideoMetadataFacade } from '@infra/services'
-import type { ParsedVideo } from '@/domain'
+import type { ParsedVideo } from '@domain/entities'
 
 export class FileParserService {
   constructor(

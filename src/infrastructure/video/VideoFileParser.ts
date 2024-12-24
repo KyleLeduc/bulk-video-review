@@ -1,4 +1,5 @@
-import { ParsedVideoData, type VideoEntity } from '@/domain'
+import type { VideoEntity } from '@domain/entities'
+import { ParsedVideoData } from '@domain/valueObjects'
 import { HTMLVideoProcessor } from './HTMLVideoProcessor'
 
 export class VideoFileParser {

@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ParsedVideo } from '@/domain'
+import type { ParsedVideo } from '@domain/entities'
 import { computed, reactive, ref } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
 import { useVideoStore } from '@/stores/videosStore'

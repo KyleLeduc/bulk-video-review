@@ -1,4 +1,4 @@
-import type { ParsedVideo } from '@/domain'
+import type { ParsedVideo } from '@domain/entities'
 import { applyFilters, FileParserService } from '@/application'
 import { defineStore } from 'pinia'
 import { HTMLVideoProcessor } from '@infra/video'

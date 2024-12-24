@@ -2,10 +2,10 @@ import type {
   VideoStorageDto,
   VideoEntity,
   MetadataEntity,
-  IVideoFacade,
-} from '@/domain'
+} from '@domain/entities'
+import type { IVideoFacade } from '@domain/repositories'
 import { MetadataRepository, VideoRepository } from '@infra/repository'
-import { VideoStorageDtoMapper } from '@/domain'
+import { VideoStorageDtoMapper } from '@domain/valueObjects'
 
 /**
  * IndexedDb bridge to handle storing video metadata

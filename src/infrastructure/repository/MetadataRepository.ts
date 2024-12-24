@@ -1,5 +1,6 @@
-import type { IMetadataRepository, MetadataEntity } from '@/domain'
-import { storeNames } from '@/domain'
+import type { MetadataEntity } from '@domain/entities'
+import type { IMetadataRepository } from '@/domain/repositories'
+import { storeNames } from '@domain/constants'
 import { DatabaseConnection } from '../database/DatabaseConnection'
 
 class MetadataRepository implements IMetadataRepository {

@@ -1,4 +1,4 @@
-import type { ParsedVideo, VideoEntity } from '@/domain'
+import type { ParsedVideo, VideoEntity } from '@domain/entities'
 import { getAllFromStore, transactionComplete } from './utils'
 
 /**
