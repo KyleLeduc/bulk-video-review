@@ -18,9 +18,6 @@
       "@/*": [
         "src/*"
       ],
-      "@infra": [
-        "src/infrastructure"
-      ],
       "@infra/*": [
         "src/infrastructure/*"
       ],

@@ -1,4 +1,4 @@
-import { VideoFileParser } from '@infra'
+import { VideoFileParser } from '@infra/video'
 import { VideoMetadataFacade } from '@infra/services'
 import type { ParsedVideo } from '@/domain'
 
