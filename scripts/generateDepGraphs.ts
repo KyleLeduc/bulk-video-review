@@ -37,6 +37,13 @@ async function generateDepGraphs(commands: string[]) {
   }
 }
 
-const commands = ['components', 'stores', 'videosStore', 'services']
+const commands = [
+  'components',
+  'videosStore',
+  'application',
+  'domain',
+  'infrastructure',
+  'views',
+]
 
 generateDepGraphs(commands)

@@ -1,6 +1,6 @@
 # bulk-video-review
 
-## Dependency Graphs
+## High Level
 
 ### Architectural
 
@@ -10,21 +10,37 @@
 
 ![](./dep-graphs/src-graph.svg)
 
+---
+
+## DDD Related Graphs
+
+### Domain
+
+![](./dep-graphs/domain-graph.svg)
+
+### Infrastructure
+
+![](./dep-graphs/infrastructure-graph.svg)
+
+### Application
+
+![](./dep-graphs/application-graph.svg)
+
+---
+
+## UI related
+
 ### Components
 
 ![](./dep-graphs/components-graph.svg)
-
-### Stores
-
-![](./dep-graphs/stores-graph.svg)
 
 ### Video Store
 
 ![](./dep-graphs/videosStore-graph.svg)
 
-### Services
+### Views
 
-![](./dep-graphs/services-graph.svg)
+![](./dep-graphs/views-graph.svg)
 
 ## Project Setup
 

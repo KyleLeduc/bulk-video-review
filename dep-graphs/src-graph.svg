@@ -44,25 +44,25 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1206,-250.64C1206,-250.64 1824.5,-250.64 1824.5,-250.64 1830.5,-250.64 1836.5,-256.64 1836.5,-262.64 1836.5,-262.64 1836.5,-578.64 1836.5,-578.64 1836.5,-584.64 1830.5,-590.64 1824.5,-590.64 1824.5,-590.64 1206,-590.64 1206,-590.64 1200,-590.64 1194,-584.64 1194,-578.64 1194,-578.64 1194,-262.64 1194,-262.64 1194,-256.64 1200,-250.64 1206,-250.64"/>
 <text text-anchor="middle" x="1515.25" y="-578.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
 </g>
-<g id="clust9" class="cluster">
-<title>cluster_src/domain/entities</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M1472,-327.64C1472,-327.64 1816.5,-327.64 1816.5,-327.64 1822.5,-327.64 1828.5,-333.64 1828.5,-339.64 1828.5,-339.64 1828.5,-412.64 1828.5,-412.64 1828.5,-418.64 1822.5,-424.64 1816.5,-424.64 1816.5,-424.64 1472,-424.64 1472,-424.64 1466,-424.64 1460,-418.64 1460,-412.64 1460,-412.64 1460,-339.64 1460,-339.64 1460,-333.64 1466,-327.64 1472,-327.64"/>
-<text text-anchor="middle" x="1644.25" y="-412.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
-</g>
 <g id="clust8" class="cluster">
 <title>cluster_src/domain/constants</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1214,-258.64C1214,-258.64 1260,-258.64 1260,-258.64 1266,-258.64 1272,-264.64 1272,-270.64 1272,-270.64 1272,-301.64 1272,-301.64 1272,-307.64 1266,-313.64 1260,-313.64 1260,-313.64 1214,-313.64 1214,-313.64 1208,-313.64 1202,-307.64 1202,-301.64 1202,-301.64 1202,-270.64 1202,-270.64 1202,-264.64 1208,-258.64 1214,-258.64"/>
 <text text-anchor="middle" x="1237" y="-301.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">constants</text>
 </g>
-<g id="clust11" class="cluster">
-<title>cluster_src/domain/valueObjects</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M1214,-446.64C1214,-446.64 1440,-446.64 1440,-446.64 1446,-446.64 1452,-452.64 1452,-458.64 1452,-458.64 1452,-551.64 1452,-551.64 1452,-557.64 1446,-563.64 1440,-563.64 1440,-563.64 1214,-563.64 1214,-563.64 1208,-563.64 1202,-557.64 1202,-551.64 1202,-551.64 1202,-458.64 1202,-458.64 1202,-452.64 1208,-446.64 1214,-446.64"/>
-<text text-anchor="middle" x="1327" y="-551.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">valueObjects</text>
+<g id="clust9" class="cluster">
+<title>cluster_src/domain/entities</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M1472,-327.64C1472,-327.64 1816.5,-327.64 1816.5,-327.64 1822.5,-327.64 1828.5,-333.64 1828.5,-339.64 1828.5,-339.64 1828.5,-412.64 1828.5,-412.64 1828.5,-418.64 1822.5,-424.64 1816.5,-424.64 1816.5,-424.64 1472,-424.64 1472,-424.64 1466,-424.64 1460,-418.64 1460,-412.64 1460,-412.64 1460,-339.64 1460,-339.64 1460,-333.64 1466,-327.64 1472,-327.64"/>
+<text text-anchor="middle" x="1644.25" y="-412.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
 </g>
 <g id="clust10" class="cluster">
 <title>cluster_src/domain/repositories</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1214,-321.64C1214,-321.64 1431.75,-321.64 1431.75,-321.64 1437.75,-321.64 1443.75,-327.64 1443.75,-333.64 1443.75,-333.64 1443.75,-426.64 1443.75,-426.64 1443.75,-432.64 1437.75,-438.64 1431.75,-438.64 1431.75,-438.64 1214,-438.64 1214,-438.64 1208,-438.64 1202,-432.64 1202,-426.64 1202,-426.64 1202,-333.64 1202,-333.64 1202,-327.64 1208,-321.64 1214,-321.64"/>
 <text text-anchor="middle" x="1322.88" y="-426.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repositories</text>
+</g>
+<g id="clust11" class="cluster">
+<title>cluster_src/domain/valueObjects</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M1214,-446.64C1214,-446.64 1440,-446.64 1440,-446.64 1446,-446.64 1452,-452.64 1452,-458.64 1452,-458.64 1452,-551.64 1452,-551.64 1452,-557.64 1446,-563.64 1440,-563.64 1440,-563.64 1214,-563.64 1214,-563.64 1208,-563.64 1202,-557.64 1202,-551.64 1202,-551.64 1202,-458.64 1202,-458.64 1202,-452.64 1208,-446.64 1214,-446.64"/>
+<text text-anchor="middle" x="1327" y="-551.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">valueObjects</text>
 </g>
 <g id="clust12" class="cluster">
 <title>cluster_src/infrastructure</title>
@@ -74,15 +74,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1184.25,-133.64C1184.25,-133.64 1289.75,-133.64 1289.75,-133.64 1295.75,-133.64 1301.75,-139.64 1301.75,-145.64 1301.75,-145.64 1301.75,-176.64 1301.75,-176.64 1301.75,-182.64 1295.75,-188.64 1289.75,-188.64 1289.75,-188.64 1184.25,-188.64 1184.25,-188.64 1178.25,-188.64 1172.25,-182.64 1172.25,-176.64 1172.25,-176.64 1172.25,-145.64 1172.25,-145.64 1172.25,-139.64 1178.25,-133.64 1184.25,-133.64"/>
 <text text-anchor="middle" x="1237" y="-176.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">database</text>
 </g>
-<g id="clust15" class="cluster">
-<title>cluster_src/infrastructure/services</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M720.75,-160.64C720.75,-160.64 897,-160.64 897,-160.64 903,-160.64 909,-166.64 909,-172.64 909,-172.64 909,-203.64 909,-203.64 909,-209.64 903,-215.64 897,-215.64 897,-215.64 720.75,-215.64 720.75,-215.64 714.75,-215.64 708.75,-209.64 708.75,-203.64 708.75,-203.64 708.75,-172.64 708.75,-172.64 708.75,-166.64 714.75,-160.64 720.75,-160.64"/>
-<text text-anchor="middle" x="808.88" y="-203.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
-</g>
 <g id="clust14" class="cluster">
 <title>cluster_src/infrastructure/repository</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M951.88,-129.64C951.88,-129.64 1152.25,-129.64 1152.25,-129.64 1158.25,-129.64 1164.25,-135.64 1164.25,-141.64 1164.25,-141.64 1164.25,-203.64 1164.25,-203.64 1164.25,-209.64 1158.25,-215.64 1152.25,-215.64 1152.25,-215.64 951.88,-215.64 951.88,-215.64 945.88,-215.64 939.88,-209.64 939.88,-203.64 939.88,-203.64 939.88,-141.64 939.88,-141.64 939.88,-135.64 945.88,-129.64 951.88,-129.64"/>
 <text text-anchor="middle" x="1052.06" y="-203.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repository</text>
+</g>
+<g id="clust15" class="cluster">
+<title>cluster_src/infrastructure/services</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M720.75,-160.64C720.75,-160.64 897,-160.64 897,-160.64 903,-160.64 909,-166.64 909,-172.64 909,-172.64 909,-203.64 909,-203.64 909,-209.64 903,-215.64 897,-215.64 897,-215.64 720.75,-215.64 720.75,-215.64 714.75,-215.64 708.75,-209.64 708.75,-203.64 708.75,-203.64 708.75,-172.64 708.75,-172.64 708.75,-166.64 714.75,-160.64 720.75,-160.64"/>
+<text text-anchor="middle" x="808.88" y="-203.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
 <g id="clust16" class="cluster">
 <title>cluster_src/infrastructure/video</title>
