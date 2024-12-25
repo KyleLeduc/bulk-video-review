@@ -14,6 +14,16 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M20,-8C20,-8 392,-8 392,-8 398,-8 404,-14 404,-20 404,-20 404,-184 404,-184 404,-190 398,-196 392,-196 392,-196 20,-196 20,-196 14,-196 8,-190 8,-184 8,-184 8,-20 8,-20 8,-14 14,-8 20,-8"/>
 <text text-anchor="middle" x="206" y="-183.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
 </g>
+<g id="clust2" class="cluster">
+<title>cluster_src/application</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M322,-65C322,-65 384,-65 384,-65 390,-65 396,-71 396,-77 396,-77 396,-143 396,-143 396,-149 390,-155 384,-155 384,-155 322,-155 322,-155 316,-155 310,-149 310,-143 310,-143 310,-77 310,-77 310,-71 316,-65 322,-65"/>
+<text text-anchor="middle" x="353" y="-142.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_src/application/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M330,-73C330,-73 376,-73 376,-73 382,-73 388,-79 388,-85 388,-85 388,-116 388,-116 388,-122 382,-128 376,-128 376,-128 330,-128 330,-128 324,-128 318,-122 318,-116 318,-116 318,-85 318,-85 318,-79 324,-73 330,-73"/>
+<text text-anchor="middle" x="353" y="-115.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
 <g id="clust4" class="cluster">
 <title>cluster_src/presentation</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M90,-16C90,-16 290,-16 290,-16 296,-16 302,-22 302,-28 302,-28 302,-157 302,-157 302,-163 296,-169 290,-169 290,-169 90,-169 90,-169 84,-169 78,-163 78,-157 78,-157 78,-28 78,-28 78,-22 84,-16 90,-16"/>
@@ -33,16 +43,6 @@
 <title>cluster_src/presentation/views</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M98,-42C98,-42 174.25,-42 174.25,-42 180.25,-42 186.25,-48 186.25,-54 186.25,-54 186.25,-116 186.25,-116 186.25,-122 180.25,-128 174.25,-128 174.25,-128 98,-128 98,-128 92,-128 86,-122 86,-116 86,-116 86,-54 86,-54 86,-48 92,-42 98,-42"/>
 <text text-anchor="middle" x="136.12" y="-115.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_src/application</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M322,-65C322,-65 384,-65 384,-65 390,-65 396,-71 396,-77 396,-77 396,-143 396,-143 396,-149 390,-155 384,-155 384,-155 322,-155 322,-155 316,-155 310,-149 310,-143 310,-143 310,-77 310,-77 310,-71 316,-65 322,-65"/>
-<text text-anchor="middle" x="353" y="-142.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_src/application/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M330,-73C330,-73 376,-73 376,-73 382,-73 388,-79 388,-85 388,-85 388,-116 388,-116 388,-122 382,-128 376,-128 376,-128 330,-128 330,-128 324,-128 318,-122 318,-116 318,-116 318,-85 318,-85 318,-79 324,-73 330,-73"/>
-<text text-anchor="middle" x="353" y="-115.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <!-- src/App.vue -->
 <g id="node1" class="node">

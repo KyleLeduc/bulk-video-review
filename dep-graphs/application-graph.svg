@@ -19,15 +19,25 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M298.25,-48C298.25,-48 647,-48 647,-48 653,-48 659,-54 659,-60 659,-60 659,-188 659,-188 659,-194 653,-200 647,-200 647,-200 298.25,-200 298.25,-200 292.25,-200 286.25,-194 286.25,-188 286.25,-188 286.25,-60 286.25,-60 286.25,-54 292.25,-48 298.25,-48"/>
 <text text-anchor="middle" x="472.62" y="-187.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
+<g id="clust4" class="cluster">
+<title>cluster_src/application/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M306.25,-87C306.25,-87 449.5,-87 449.5,-87 455.5,-87 461.5,-93 461.5,-99 461.5,-99 461.5,-161 461.5,-161 461.5,-167 455.5,-173 449.5,-173 449.5,-173 306.25,-173 306.25,-173 300.25,-173 294.25,-167 294.25,-161 294.25,-161 294.25,-99 294.25,-99 294.25,-93 300.25,-87 306.25,-87"/>
+<text text-anchor="middle" x="377.88" y="-160.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
 <g id="clust3" class="cluster">
 <title>cluster_src/application/services</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M481.5,-56C481.5,-56 639,-56 639,-56 645,-56 651,-62 651,-68 651,-68 651,-161 651,-161 651,-167 645,-173 639,-173 639,-173 481.5,-173 481.5,-173 475.5,-173 469.5,-167 469.5,-161 469.5,-161 469.5,-68 469.5,-68 469.5,-62 475.5,-56 481.5,-56"/>
 <text text-anchor="middle" x="560.25" y="-160.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
-<g id="clust4" class="cluster">
-<title>cluster_src/application/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M306.25,-87C306.25,-87 449.5,-87 449.5,-87 455.5,-87 461.5,-93 461.5,-99 461.5,-99 461.5,-161 461.5,-161 461.5,-167 455.5,-173 449.5,-173 449.5,-173 306.25,-173 306.25,-173 300.25,-173 294.25,-167 294.25,-161 294.25,-161 294.25,-99 294.25,-99 294.25,-93 300.25,-87 306.25,-87"/>
-<text text-anchor="middle" x="377.88" y="-160.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+<g id="clust5" class="cluster">
+<title>cluster_src/domain</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M679,-16C679,-16 741,-16 741,-16 747,-16 753,-22 753,-28 753,-28 753,-94 753,-94 753,-100 747,-106 741,-106 741,-106 679,-106 679,-106 673,-106 667,-100 667,-94 667,-94 667,-28 667,-28 667,-22 673,-16 679,-16"/>
+<text text-anchor="middle" x="710" y="-93.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/domain/entities</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M687,-24C687,-24 733,-24 733,-24 739,-24 745,-30 745,-36 745,-36 745,-67 745,-67 745,-73 739,-79 733,-79 733,-79 687,-79 687,-79 681,-79 675,-73 675,-67 675,-67 675,-36 675,-36 675,-30 681,-24 687,-24"/>
+<text text-anchor="middle" x="710" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_src/infrastructure</title>
@@ -43,16 +53,6 @@
 <title>cluster_src/infrastructure/video</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M687,-122C687,-122 733,-122 733,-122 739,-122 745,-128 745,-134 745,-134 745,-165 745,-165 745,-171 739,-177 733,-177 733,-177 687,-177 687,-177 681,-177 675,-171 675,-165 675,-165 675,-134 675,-134 675,-128 681,-122 687,-122"/>
 <text text-anchor="middle" x="710" y="-164.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">video</text>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_src/domain</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M679,-16C679,-16 741,-16 741,-16 747,-16 753,-22 753,-28 753,-28 753,-94 753,-94 753,-100 747,-106 741,-106 741,-106 679,-106 679,-106 673,-106 667,-100 667,-94 667,-94 667,-28 667,-28 667,-22 673,-16 679,-16"/>
-<text text-anchor="middle" x="710" y="-93.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
-</g>
-<g id="clust6" class="cluster">
-<title>cluster_src/domain/entities</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M687,-24C687,-24 733,-24 733,-24 739,-24 745,-30 745,-36 745,-36 745,-67 745,-67 745,-73 739,-79 733,-79 733,-79 687,-79 687,-79 681,-79 675,-73 675,-67 675,-67 675,-36 675,-36 675,-30 681,-24 687,-24"/>
-<text text-anchor="middle" x="710" y="-66.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
 </g>
 <g id="clust10" class="cluster">
 <title>cluster_src/presentation</title>

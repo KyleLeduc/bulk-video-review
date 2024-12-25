@@ -19,15 +19,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M411.25,-244.64C411.25,-244.64 786.88,-244.64 786.88,-244.64 792.88,-244.64 798.88,-250.64 798.88,-256.64 798.88,-256.64 798.88,-384.64 798.88,-384.64 798.88,-390.64 792.88,-396.64 786.88,-396.64 786.88,-396.64 411.25,-396.64 411.25,-396.64 405.25,-396.64 399.25,-390.64 399.25,-384.64 399.25,-384.64 399.25,-256.64 399.25,-256.64 399.25,-250.64 405.25,-244.64 411.25,-244.64"/>
 <text text-anchor="middle" x="599.06" y="-384.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
-<g id="clust4" class="cluster">
-<title>cluster_src/application/stores</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M419.25,-252.64C419.25,-252.64 589.38,-252.64 589.38,-252.64 595.38,-252.64 601.38,-258.64 601.38,-264.64 601.38,-264.64 601.38,-326.64 601.38,-326.64 601.38,-332.64 595.38,-338.64 589.38,-338.64 589.38,-338.64 419.25,-338.64 419.25,-338.64 413.25,-338.64 407.25,-332.64 407.25,-326.64 407.25,-326.64 407.25,-264.64 407.25,-264.64 407.25,-258.64 413.25,-252.64 419.25,-252.64"/>
-<text text-anchor="middle" x="504.31" y="-326.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_src/application/services</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M621.38,-252.64C621.38,-252.64 778.88,-252.64 778.88,-252.64 784.88,-252.64 790.88,-258.64 790.88,-264.64 790.88,-264.64 790.88,-357.64 790.88,-357.64 790.88,-363.64 784.88,-369.64 778.88,-369.64 778.88,-369.64 621.38,-369.64 621.38,-369.64 615.38,-369.64 609.38,-363.64 609.38,-357.64 609.38,-357.64 609.38,-264.64 609.38,-264.64 609.38,-258.64 615.38,-252.64 621.38,-252.64"/>
 <text text-anchor="middle" x="700.12" y="-357.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_src/application/stores</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M419.25,-252.64C419.25,-252.64 589.38,-252.64 589.38,-252.64 595.38,-252.64 601.38,-258.64 601.38,-264.64 601.38,-264.64 601.38,-326.64 601.38,-326.64 601.38,-332.64 595.38,-338.64 589.38,-338.64 589.38,-338.64 419.25,-338.64 419.25,-338.64 413.25,-338.64 407.25,-332.64 407.25,-326.64 407.25,-326.64 407.25,-264.64 407.25,-264.64 407.25,-258.64 413.25,-252.64 419.25,-252.64"/>
+<text text-anchor="middle" x="504.31" y="-326.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_src/domain</title>
@@ -39,15 +39,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1578.12,-326.64C1578.12,-326.64 1922.62,-326.64 1922.62,-326.64 1928.62,-326.64 1934.62,-332.64 1934.62,-338.64 1934.62,-338.64 1934.62,-411.64 1934.62,-411.64 1934.62,-417.64 1928.62,-423.64 1922.62,-423.64 1922.62,-423.64 1578.12,-423.64 1578.12,-423.64 1572.12,-423.64 1566.12,-417.64 1566.12,-411.64 1566.12,-411.64 1566.12,-338.64 1566.12,-338.64 1566.12,-332.64 1572.12,-326.64 1578.12,-326.64"/>
 <text text-anchor="middle" x="1750.38" y="-411.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">entities</text>
 </g>
-<g id="clust8" class="cluster">
-<title>cluster_src/domain/repositories</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M1320.12,-321.64C1320.12,-321.64 1537.88,-321.64 1537.88,-321.64 1543.88,-321.64 1549.88,-327.64 1549.88,-333.64 1549.88,-333.64 1549.88,-426.64 1549.88,-426.64 1549.88,-432.64 1543.88,-438.64 1537.88,-438.64 1537.88,-438.64 1320.12,-438.64 1320.12,-438.64 1314.12,-438.64 1308.12,-432.64 1308.12,-426.64 1308.12,-426.64 1308.12,-333.64 1308.12,-333.64 1308.12,-327.64 1314.12,-321.64 1320.12,-321.64"/>
-<text text-anchor="middle" x="1429" y="-426.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repositories</text>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_src/domain/constants</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1320.12,-258.64C1320.12,-258.64 1366.12,-258.64 1366.12,-258.64 1372.12,-258.64 1378.12,-264.64 1378.12,-270.64 1378.12,-270.64 1378.12,-301.64 1378.12,-301.64 1378.12,-307.64 1372.12,-313.64 1366.12,-313.64 1366.12,-313.64 1320.12,-313.64 1320.12,-313.64 1314.12,-313.64 1308.12,-307.64 1308.12,-301.64 1308.12,-301.64 1308.12,-270.64 1308.12,-270.64 1308.12,-264.64 1314.12,-258.64 1320.12,-258.64"/>
 <text text-anchor="middle" x="1343.12" y="-301.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">constants</text>
+</g>
+<g id="clust8" class="cluster">
+<title>cluster_src/domain/repositories</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M1320.12,-321.64C1320.12,-321.64 1537.88,-321.64 1537.88,-321.64 1543.88,-321.64 1549.88,-327.64 1549.88,-333.64 1549.88,-333.64 1549.88,-426.64 1549.88,-426.64 1549.88,-432.64 1543.88,-438.64 1537.88,-438.64 1537.88,-438.64 1320.12,-438.64 1320.12,-438.64 1314.12,-438.64 1308.12,-432.64 1308.12,-426.64 1308.12,-426.64 1308.12,-333.64 1308.12,-333.64 1308.12,-327.64 1314.12,-321.64 1320.12,-321.64"/>
+<text text-anchor="middle" x="1429" y="-426.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repositories</text>
 </g>
 <g id="clust9" class="cluster">
 <title>cluster_src/domain/valueObjects</title>
@@ -64,15 +64,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M1058,-129.64C1058,-129.64 1258.38,-129.64 1258.38,-129.64 1264.38,-129.64 1270.38,-135.64 1270.38,-141.64 1270.38,-141.64 1270.38,-203.64 1270.38,-203.64 1270.38,-209.64 1264.38,-215.64 1258.38,-215.64 1258.38,-215.64 1058,-215.64 1058,-215.64 1052,-215.64 1046,-209.64 1046,-203.64 1046,-203.64 1046,-141.64 1046,-141.64 1046,-135.64 1052,-129.64 1058,-129.64"/>
 <text text-anchor="middle" x="1158.19" y="-203.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">repository</text>
 </g>
-<g id="clust11" class="cluster">
-<title>cluster_src/infrastructure/database</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M1290.38,-133.64C1290.38,-133.64 1395.88,-133.64 1395.88,-133.64 1401.88,-133.64 1407.88,-139.64 1407.88,-145.64 1407.88,-145.64 1407.88,-176.64 1407.88,-176.64 1407.88,-182.64 1401.88,-188.64 1395.88,-188.64 1395.88,-188.64 1290.38,-188.64 1290.38,-188.64 1284.38,-188.64 1278.38,-182.64 1278.38,-176.64 1278.38,-176.64 1278.38,-145.64 1278.38,-145.64 1278.38,-139.64 1284.38,-133.64 1290.38,-133.64"/>
-<text text-anchor="middle" x="1343.12" y="-176.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">database</text>
-</g>
 <g id="clust13" class="cluster">
 <title>cluster_src/infrastructure/services</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M826.88,-160.64C826.88,-160.64 1003.12,-160.64 1003.12,-160.64 1009.12,-160.64 1015.12,-166.64 1015.12,-172.64 1015.12,-172.64 1015.12,-203.64 1015.12,-203.64 1015.12,-209.64 1009.12,-215.64 1003.12,-215.64 1003.12,-215.64 826.88,-215.64 826.88,-215.64 820.88,-215.64 814.88,-209.64 814.88,-203.64 814.88,-203.64 814.88,-172.64 814.88,-172.64 814.88,-166.64 820.88,-160.64 826.88,-160.64"/>
 <text text-anchor="middle" x="915" y="-203.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
+</g>
+<g id="clust11" class="cluster">
+<title>cluster_src/infrastructure/database</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M1290.38,-133.64C1290.38,-133.64 1395.88,-133.64 1395.88,-133.64 1401.88,-133.64 1407.88,-139.64 1407.88,-145.64 1407.88,-145.64 1407.88,-176.64 1407.88,-176.64 1407.88,-182.64 1401.88,-188.64 1395.88,-188.64 1395.88,-188.64 1290.38,-188.64 1290.38,-188.64 1284.38,-188.64 1278.38,-182.64 1278.38,-176.64 1278.38,-176.64 1278.38,-145.64 1278.38,-145.64 1278.38,-139.64 1284.38,-133.64 1290.38,-133.64"/>
+<text text-anchor="middle" x="1343.12" y="-176.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">database</text>
 </g>
 <g id="clust14" class="cluster">
 <title>cluster_src/infrastructure/video</title>
@@ -89,15 +89,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M273.25,-28.64C273.25,-28.64 481.12,-28.64 481.12,-28.64 487.12,-28.64 493.12,-34.64 493.12,-40.64 493.12,-40.64 493.12,-197.64 493.12,-197.64 493.12,-203.64 487.12,-209.64 481.12,-209.64 481.12,-209.64 273.25,-209.64 273.25,-209.64 267.25,-209.64 261.25,-203.64 261.25,-197.64 261.25,-197.64 261.25,-40.64 261.25,-40.64 261.25,-34.64 267.25,-28.64 273.25,-28.64"/>
 <text text-anchor="middle" x="377.19" y="-197.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">components</text>
 </g>
-<g id="clust18" class="cluster">
-<title>cluster_src/presentation/components/utils</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M281.25,-64.64C281.25,-64.64 379.25,-64.64 379.25,-64.64 385.25,-64.64 391.25,-70.64 391.25,-76.64 391.25,-76.64 391.25,-107.64 391.25,-107.64 391.25,-113.64 385.25,-119.64 379.25,-119.64 379.25,-119.64 281.25,-119.64 281.25,-119.64 275.25,-119.64 269.25,-113.64 269.25,-107.64 269.25,-107.64 269.25,-76.64 269.25,-76.64 269.25,-70.64 275.25,-64.64 281.25,-64.64"/>
-<text text-anchor="middle" x="330.25" y="-107.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
-</g>
 <g id="clust17" class="cluster">
 <title>cluster_src/presentation/components/inputs</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M300.38,-127.64C300.38,-127.64 360.12,-127.64 360.12,-127.64 366.12,-127.64 372.12,-133.64 372.12,-139.64 372.12,-139.64 372.12,-170.64 372.12,-170.64 372.12,-176.64 366.12,-182.64 360.12,-182.64 360.12,-182.64 300.38,-182.64 300.38,-182.64 294.38,-182.64 288.38,-176.64 288.38,-170.64 288.38,-170.64 288.38,-139.64 288.38,-139.64 288.38,-133.64 294.38,-127.64 300.38,-127.64"/>
 <text text-anchor="middle" x="330.25" y="-170.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
+</g>
+<g id="clust18" class="cluster">
+<title>cluster_src/presentation/components/utils</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M281.25,-64.64C281.25,-64.64 379.25,-64.64 379.25,-64.64 385.25,-64.64 391.25,-70.64 391.25,-76.64 391.25,-76.64 391.25,-107.64 391.25,-107.64 391.25,-113.64 385.25,-119.64 379.25,-119.64 379.25,-119.64 281.25,-119.64 281.25,-119.64 275.25,-119.64 269.25,-113.64 269.25,-107.64 269.25,-107.64 269.25,-76.64 269.25,-76.64 269.25,-70.64 275.25,-64.64 281.25,-64.64"/>
+<text text-anchor="middle" x="330.25" y="-107.09" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">utils</text>
 </g>
 <g id="clust19" class="cluster">
 <title>cluster_src/presentation/views</title>
@@ -669,19 +669,19 @@
 </g>
 </g>
 <!-- src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/domain/entities/index.ts -->
-<g id="edge38" class="edge">
+<g id="edge37" class="edge">
 <title>src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/domain/entities/index.ts</title>
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1228.65,-188.67C1242.17,-195.36 1260.94,-203.79 1278.38,-208.64 1338.79,-225.46 1509.72,-205.77 1558.12,-245.64 1590.77,-272.54 1598.17,-325.72 1599.76,-353.24"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1597.66,-353.17 1600.02,-359.08 1601.85,-352.99 1597.66,-353.17"/>
 </g>
 <!-- src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/domain/constants/index.ts -->
-<g id="edge37" class="edge">
+<g id="edge36" class="edge">
 <title>src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/domain/constants/index.ts</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M1224.77,-188.76C1237.17,-197.12 1255.08,-209.4 1270.38,-220.64 1288.48,-233.95 1308.61,-249.75 1322.93,-261.17"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="1321.49,-262.71 1327.49,-264.82 1324.11,-259.43 1321.49,-262.71"/>
 </g>
 <!-- src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/domain/repositories/index.ts -->
-<g id="edge36" class="edge">
+<g id="edge38" class="edge">
 <title>src/infrastructure/repository/MetadataRepository.ts&#45;&gt;src/domain/repositories/index.ts</title>
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M1233.22,-188.67C1246.49,-195.61 1262.03,-206.22 1270.38,-220.64 1281.1,-239.17 1265.35,-299.65 1278.38,-316.64 1285.72,-326.23 1297.43,-331.83 1308.83,-335.09"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="1308.04,-337.06 1314.37,-336.48 1309.05,-332.99 1308.04,-337.06"/>
