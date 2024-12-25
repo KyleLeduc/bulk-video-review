@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-import { HotkeysService } from '@/application'
+import { HotkeysService } from '@app/services'
 
 const hotkeysService = new HotkeysService()
 

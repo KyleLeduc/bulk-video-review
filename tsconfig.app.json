@@ -24,6 +24,12 @@
       "@domain/*": [
         "src/domain/*"
       ],
+      "@app/*": [
+        "src/application/*"
+      ],
+      "@presentation/*": [
+        "src/presentation/*"
+      ],
     }
   }
 }

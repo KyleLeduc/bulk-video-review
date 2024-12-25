@@ -35,11 +35,10 @@
 </template>
 
 <script setup lang="ts">
-import { useAppStateStore } from '@/stores/appStateStore'
-import { useVideoStore } from '@/stores/videosStore'
+import { useVideoStore, useAppStateStore } from '@app/stores'
 import { ref } from 'vue'
 
-import FileInput from '@/components/inputs/FileInput.vue'
+import FileInput from '@presentation/components/inputs/FileInput.vue'
 
 const videoStore = useVideoStore()
 const appStateStore = useAppStateStore()

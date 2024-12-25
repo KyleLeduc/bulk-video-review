@@ -1,5 +1,5 @@
 import type { ParsedVideo } from '@domain/entities'
-import { applyFilters, FileParserService } from '@/application'
+import { applyFilters, FileParserService } from '@app/services'
 import { defineStore } from 'pinia'
 import { HTMLVideoProcessor } from '@infra/video'
 import { VideoMetadataFacade } from '@infra/services'

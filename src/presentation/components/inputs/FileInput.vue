@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { useVideoStore } from '@/stores/videosStore'
+import { useVideoStore } from '@app/stores'
 
 const videoStore = useVideoStore()
 
