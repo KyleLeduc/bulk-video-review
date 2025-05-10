@@ -2,7 +2,7 @@ import type { ParsedVideo } from '@domain/entities'
 import { applyFilters } from '@app/services'
 import { defineStore } from 'pinia'
 import { toRaw } from 'vue'
-import { FileParserService } from '@app/services'
+import { VideoParserAdapter } from '@/infrastructure/adapters/VideoParserAdapter'
 import { VideoStorageAdapter } from '@infra/adapters/VideoStorageAdapter'
 import { VideoThumbnailGeneratorAdapter } from '@infra/adapters/VideoThumbnailGeneratorAdapter'
 import type { IVideoStorage } from '@app/ports/IVideoStorage'
@@ -10,7 +10,7 @@ import { AddVideosFromFilesUseCase } from '@app/usecases/AddVideosFromFilesUseCa
 import { UpdateVideoThumbnailsUseCase } from '@app/usecases/UpdateVideoThumbnailsUseCase'
 
 // instantiate adapters and use-cases at module level
-const videoParser = new FileParserService()
+const videoParser = new VideoParserAdapter()
 const videoStorage: IVideoStorage = new VideoStorageAdapter()
 const thumbnailGenerator = new VideoThumbnailGeneratorAdapter()
 const addVideosUseCase = new AddVideosFromFilesUseCase(videoParser)
