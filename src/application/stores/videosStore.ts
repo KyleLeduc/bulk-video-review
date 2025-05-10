@@ -1,9 +1,23 @@
 import type { ParsedVideo } from '@domain/entities'
-import { applyFilters, FileParserService } from '@app/services'
+import { applyFilters } from '@app/services'
 import { defineStore } from 'pinia'
-import { HTMLVideoProcessor } from '@infra/video'
-import { VideoMetadataFacade } from '@infra/services'
 import { toRaw } from 'vue'
+import { FileParserService } from '@app/services'
+import { VideoStorageAdapter } from '@infra/adapters/VideoStorageAdapter'
+import { VideoThumbnailGeneratorAdapter } from '@infra/adapters/VideoThumbnailGeneratorAdapter'
+import type { IVideoStorage } from '@app/ports/IVideoStorage'
+import { AddVideosFromFilesUseCase } from '@app/usecases/AddVideosFromFilesUseCase'
+import { UpdateVideoThumbnailsUseCase } from '@app/usecases/UpdateVideoThumbnailsUseCase'
+
+// instantiate adapters and use-cases at module level
+const videoParser = new FileParserService()
+const videoStorage: IVideoStorage = new VideoStorageAdapter()
+const thumbnailGenerator = new VideoThumbnailGeneratorAdapter()
+const addVideosUseCase = new AddVideosFromFilesUseCase(videoParser)
+const updateThumbUseCase = new UpdateVideoThumbnailsUseCase(
+  thumbnailGenerator,
+  videoStorage,
+)
 
 interface State {
   _videos: Map<string, ParsedVideo>
@@ -65,47 +79,30 @@ export const useVideoStore = defineStore('videos', {
       this._videos = filteredVideos
     },
 
-    updateVotes(videoId: string, delta: number) {
+    async updateVotes(videoId: string, delta: number) {
       const video = this._videos.get(videoId)
-
-      if (video) {
-        const metadataService = VideoMetadataFacade.getInstance()
-        metadataService
-          .updateVotes(videoId, delta)
-          .then((data) => {
-            if (data) {
-              video.votes = data.votes
-            }
-          })
-          .catch((error) => {
-            console.error('Failed to update video metadata:', error)
-          })
+      if (!video) return
+      try {
+        const votes = await videoStorage.updateVotes(videoId, delta)
+        if (votes != null) {
+          video.votes = votes
+        }
+      } catch (e) {
+        console.error('Failed to update votes:', e)
       }
     },
 
     async addVideosFromFiles(files: FileList) {
-      const parsedVideos = new FileParserService().parseFileList(files)
-
-      for await (const video of parsedVideos) {
+      for await (const video of addVideosUseCase.execute(files)) {
         this.addVideos([video])
       }
     },
 
     async updateVideoThumbnails(id: string) {
-      const video = toRaw(this._videos.get(id))
-
-      if (video && video.thumbUrls.length <= 1) {
-        const metadataService = VideoMetadataFacade.getInstance()
-        const vidProcessor = new HTMLVideoProcessor(video.url)
-        await vidProcessor.isReady
-
-        const thumbnail = await vidProcessor.generateThumbnails()
-
-        video.thumbUrls = thumbnail
-
-        await metadataService.updateVideo(video)
-        this._videos.set(id, video)
-      }
+      const existing = toRaw(this._videos.get(id))
+      if (!existing) return
+      const updated = await updateThumbUseCase.execute(existing)
+      this._videos.set(id, updated)
     },
   },
 })

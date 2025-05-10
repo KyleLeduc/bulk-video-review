@@ -1,8 +1,9 @@
 import { VideoFileParser } from '@infra/video'
 import { VideoMetadataFacade } from '@infra/services'
 import type { ParsedVideo } from '@domain/entities'
+import type { IVideoParser } from '@app/ports/IVideoParser'
 
-export class FileParserService {
+export class FileParserService implements IVideoParser {
   constructor(
     private readonly storage = VideoMetadataFacade.getInstance(),
     private readonly parser = new VideoFileParser(),
