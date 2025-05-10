@@ -1,6 +1,5 @@
 import type { ParsedVideo } from '@domain/entities'
-import type { IVideoThumbnailGenerator } from '@app/ports/IVideoThumbnailGenerator'
-import type { IVideoStorage } from '@app/ports/IVideoStorage'
+import type { IVideoThumbnailGenerator, IVideoStorage } from '@app/ports'
 
 export class UpdateVideoThumbnailsUseCase {
   constructor(

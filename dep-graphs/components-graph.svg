@@ -24,6 +24,16 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M352.25,-356C352.25,-356 398.25,-356 398.25,-356 404.25,-356 410.25,-362 410.25,-368 410.25,-368 410.25,-399 410.25,-399 410.25,-405 404.25,-411 398.25,-411 398.25,-411 352.25,-411 352.25,-411 346.25,-411 340.25,-405 340.25,-399 340.25,-399 340.25,-368 340.25,-368 340.25,-362 346.25,-356 352.25,-356"/>
 <text text-anchor="middle" x="375.25" y="-398.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
 </g>
+<g id="clust6" class="cluster">
+<title>cluster_src/infrastructure</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M344.25,-240C344.25,-240 406.25,-240 406.25,-240 412.25,-240 418.25,-246 418.25,-252 418.25,-252 418.25,-318 418.25,-318 418.25,-324 412.25,-330 406.25,-330 406.25,-330 344.25,-330 344.25,-330 338.25,-330 332.25,-324 332.25,-318 332.25,-318 332.25,-252 332.25,-252 332.25,-246 338.25,-240 344.25,-240"/>
+<text text-anchor="middle" x="375.25" y="-317.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">infrastructure</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_src/infrastructure/services</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M352.25,-248C352.25,-248 398.25,-248 398.25,-248 404.25,-248 410.25,-254 410.25,-260 410.25,-260 410.25,-291 410.25,-291 410.25,-297 404.25,-303 398.25,-303 398.25,-303 352.25,-303 352.25,-303 346.25,-303 340.25,-297 340.25,-291 340.25,-291 340.25,-260 340.25,-260 340.25,-254 346.25,-248 352.25,-248"/>
+<text text-anchor="middle" x="375.25" y="-290.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
+</g>
 <g id="clust4" class="cluster">
 <title>cluster_src/domain</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M454.12,-164C454.12,-164 516.12,-164 516.12,-164 522.12,-164 528.12,-170 528.12,-176 528.12,-176 528.12,-242 528.12,-242 528.12,-248 522.12,-254 516.12,-254 516.12,-254 454.12,-254 454.12,-254 448.12,-254 442.12,-248 442.12,-242 442.12,-242 442.12,-176 442.12,-176 442.12,-170 448.12,-164 454.12,-164"/>
@@ -58,16 +68,6 @@
 <title>cluster_src/presentation/views</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M98,-92C98,-92 174.25,-92 174.25,-92 180.25,-92 186.25,-98 186.25,-104 186.25,-104 186.25,-166 186.25,-166 186.25,-172 180.25,-178 174.25,-178 174.25,-178 98,-178 98,-178 92,-178 86,-172 86,-166 86,-166 86,-104 86,-104 86,-98 92,-92 98,-92"/>
 <text text-anchor="middle" x="136.12" y="-165.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
-</g>
-<g id="clust6" class="cluster">
-<title>cluster_src/infrastructure</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M344.25,-240C344.25,-240 406.25,-240 406.25,-240 412.25,-240 418.25,-246 418.25,-252 418.25,-252 418.25,-318 418.25,-318 418.25,-324 412.25,-330 406.25,-330 406.25,-330 344.25,-330 344.25,-330 338.25,-330 332.25,-324 332.25,-318 332.25,-318 332.25,-252 332.25,-252 332.25,-246 338.25,-240 344.25,-240"/>
-<text text-anchor="middle" x="375.25" y="-317.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">infrastructure</text>
-</g>
-<g id="clust7" class="cluster">
-<title>cluster_src/infrastructure/services</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M352.25,-248C352.25,-248 398.25,-248 398.25,-248 404.25,-248 410.25,-254 410.25,-260 410.25,-260 410.25,-291 410.25,-291 410.25,-297 404.25,-303 398.25,-303 398.25,-303 352.25,-303 352.25,-303 346.25,-303 340.25,-297 340.25,-291 340.25,-291 340.25,-260 340.25,-260 340.25,-254 346.25,-248 352.25,-248"/>
-<text text-anchor="middle" x="375.25" y="-290.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">services</text>
 </g>
 <!-- src/App.vue -->
 <g id="node1" class="node">

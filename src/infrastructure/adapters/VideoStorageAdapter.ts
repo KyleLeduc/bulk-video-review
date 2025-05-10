@@ -1,5 +1,5 @@
 import type { VideoEntity, VideoStorageDto } from '@domain/entities'
-import type { IVideoStorage } from '@app/ports/IVideoStorage'
+import type { IVideoStorage } from '@app/ports'
 import { VideoMetadataFacade } from '@infra/services'
 
 export class VideoStorageAdapter implements IVideoStorage {

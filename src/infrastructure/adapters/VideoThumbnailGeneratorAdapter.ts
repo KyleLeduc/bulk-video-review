@@ -1,4 +1,4 @@
-import type { IVideoThumbnailGenerator } from '@app/ports/IVideoThumbnailGenerator'
+import type { IVideoThumbnailGenerator } from '@app/ports'
 import { HTMLVideoProcessor } from '@infra/video'
 
 export class VideoThumbnailGeneratorAdapter

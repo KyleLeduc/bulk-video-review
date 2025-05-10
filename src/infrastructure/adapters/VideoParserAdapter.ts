@@ -1,6 +1,6 @@
 import { VideoFileParser } from '@infra/video'
 import { VideoMetadataFacade } from '@infra/services'
-import type { IVideoParser } from '@app/ports/IVideoParser'
+import type { IVideoParser } from '@app/ports'
 import type { ParsedVideo } from '@domain/entities'
 
 export class VideoParserAdapter implements IVideoParser {

@@ -1,5 +1,5 @@
 import type { ParsedVideo } from '@domain/entities'
-import type { IVideoParser } from '@app/ports/IVideoParser'
+import type { IVideoParser } from '@app/ports'
 
 export class AddVideosFromFilesUseCase {
   constructor(private readonly parser: IVideoParser) {}
