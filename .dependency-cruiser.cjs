@@ -332,7 +332,7 @@ module.exports = {
            collapses everything in node_modules to one folder deep so you see
            the external modules, but not the innards your app depends upon.
          */
-        collapsePattern: 'node_modules/(?:@[^/]+/[^/]+|[^/]+)',
+        collapsePattern: '^src/[^/]+/[^/]+',
 
         /* Options to tweak the appearance of your graph.See
            https://github.com/sverweij/dependency-cruiser/blob/main/doc/options-reference.md#reporteroptions
@@ -375,4 +375,3 @@ module.exports = {
   },
 }
 // generated: dependency-cruiser@16.3.1 on 2024-04-27T20:22:16.874Z
-
