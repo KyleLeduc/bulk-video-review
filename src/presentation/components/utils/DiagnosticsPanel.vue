@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAppStateStore } from '@app/stores'
+import { useAppStateStore } from '@presentation/stores'
 import { storeToRefs } from 'pinia'
 import { VideoMetadataFacade } from '@infra/services'
 
