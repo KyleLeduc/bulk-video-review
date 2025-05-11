@@ -4,27 +4,10 @@ import { defineStore } from 'pinia'
 import { toRaw } from 'vue'
 
 import {
-  VideoParserAdapter,
-  VideoStorageAdapter,
-  VideoThumbnailGeneratorAdapter,
-} from '@infra/adapters'
-
-import {
-  AddVideosFromFilesUseCase,
-  UpdateVideoThumbnailsUseCase,
-} from '@app/usecases'
-
-// instantiate adapters and use-cases at module level
-const videoParser = new VideoParserAdapter()
-const videoStorage = new VideoStorageAdapter()
-const thumbnailGenerator = new VideoThumbnailGeneratorAdapter()
-
-// use-cases
-const addVideosUseCase = new AddVideosFromFilesUseCase(videoParser)
-const updateThumbUseCase = new UpdateVideoThumbnailsUseCase(
-  thumbnailGenerator,
-  videoStorage,
-)
+  addVideosUseCase,
+  updateThumbUseCase,
+  updateVotesUseCase,
+} from '@app/dependencies'
 
 interface State {
   _videos: Map<string, ParsedVideo>
@@ -90,7 +73,7 @@ export const useVideoStore = defineStore('videos', {
       const video = this._videos.get(videoId)
       if (!video) return
       try {
-        const votes = await videoStorage.updateVotes(videoId, delta)
+        const votes = await updateVotesUseCase.execute(videoId, delta)
         if (votes != null) {
           video.votes = votes
         }

@@ -29,15 +29,15 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M214.25,-70C214.25,-70 274,-70 274,-70 280,-70 286,-76 286,-82 286,-82 286,-113 286,-113 286,-119 280,-125 274,-125 274,-125 214.25,-125 214.25,-125 208.25,-125 202.25,-119 202.25,-113 202.25,-113 202.25,-82 202.25,-82 202.25,-76 208.25,-70 214.25,-70"/>
 <text text-anchor="middle" x="244.12" y="-112.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">inputs</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_src/presentation/views</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M98,-47C98,-47 174.25,-47 174.25,-47 180.25,-47 186.25,-53 186.25,-59 186.25,-59 186.25,-121 186.25,-121 186.25,-127 180.25,-133 174.25,-133 174.25,-133 98,-133 98,-133 92,-133 86,-127 86,-121 86,-121 86,-59 86,-59 86,-53 92,-47 98,-47"/>
-<text text-anchor="middle" x="136.12" y="-120.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
-</g>
 <g id="clust5" class="cluster">
 <title>cluster_src/presentation/stores</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M314,-52C314,-52 360,-52 360,-52 366,-52 372,-58 372,-64 372,-64 372,-95 372,-95 372,-101 366,-107 360,-107 360,-107 314,-107 314,-107 308,-107 302,-101 302,-95 302,-95 302,-64 302,-64 302,-58 308,-52 314,-52"/>
 <text text-anchor="middle" x="337" y="-94.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">stores</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_src/presentation/views</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M98,-47C98,-47 174.25,-47 174.25,-47 180.25,-47 186.25,-53 186.25,-59 186.25,-59 186.25,-121 186.25,-121 186.25,-127 180.25,-133 174.25,-133 174.25,-133 98,-133 98,-133 92,-133 86,-127 86,-121 86,-121 86,-59 86,-59 86,-53 92,-47 98,-47"/>
+<text text-anchor="middle" x="136.12" y="-120.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">views</text>
 </g>
 <!-- src/App.vue -->
 <g id="node1" class="node">
