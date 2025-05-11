@@ -1,8 +1,9 @@
 import { VideoFileParser } from '@infra/video'
 import { VideoMetadataFacade } from '@infra/services'
+import type { IVideoParser } from '@app/ports'
 import type { ParsedVideo } from '@domain/entities'
 
-export class FileParserService {
+export class VideoParserAdapter implements IVideoParser {
   constructor(
     private readonly storage = VideoMetadataFacade.getInstance(),
     private readonly parser = new VideoFileParser(),
@@ -21,9 +22,9 @@ export class FileParserService {
     if (filesToProcess.length > 0) {
       for (const file of filesToProcess) {
         try {
-          const video = await this.#processFile(file)
+          const videoItem = await this.#processFile(file)
 
-          if (video) yield video
+          if (videoItem) yield videoItem
         } catch (e) {
           console.error('Failed to process file:', e)
         }
@@ -59,8 +60,8 @@ export class FileParserService {
   }
 
   readonly #filterExistingFromNewVideos = async (fileList: FileList) => {
-    const foundVideos = []
-    const filesToProcess = []
+    const foundVideos: ParsedVideo[] = []
+    const filesToProcess: File[] = []
 
     for (const file of fileList) {
       const videoEntity = await this.storage.getVideo(

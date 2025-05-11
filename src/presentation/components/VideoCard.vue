@@ -47,7 +47,7 @@
 import type { ParsedVideo } from '@domain/entities'
 import { computed, reactive, ref } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
-import { useVideoStore } from '@app/stores'
+import { useVideoStore } from '@presentation/stores'
 
 const videoStore = useVideoStore()
 const videoElement = ref<InstanceType<typeof VideoEmbed> | null>(null)

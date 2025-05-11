@@ -16,7 +16,7 @@
 import { watch, onMounted } from 'vue'
 import { useAutoAnimate } from '@formkit/auto-animate/vue'
 import { useDebounce } from '@app/composables'
-import { useVideoStore, useAppStateStore } from '@app/stores'
+import { useVideoStore, useAppStateStore } from '@presentation/stores'
 import { storeToRefs } from 'pinia'
 import VideoCard from '@presentation/components/VideoCard.vue'
 

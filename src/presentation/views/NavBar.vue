@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { useVideoStore, useAppStateStore } from '@app/stores'
+import { useVideoStore, useAppStateStore } from '@presentation/stores'
 import { ref } from 'vue'
 
 import FileInput from '@presentation/components/inputs/FileInput.vue'
