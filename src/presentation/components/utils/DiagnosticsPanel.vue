@@ -6,7 +6,7 @@
     </nav>
     <section>
       <h2>Database</h2>
-      <button @click="videoMetadataFacade.wipeData()">Wipe Database</button>
+      <button @click="wipeVideosUseCase.execute()">Wipe Database</button>
     </section>
   </section>
 </template>
@@ -14,10 +14,9 @@
 <script setup lang="ts">
 import { useAppStateStore } from '@presentation/stores'
 import { storeToRefs } from 'pinia'
-import { VideoMetadataFacade } from '@infra/services'
+import { wipeVideosUseCase } from '@/application/container'
 
 const appState = useAppStateStore()
-const videoMetadataFacade = VideoMetadataFacade.getInstance()
 
 const { isDiagnosticsPanelOpen } = storeToRefs(appState)
 

@@ -1,12 +1,12 @@
 import { VideoFileParser } from '@infra/video'
-import { VideoMetadataFacade } from '@infra/services'
 import type { IVideoParser } from '@app/ports'
 import type { ParsedVideo } from '@domain/entities'
+import type { IVideoFacade } from '@domain/repositories'
 
 export class VideoParserAdapter implements IVideoParser {
   constructor(
-    private readonly storage = VideoMetadataFacade.getInstance(),
-    private readonly parser = new VideoFileParser(),
+    private readonly storage: IVideoFacade,
+    private readonly parser: VideoFileParser = new VideoFileParser(),
   ) {}
 
   async *parseFileList(files: FileList): AsyncGenerator<ParsedVideo> {

@@ -11,23 +11,23 @@
 <polygon fill="white" stroke="none" points="-4,4 -4,-250 328.75,-250 328.75,4 -4,4"/>
 <g id="clust1" class="cluster">
 <title>cluster_src</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M20,-8C20,-8 307.75,-8 307.75,-8 313.75,-8 319.75,-14 319.75,-20 319.75,-20 319.75,-226 319.75,-226 319.75,-232 313.75,-238 307.75,-238 307.75,-238 20,-238 20,-238 14,-238 8,-232 8,-226 8,-226 8,-20 8,-20 8,-14 14,-8 20,-8"/>
-<text text-anchor="middle" x="163.88" y="-225.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_src/infrastructure</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M248.75,-156C248.75,-156 299.75,-156 299.75,-156 305.75,-156 311.75,-162 311.75,-168 311.75,-168 311.75,-199 311.75,-199 311.75,-205 305.75,-211 299.75,-211 299.75,-211 248.75,-211 248.75,-211 242.75,-211 236.75,-205 236.75,-199 236.75,-199 236.75,-168 236.75,-168 236.75,-162 242.75,-156 248.75,-156"/>
-<text text-anchor="middle" x="274.25" y="-198.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">infrastructure</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M20,-8C20,-8 304.75,-8 304.75,-8 310.75,-8 316.75,-14 316.75,-20 316.75,-20 316.75,-226 316.75,-226 316.75,-232 310.75,-238 304.75,-238 304.75,-238 20,-238 20,-238 14,-238 8,-232 8,-226 8,-226 8,-20 8,-20 8,-14 14,-8 20,-8"/>
+<text text-anchor="middle" x="162.38" y="-225.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
 </g>
 <g id="clust2" class="cluster">
-<title>cluster_src/domain</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M250.75,-93C250.75,-93 296.75,-93 296.75,-93 302.75,-93 308.75,-99 308.75,-105 308.75,-105 308.75,-136 308.75,-136 308.75,-142 302.75,-148 296.75,-148 296.75,-148 250.75,-148 250.75,-148 244.75,-148 238.75,-142 238.75,-136 238.75,-136 238.75,-105 238.75,-105 238.75,-99 244.75,-93 250.75,-93"/>
-<text text-anchor="middle" x="273.75" y="-135.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
+<title>cluster_src/application</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M240.75,-93C240.75,-93 296.75,-93 296.75,-93 302.75,-93 308.75,-99 308.75,-105 308.75,-105 308.75,-136 308.75,-136 308.75,-142 302.75,-148 296.75,-148 296.75,-148 240.75,-148 240.75,-148 234.75,-148 228.75,-142 228.75,-136 228.75,-136 228.75,-105 228.75,-105 228.75,-99 234.75,-93 240.75,-93"/>
+<text text-anchor="middle" x="268.75" y="-135.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_src/presentation</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M90,-16C90,-16 296.75,-16 296.75,-16 302.75,-16 308.75,-22 308.75,-28 308.75,-28 308.75,-73 308.75,-73 308.75,-79 302.75,-85 296.75,-85 296.75,-85 90,-85 90,-85 84,-85 78,-79 78,-73 78,-73 78,-28 78,-28 78,-22 84,-16 90,-16"/>
-<text text-anchor="middle" x="193.38" y="-72.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">presentation</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M90,-16C90,-16 291.75,-16 291.75,-16 297.75,-16 303.75,-22 303.75,-28 303.75,-28 303.75,-73 303.75,-73 303.75,-79 297.75,-85 291.75,-85 291.75,-85 90,-85 90,-85 84,-85 78,-79 78,-73 78,-73 78,-28 78,-28 78,-22 84,-16 90,-16"/>
+<text text-anchor="middle" x="190.88" y="-72.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">presentation</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_src/domain</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M245.75,-156C245.75,-156 291.75,-156 291.75,-156 297.75,-156 303.75,-162 303.75,-168 303.75,-168 303.75,-199 303.75,-199 303.75,-205 297.75,-211 291.75,-211 291.75,-211 245.75,-211 245.75,-211 239.75,-211 233.75,-205 233.75,-199 233.75,-199 233.75,-168 233.75,-168 233.75,-162 239.75,-156 245.75,-156"/>
+<text text-anchor="middle" x="268.75" y="-198.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
 </g>
 <!-- src/App.vue -->
 <g id="node1" class="node">
@@ -74,59 +74,56 @@
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M70.49,-41.28C72.7,-41.64 74.97,-42.01 77.24,-42.38"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="76.68,-44.41 82.93,-43.3 77.35,-40.27 76.68,-44.41"/>
 </g>
-<!-- src/domain/entities -->
+<!-- src/application/container.ts -->
 <g id="node4" class="node">
+<title>src/application/container.ts</title>
+<g id="a_node4"><a xlink:href="src/application/container.ts" xlink:title="container.ts">
+<path fill="#ddfeff" stroke="black" d="M294.33,-120.62C294.33,-120.62 243.17,-120.62 243.17,-120.62 239.96,-120.62 236.75,-117.42 236.75,-114.21 236.75,-114.21 236.75,-107.79 236.75,-107.79 236.75,-104.58 239.96,-101.38 243.17,-101.38 243.17,-101.38 294.33,-101.38 294.33,-101.38 297.54,-101.38 300.75,-104.58 300.75,-107.79 300.75,-107.79 300.75,-114.21 300.75,-114.21 300.75,-117.42 297.54,-120.62 294.33,-120.62"/>
+<text text-anchor="start" x="244.75" y="-108.08" font-family="Helvetica,sans-Serif" font-size="9.00">container.ts</text>
+</a>
+</g>
+</g>
+<!-- src/presentation/components&#45;&gt;src/application/container.ts -->
+<g id="edge3" class="edge">
+<title>src/presentation/components&#45;&gt;src/application/container.ts</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M196.7,-57.9C204.61,-66.44 216.77,-78.82 228.75,-88 232.57,-90.93 236.8,-93.77 241.01,-96.4"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="239.68,-98.05 245.91,-99.33 241.84,-94.45 239.68,-98.05"/>
+</g>
+<!-- src/domain/entities -->
+<g id="node5" class="node">
 <title>src/domain/entities</title>
-<g id="a_node4"><a xlink:href="src/domain/entities" xlink:title="entities">
-<polygon fill="#ffffcc" stroke="black" points="300.75,-120.62 248.89,-120.62 246.75,-118.49 246.75,-101.38 298.61,-101.38 300.75,-103.51 300.75,-120.62"/>
-<polyline fill="none" stroke="black" points="298.61,-118.49 246.75,-118.49"/>
-<polyline fill="none" stroke="black" points="298.61,-118.49 298.61,-101.38"/>
-<polyline fill="none" stroke="black" points="298.61,-118.49 300.75,-120.62"/>
-<text text-anchor="start" x="258.75" y="-108.08" font-family="Helvetica,sans-Serif" font-size="9.00">entities</text>
+<g id="a_node5"><a xlink:href="src/domain/entities" xlink:title="entities">
+<polygon fill="#ffffcc" stroke="black" points="295.75,-183.62 243.89,-183.62 241.75,-181.49 241.75,-164.38 293.61,-164.38 295.75,-166.51 295.75,-183.62"/>
+<polyline fill="none" stroke="black" points="293.61,-181.49 241.75,-181.49"/>
+<polyline fill="none" stroke="black" points="293.61,-181.49 293.61,-164.38"/>
+<polyline fill="none" stroke="black" points="293.61,-181.49 295.75,-183.62"/>
+<text text-anchor="start" x="253.75" y="-171.07" font-family="Helvetica,sans-Serif" font-size="9.00">entities</text>
 </a>
 </g>
 </g>
 <!-- src/presentation/components&#45;&gt;src/domain/entities -->
 <g id="edge5" class="edge">
 <title>src/presentation/components&#45;&gt;src/domain/entities</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M199.22,-57.93C208.94,-66.27 223.43,-78.35 236.75,-88 241.04,-91.11 245.75,-94.28 250.3,-97.23"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="248.89,-98.82 255.08,-100.28 251.15,-95.28 248.89,-98.82"/>
-</g>
-<!-- src/infrastructure/services -->
-<g id="node5" class="node">
-<title>src/infrastructure/services</title>
-<g id="a_node5"><a xlink:href="src/infrastructure/services" xlink:title="services">
-<polygon fill="#ffffcc" stroke="black" points="300.75,-183.62 248.89,-183.62 246.75,-181.49 246.75,-164.38 298.61,-164.38 300.75,-166.51 300.75,-183.62"/>
-<polyline fill="none" stroke="black" points="298.61,-181.49 246.75,-181.49"/>
-<polyline fill="none" stroke="black" points="298.61,-181.49 298.61,-164.38"/>
-<polyline fill="none" stroke="black" points="298.61,-181.49 300.75,-183.62"/>
-<text text-anchor="start" x="256.5" y="-171.07" font-family="Helvetica,sans-Serif" font-size="9.00">services</text>
-</a>
-</g>
-</g>
-<!-- src/presentation/components&#45;&gt;src/infrastructure/services -->
-<g id="edge3" class="edge">
-<title>src/presentation/components&#45;&gt;src/infrastructure/services</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M190.53,-57.83C196.23,-77.44 211.22,-122.05 236.75,-151 239.36,-153.96 242.44,-156.68 245.68,-159.14"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="244.27,-160.72 250.41,-162.37 246.64,-157.25 244.27,-160.72"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M189.58,-57.9C193.41,-77.65 204.36,-122.5 228.75,-151 231.7,-154.45 235.31,-157.51 239.12,-160.19"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="237.75,-161.81 243.94,-163.26 240.01,-158.27 237.75,-161.81"/>
 </g>
 <!-- src/presentation/stores -->
 <g id="node6" class="node">
 <title>src/presentation/stores</title>
 <g id="a_node6"><a xlink:href="src/presentation/stores" xlink:title="stores">
-<polygon fill="#ffffcc" stroke="black" points="300.75,-50.62 248.89,-50.62 246.75,-48.49 246.75,-31.38 298.61,-31.38 300.75,-33.51 300.75,-50.62"/>
-<polyline fill="none" stroke="black" points="298.61,-48.49 246.75,-48.49"/>
-<polyline fill="none" stroke="black" points="298.61,-48.49 298.61,-31.38"/>
-<polyline fill="none" stroke="black" points="298.61,-48.49 300.75,-50.62"/>
-<text text-anchor="start" x="260.62" y="-38.08" font-family="Helvetica,sans-Serif" font-size="9.00">stores</text>
+<polygon fill="#ffffcc" stroke="black" points="295.75,-50.62 243.89,-50.62 241.75,-48.49 241.75,-31.38 293.61,-31.38 295.75,-33.51 295.75,-50.62"/>
+<polyline fill="none" stroke="black" points="293.61,-48.49 241.75,-48.49"/>
+<polyline fill="none" stroke="black" points="293.61,-48.49 293.61,-31.38"/>
+<polyline fill="none" stroke="black" points="293.61,-48.49 295.75,-50.62"/>
+<text text-anchor="start" x="255.62" y="-38.08" font-family="Helvetica,sans-Serif" font-size="9.00">stores</text>
 </a>
 </g>
 </g>
 <!-- src/presentation/components&#45;&gt;src/presentation/stores -->
 <g id="edge4" class="edge">
 <title>src/presentation/components&#45;&gt;src/presentation/stores</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M220.93,-45.27C226.49,-44.82 232.28,-44.34 237.88,-43.88"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="237.65,-46 243.46,-43.42 237.31,-41.82 237.65,-46"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M220.82,-45.11C224.69,-44.77 228.65,-44.43 232.55,-44.09"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="232.65,-46.18 238.44,-43.57 232.28,-42 232.65,-46.18"/>
 </g>
 <!-- src/presentation/views&#45;&gt;src/presentation/components -->
 <g id="edge6" class="edge">
@@ -137,8 +134,8 @@
 <!-- src/presentation/views&#45;&gt;src/presentation/stores -->
 <g id="edge7" class="edge">
 <title>src/presentation/views&#45;&gt;src/presentation/stores</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M134.18,-37.98C140.1,-35.53 146.68,-33.25 153,-32 181.11,-26.46 213.56,-29.46 237.58,-33.43"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="237.09,-35.48 243.36,-34.46 237.82,-31.34 237.09,-35.48"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M134.18,-37.98C140.1,-35.53 146.68,-33.25 153,-32 179.48,-26.78 209.96,-29.57 232.85,-33.38"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="232.28,-35.41 238.56,-34.4 233.02,-31.27 232.28,-35.41"/>
 </g>
 </g>
 </svg>
