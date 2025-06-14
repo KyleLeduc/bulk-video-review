@@ -48,4 +48,6 @@ export const updateVotesUseCase = new UpdateVideoVotesUseCase(
   videoStorageAdapter,
 )
 
-export const wipeVideosUseCase = new WipeVideoDataUseCase(videoMetadataFacade)
+export const wipeVideoDataUseCase = new WipeVideoDataUseCase(
+  videoMetadataFacade,
+)

@@ -3,11 +3,7 @@ import { applyFilters } from '@domain/services'
 import { defineStore } from 'pinia'
 import { toRaw } from 'vue'
 
-import {
-  addVideosUseCase,
-  updateThumbUseCase,
-  updateVotesUseCase,
-} from '@app/container'
+import { addVideosUseCase, updateThumbUseCase, updateVotesUseCase } from '@app'
 
 interface State {
   _videos: Map<string, ParsedVideo>

@@ -6,15 +6,25 @@
     </nav>
     <section>
       <h2>Database</h2>
-      <button @click="wipeVideosUseCase.execute()">Wipe Database</button>
+      <button
+        @click="wipeVideoDataUseCase?.execute()"
+        :disabled="!wipeVideoDataUseCase"
+      >
+        Wipe Database
+      </button>
     </section>
   </section>
 </template>
 
 <script setup lang="ts">
+import type { WipeVideoDataUseCase } from '@/application/usecases'
 import { useAppStateStore } from '@presentation/stores'
 import { storeToRefs } from 'pinia'
-import { wipeVideosUseCase } from '@/application/container'
+import { inject } from 'vue'
+
+const wipeVideoDataUseCase = inject<WipeVideoDataUseCase>(
+  'wipeVideoDataUseCase',
+)
 
 const appState = useAppStateStore()
 
