@@ -7,6 +7,7 @@ import {
   filterVideosUseCase,
   updateThumbUseCase,
   updateVotesUseCase,
+  logger,
 } from '@infra/di/container'
 
 interface State {
@@ -78,7 +79,7 @@ export const useVideoStore = defineStore('videos', {
           video.votes = votes
         }
       } catch (e) {
-        console.error('Failed to update votes:', e)
+        logger.error('Failed to update votes', e)
       }
     },
 

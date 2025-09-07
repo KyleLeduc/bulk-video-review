@@ -1,9 +1,9 @@
-import type { IVideoStorage } from '@app/ports/IVideoStorage'
+import type { IVideoCommand } from '@app/ports/IVideoCommand'
 
 export class UpdateVideoVotesUseCase {
-  constructor(private readonly videoStorage: IVideoStorage) {}
+  constructor(private readonly videoCommand: IVideoCommand) {}
 
   async execute(id: string, delta: number): Promise<number | null> {
-    return this.videoStorage.updateVotes(id, delta)
+    return this.videoCommand.updateVotes(id, delta)
   }
 }

@@ -4,6 +4,7 @@ import type {
   IMetadataRepository,
   IVideoRepository,
 } from '@domain/repositories'
+import type { ILogger } from '@app/ports'
 import { VideoStorageDtoMapper } from '../dto/VideoStorageDtoMapper'
 
 /**
@@ -13,6 +14,7 @@ export class VideoMetadataFacade implements IVideoFacade {
   constructor(
     private readonly metadataRepo: IMetadataRepository,
     private readonly videoRepo: IVideoRepository,
+    private readonly logger: ILogger,
   ) {}
 
   /**
@@ -66,7 +68,7 @@ export class VideoMetadataFacade implements IVideoFacade {
 
       return null
     } catch (e) {
-      console.error(e)
+      this.logger.error('Failed to update votes', e)
 
       return null
     }

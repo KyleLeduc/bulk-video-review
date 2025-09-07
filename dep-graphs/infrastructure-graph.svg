@@ -311,6 +311,7 @@
 <title>src/infrastructure/adapters&#45;&gt;src/application/ports</title>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M114.77,-125.54C105.12,-127.15 94.16,-128.97 84.13,-130.64"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="83.6,-128.6 78.03,-131.66 84.3,-132.75 83.6,-128.6"/>
 </g>
@@ -333,6 +334,10 @@
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M239.39,-191.84C241.85,-190.17 244.14,-188.24 246,-186 262.31,-166.45 252.51,-154.62 262,-131 269.65,-111.97 280.94,-91.23 288.73,-77.72"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="290.62,-78.64 291.83,-72.4 286.99,-76.53 290.62,-78.64"/>
 >>>>>>> fde4419 (refactor: move DI to infrastructure)
+=======
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M239.51,-191.94C241.95,-190.25 244.2,-188.29 246,-186 265.49,-161.28 249.6,-145.94 262,-117 268.17,-102.6 278.17,-87.84 285.99,-77.4"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="287.87,-78.4 289.85,-72.36 284.53,-75.85 287.87,-78.4"/>
+>>>>>>> 84f41c9 (feat: implement event publishing and logging interfaces, and adapt use cases to use new command and query interfaces)
 </g>
 <!-- src/infrastructure/adapters&#45;&gt;src/domain/entities -->
 <g id="edge2" class="edge">
@@ -361,6 +366,7 @@
 <!-- src/infrastructure/adapters&#45;&gt;src/domain/repositories -->
 <g id="edge3" class="edge">
 <title>src/infrastructure/adapters&#45;&gt;src/domain/repositories</title>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M145.82,-111.8C149.81,-94.48 161.09,-57.4 187,-42 214.14,-25.87 251.22,-32.35 276.53,-40.11"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="276.02,-42.15 282.37,-41.98 277.3,-38.15 276.02,-42.15"/>
@@ -516,6 +522,10 @@
 =======
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M238.9,-191.87C241.51,-190.18 243.96,-188.24 246,-186 259.18,-171.55 246.1,-156.39 262,-145 276.6,-134.54 322.39,-134.54 356.29,-136.17"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="356.37,-138.28 362.47,-136.49 356.59,-134.08 356.37,-138.28"/>
+=======
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M238.9,-191.87C241.51,-190.18 243.96,-188.24 246,-186 259.18,-171.55 246.1,-156.39 262,-145 289.02,-125.63 327.63,-126.07 356.38,-130.21"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="356.1,-132.29 362.35,-131.14 356.75,-128.14 356.1,-132.29"/>
+>>>>>>> 84f41c9 (feat: implement event publishing and logging interfaces, and adapt use cases to use new command and query interfaces)
 </g>
 <!-- src/infrastructure/video -->
 >>>>>>> fde4419 (refactor: move DI to infrastructure)
@@ -537,13 +547,13 @@
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="264.96,-220.04 271.31,-220 266.32,-216.07 264.96,-220.04"/>
 </g>
 <!-- src/infrastructure/video&#45;&gt;src/domain/entities -->
-<g id="edge19" class="edge">
+<g id="edge20" class="edge">
 <title>src/infrastructure/video&#45;&gt;src/domain/entities</title>
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M325.73,-220.8C337.37,-217.16 351.18,-212.85 363.43,-209.02"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="364.2,-210.98 369.3,-207.19 362.95,-206.97 364.2,-210.98"/>
 </g>
 <!-- src/infrastructure/video&#45;&gt;src/domain/valueObjects -->
-<g id="edge20" class="edge">
+<g id="edge21" class="edge">
 <title>src/infrastructure/video&#45;&gt;src/domain/valueObjects</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M325.73,-229C334.2,-229 343.82,-229 353.15,-229"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="353.22,-231.1 359.22,-229 353.22,-226.9 353.22,-231.1"/>
@@ -647,8 +657,8 @@
 <!-- src/infrastructure/repository&#45;&gt;src/domain/repositories -->
 <g id="edge15" class="edge">
 <title>src/infrastructure/repository&#45;&gt;src/domain/repositories</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M239.46,-221.89C241.91,-220.22 244.17,-218.26 246,-216 263.89,-193.87 240.51,-172.66 262,-154 265.57,-150.9 318.28,-145.7 356.39,-142.31"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="356.57,-144.4 362.37,-141.78 356.2,-140.22 356.57,-144.4"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M239.46,-221.89C241.91,-220.22 244.17,-218.26 246,-216 263.89,-193.87 240.51,-172.66 262,-154 269.03,-147.89 319.28,-143.57 356.06,-141.18"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="356.45,-143.26 362.3,-140.78 356.18,-139.06 356.45,-143.26"/>
 </g>
 <!-- src/infrastructure/repository&#45;&gt;src/infrastructure/database -->
 <g id="edge12" class="edge">
@@ -656,8 +666,14 @@
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M242.24,-240.01C249.58,-242.54 257.64,-245.31 265.29,-247.93"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="264.68,-249.94 271.03,-249.91 266.04,-245.97 264.68,-249.94"/>
 </g>
-<!-- src/infrastructure/services&#45;&gt;src/domain/entities -->
+<!-- src/infrastructure/services&#45;&gt;src/application/ports -->
 <g id="edge17" class="edge">
+<title>src/infrastructure/services&#45;&gt;src/application/ports</title>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M221.59,-161.94C229.91,-148.65 246.26,-123.26 262,-103 269.07,-93.89 277.64,-84.2 284.59,-76.64"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="286.13,-78.06 288.67,-72.24 283.06,-75.21 286.13,-78.06"/>
+</g>
+<!-- src/infrastructure/services&#45;&gt;src/domain/entities -->
+<g id="edge18" class="edge">
 <title>src/infrastructure/services&#45;&gt;src/domain/entities</title>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -673,8 +689,9 @@
 >>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 <!-- src/infrastructure/services&#45;&gt;src/domain/repositories -->
-<g id="edge18" class="edge">
+<g id="edge19" class="edge">
 <title>src/infrastructure/services&#45;&gt;src/domain/repositories</title>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M167.91,-141.81C170.22,-140.16 172.32,-138.24 174,-136 193.26,-110.35 163.61,-86.96 187,-65 207.68,-45.59 240.18,-42.99 265.84,-44.74"/>
@@ -687,6 +704,10 @@
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M242.25,-165.76C248.7,-164.5 255.6,-163.18 262,-162 293.59,-156.19 329.46,-150.03 356.06,-145.55"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="356.7,-147.58 362.27,-144.51 356.01,-143.43 356.7,-147.58"/>
 >>>>>>> fde4419 (refactor: move DI to infrastructure)
+=======
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M220.67,-161.58C227.63,-148.71 242.1,-126.19 262,-117 298.04,-100.36 344.67,-115.27 372.2,-127.33"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="371.45,-129.3 377.78,-129.85 373.17,-125.47 371.45,-129.3"/>
+>>>>>>> 84f41c9 (feat: implement event publishing and logging interfaces, and adapt use cases to use new command and query interfaces)
 </g>
 <!-- src/infrastructure/dto -->
 <g id="node13" class="node">
@@ -737,7 +758,7 @@
 </g>
 </g>
 <!-- src/main.ts&#45;&gt;src/infrastructure/di -->
-<g id="edge21" class="edge">
+<g id="edge22" class="edge">
 <title>src/main.ts&#45;&gt;src/infrastructure/di</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M78.32,-231C88.41,-231 100.05,-231 110.64,-231"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="110.74,-233.1 116.74,-231 110.74,-228.9 110.74,-233.1"/>
@@ -787,7 +808,7 @@
 </g>
 </g>
 <!-- src/presentation/stores&#45;&gt;src/domain/entities -->
-<g id="edge22" class="edge">
+<g id="edge23" class="edge">
 <title>src/presentation/stores&#45;&gt;src/domain/entities</title>
 <<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M64.85,-276.1C75.95,-283.37 92.72,-292.98 109,-297 206.94,-321.2 250.72,-350.91 336,-297 372.53,-273.9 385.92,-220.06 390.42,-193.45"/>
@@ -798,7 +819,7 @@
 >>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 <!-- src/presentation/stores&#45;&gt;src/infrastructure/di -->
-<g id="edge23" class="edge">
+<g id="edge24" class="edge">
 <title>src/presentation/stores&#45;&gt;src/infrastructure/di</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M78.2,-259.23C83.15,-257.61 88.26,-255.83 93,-254 101.69,-250.64 111.01,-246.5 119.23,-242.67"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="120.19,-244.54 124.71,-240.07 118.39,-240.74 120.19,-244.54"/>

@@ -1,11 +1,12 @@
 import { VideoFileParser } from '@infra/video'
-import type { IVideoParser } from '@app/ports'
+import type { IVideoParser, ILogger } from '@app/ports'
 import type { ParsedVideo } from '@domain/entities'
 import type { IVideoFacade } from '@domain/repositories'
 
 export class VideoParserAdapter implements IVideoParser {
   constructor(
     private readonly storage: IVideoFacade,
+    private readonly logger: ILogger,
     private readonly parser: VideoFileParser = new VideoFileParser(),
   ) {}
 
@@ -26,13 +27,13 @@ export class VideoParserAdapter implements IVideoParser {
 
           if (videoItem) yield videoItem
         } catch (e) {
-          console.error('Failed to process file:', e)
+          this.logger.error('Failed to process file', e)
         }
       }
     }
 
     const endTime = performance.now()
-    console.log(`Total time taken: ${endTime - startTime} milliseconds`)
+    this.logger.info(`Total time taken: ${endTime - startTime} milliseconds`)
   }
 
   readonly #processFile = async (file: File) => {
@@ -53,7 +54,7 @@ export class VideoParserAdapter implements IVideoParser {
 
       return null
     } catch (e) {
-      console.error('file input error', e)
+      this.logger.error('File input error', e)
 
       return null
     }

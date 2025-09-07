@@ -1,10 +1,16 @@
 import type { ParsedVideo } from '@domain/entities'
-import type { IVideoThumbnailGenerator, IVideoStorage } from '@app/ports'
+import type {
+  IVideoThumbnailGenerator,
+  IVideoCommand,
+  IEventPublisher,
+  VideoThumbnailUpdatedEvent,
+} from '@app/ports'
 
 export class UpdateVideoThumbnailsUseCase {
   constructor(
     private readonly thumbnailGenerator: IVideoThumbnailGenerator,
-    private readonly videoStorage: IVideoStorage,
+    private readonly videoCommand: IVideoCommand,
+    private readonly eventPublisher: IEventPublisher,
   ) {}
 
   async execute(video: ParsedVideo): Promise<ParsedVideo> {
@@ -14,7 +20,7 @@ export class UpdateVideoThumbnailsUseCase {
 
     const thumbs = await this.thumbnailGenerator.generateThumbnails(video.url)
 
-    const dto = await this.videoStorage.updateVideo({
+    const dto = await this.videoCommand.updateVideo({
       ...video,
       thumbUrls: thumbs,
     })
@@ -22,6 +28,19 @@ export class UpdateVideoThumbnailsUseCase {
     if (!dto) {
       return video
     }
+
+    // Publish domain event
+    const event: VideoThumbnailUpdatedEvent = {
+      eventType: 'VideoThumbnailUpdated',
+      aggregateId: video.id,
+      timestamp: new Date(),
+      data: {
+        videoId: video.id,
+        thumbnailCount: thumbs.length,
+      },
+    }
+
+    await this.eventPublisher.publish(event)
 
     return {
       ...dto,
