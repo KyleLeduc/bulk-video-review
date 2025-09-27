@@ -40,9 +40,10 @@ const state = reactive({
   isMuted: false,
 })
 
-const toggleMute = () => {
-  videoFrame.value && (videoFrame.value.muted = !videoFrame.value?.muted)
-}
+const loopingState = reactive({
+  startTime: undefined as number | undefined,
+  endTime: undefined as number | undefined,
+})
 
 const handleVolumeChange = (e: Event) => {
   if (e.target instanceof HTMLVideoElement) {
@@ -50,27 +51,59 @@ const handleVolumeChange = (e: Event) => {
   }
 }
 
-const togglePlay = () => {
-  if (videoFrame.value?.paused) {
-    videoFrame.value?.play()
-  } else {
-    videoFrame.value?.pause()
-  }
+const controls = {
+  toggleMute: () => {
+    videoFrame.value && (videoFrame.value.muted = !videoFrame.value?.muted)
+  },
+
+  togglePlay: () => {
+    if (videoFrame.value?.paused) {
+      videoFrame.value?.play()
+    } else {
+      videoFrame.value?.pause()
+    }
+  },
+
+  skip: (duration: number) => {
+    videoFrame.value && (videoFrame.value.currentTime += duration)
+  },
+
+  setLoopPoint: () => {
+    if (!videoFrame.value) return
+    const currentTime = videoFrame.value.currentTime
+
+    if (loopingState.startTime === undefined) {
+      loopingState.startTime = currentTime
+    } else if (loopingState.endTime === undefined) {
+      loopingState.endTime = currentTime
+    } else {
+      loopingState.startTime = undefined
+      loopingState.endTime = undefined
+    }
+  },
 }
 
-const skip = (duration: number) => {
-  videoFrame.value && (videoFrame.value.currentTime += duration)
-}
-
-const controls = { toggleMute, togglePlay, skip }
-
-defineExpose({ controls, state })
+defineExpose({ controls, state, loopingState })
 
 onMounted(() => {
   if (videoFrame.value) {
     state.isMuted = props.options.muted
     videoFrame.value.volume = props.options.volume
     videoFrame.value.muted = props.options.muted
+
+    videoFrame.value.ontimeupdate = () => {
+      if (
+        !videoFrame.value ||
+        loopingState.startTime === undefined ||
+        loopingState.endTime === undefined
+      )
+        return
+
+      if (videoFrame.value.currentTime >= loopingState.endTime) {
+        videoFrame.value.currentTime = loopingState.startTime
+      }
+    }
+
     if (props.options.playing) {
       videoFrame.value.play()
     }

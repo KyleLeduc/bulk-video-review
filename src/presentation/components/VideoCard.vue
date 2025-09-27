@@ -19,9 +19,21 @@
 
     <div class="cardNav">
       <div class="pin" @click="handlePinVideo">📌</div>
-      <div v-if="isVidLoaded" @click="handleMute">
-        <div v-if="videoElement?.state.isMuted">🔇</div>
-        <div v-else>🔈</div>
+      <div v-if="isVidLoaded" class="buttonGroup">
+        <span @click="handleMute">
+          <div v-if="videoElement?.state.isMuted">🔇</div>
+          <div v-else>🔈</div>
+        </span>
+
+        <span @click="updateLoop">
+          <div v-if="!loopState.loopStartTime && !loopState.loopEndTime">
+            🔁
+          </div>
+          <div v-else-if="loopState.loopStartTime && !loopState.loopEndTime">
+            ➰
+          </div>
+          <div v-else>➿</div>
+        </span>
       </div>
 
       <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(-30)">
@@ -139,6 +151,24 @@ function loadVideo() {
     videoStore.updateVotes(props.video.id, -1)
   }
 }
+
+function updateLoop() {
+  if (videoElement.value) {
+    videoElement.value.controls.setLoopPoint()
+  }
+}
+
+const loopState = computed(() => {
+  const loopingState = videoElement.value?.loopingState
+
+  return {
+    loopStartTime: loopingState?.startTime,
+    loopEndTime: loopingState?.endTime,
+    isLooping:
+      loopingState?.startTime !== undefined &&
+      loopingState?.endTime !== undefined,
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -167,6 +197,11 @@ function loadVideo() {
 
   * {
     cursor: pointer;
+  }
+
+  .buttonGroup {
+    display: flex;
+    align-items: center;
   }
 }
 

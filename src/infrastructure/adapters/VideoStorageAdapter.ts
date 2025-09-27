@@ -1,21 +1,24 @@
-import type { VideoEntity, VideoStorageDto } from '@domain/entities'
+import type { VideoEntity, MetadataEntity } from '@domain/entities'
 import type { IVideoStorage } from '@app/ports'
-import { VideoMetadataFacade } from '@infra/services'
+import type { IVideoFacade } from '@domain/repositories'
 
 export class VideoStorageAdapter implements IVideoStorage {
-  private readonly facade = VideoMetadataFacade.getInstance()
+  constructor(private readonly facade: IVideoFacade) {}
 
-  async getVideo(id: string): Promise<VideoStorageDto | undefined> {
-    return this.facade.getVideo(id)
+  async getVideo(
+    id: string,
+  ): Promise<(VideoEntity & MetadataEntity) | undefined> {
+    const result = await this.facade.getVideo(id)
+    return result // Already the correct type from domain interface
   }
 
-  async postVideo(video: VideoEntity): Promise<VideoStorageDto> {
+  async postVideo(video: VideoEntity): Promise<VideoEntity & MetadataEntity> {
     return this.facade.postVideo(video)
   }
 
   async updateVideo(
-    video: VideoStorageDto,
-  ): Promise<VideoStorageDto | undefined> {
+    video: VideoEntity & MetadataEntity,
+  ): Promise<(VideoEntity & MetadataEntity) | undefined> {
     return this.facade.updateVideo(video)
   }
 

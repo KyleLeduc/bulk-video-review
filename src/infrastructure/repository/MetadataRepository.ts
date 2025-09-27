@@ -1,10 +1,10 @@
 import type { MetadataEntity } from '@domain/entities'
 import type { IMetadataRepository } from '@domain/repositories'
 import { storeNames } from '@domain/constants'
-import { DatabaseConnection } from '../database/DatabaseConnection'
+import type { DatabaseConnection } from '../database/DatabaseConnection'
 
 class MetadataRepository implements IMetadataRepository {
-  private readonly db = DatabaseConnection.getInstance()
+  constructor(private readonly db: DatabaseConnection) {}
 
   async getMetadata(id: string): Promise<MetadataEntity> {
     const store = await this.db.getStore(storeNames.metadata)

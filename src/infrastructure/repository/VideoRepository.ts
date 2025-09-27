@@ -1,10 +1,10 @@
 import type { VideoEntity } from '@domain/entities'
 import type { IVideoRepository } from '@domain/repositories'
 import { storeNames } from '@domain/constants'
-import { DatabaseConnection } from '../database/DatabaseConnection'
+import type { DatabaseConnection } from '../database/DatabaseConnection'
 
 class VideoRepository implements IVideoRepository {
-  private db = DatabaseConnection.getInstance()
+  constructor(private readonly db: DatabaseConnection) {}
 
   async getVideo(id: string): Promise<VideoEntity> {
     const store = await this.db.getStore(storeNames.video)

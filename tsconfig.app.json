@@ -27,6 +27,9 @@
       "@app/*": [
         "src/application/*"
       ],
+      "@app": [
+        "src/application/index.ts"
+      ],
       "@presentation/*": [
         "src/presentation/*"
       ],

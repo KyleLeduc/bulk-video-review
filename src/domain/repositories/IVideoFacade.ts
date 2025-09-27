@@ -1,9 +1,11 @@
-import type { VideoStorageDto, VideoEntity, MetadataEntity } from '../entities'
+import type { VideoEntity, MetadataEntity } from '../entities'
 
 export interface IVideoFacade {
-  getVideo(id: string): Promise<VideoStorageDto | undefined>
-  postVideo(videoMetadata: VideoEntity): Promise<VideoStorageDto>
-  updateVideo(video: VideoStorageDto): Promise<VideoStorageDto | undefined>
+  getVideo(id: string): Promise<(VideoEntity & MetadataEntity) | undefined>
+  postVideo(videoMetadata: VideoEntity): Promise<VideoEntity & MetadataEntity>
+  updateVideo(
+    video: VideoEntity & MetadataEntity,
+  ): Promise<(VideoEntity & MetadataEntity) | undefined>
   updateVotes(id: string, delta: number): Promise<MetadataEntity | null>
   wipeData(): Promise<void>
 }

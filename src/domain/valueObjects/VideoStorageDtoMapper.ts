@@ -1,11 +1,10 @@
-import type {
-  VideoEntity,
-  MetadataEntity,
-  VideoStorageDto,
-} from '@domain/entities'
+import type { VideoEntity, MetadataEntity } from '@domain/entities'
 
 class VideoStorageDtoMapper {
-  static toDto(video: VideoEntity, metadata: MetadataEntity): VideoStorageDto {
+  static toDto(
+    video: VideoEntity,
+    metadata: MetadataEntity,
+  ): VideoEntity & MetadataEntity {
     return {
       ...video,
       ...metadata,

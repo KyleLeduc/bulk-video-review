@@ -1,43 +1,28 @@
-import type {
-  VideoStorageDto,
-  VideoEntity,
-  MetadataEntity,
-} from '@domain/entities'
+import type { VideoEntity, MetadataEntity } from '@domain/entities'
 import type { IVideoFacade } from '@domain/repositories'
-import { MetadataRepository, VideoRepository } from '@infra/repository'
-import { VideoStorageDtoMapper } from '@domain/valueObjects'
+import type {
+  IMetadataRepository,
+  IVideoRepository,
+} from '@domain/repositories'
+import { VideoStorageDtoMapper } from '../dto/VideoStorageDtoMapper'
 
 /**
  * IndexedDb bridge to handle storing video metadata
  */
 export class VideoMetadataFacade implements IVideoFacade {
-  private static instance: VideoMetadataFacade
-
-  private constructor(
-    private readonly metadataRepo: MetadataRepository,
-    private readonly videoRepo: VideoRepository,
+  constructor(
+    private readonly metadataRepo: IMetadataRepository,
+    private readonly videoRepo: IVideoRepository,
   ) {}
-
-  public static getInstance(): VideoMetadataFacade {
-    if (!VideoMetadataFacade.instance) {
-      const metadataRepo = new MetadataRepository()
-      const videoRepo = new VideoRepository()
-
-      VideoMetadataFacade.instance = new VideoMetadataFacade(
-        metadataRepo,
-        videoRepo,
-      )
-    }
-
-    return VideoMetadataFacade.instance
-  }
 
   /**
    * Gets the video w/ a matching id
    * @param id id of the video
    * @returns video or undefined
    */
-  async getVideo(id: string): Promise<VideoStorageDto | undefined> {
+  async getVideo(
+    id: string,
+  ): Promise<(VideoEntity & MetadataEntity) | undefined> {
     const videoData = await this.videoRepo.getVideo(id)
     const metadata = await this.metadataRepo.getMetadata(id)
 
@@ -45,7 +30,9 @@ export class VideoMetadataFacade implements IVideoFacade {
     return VideoStorageDtoMapper.toDto(videoData, metadata)
   }
 
-  async postVideo(videoMetadata: VideoEntity): Promise<VideoStorageDto> {
+  async postVideo(
+    videoMetadata: VideoEntity,
+  ): Promise<VideoEntity & MetadataEntity> {
     const { id } = videoMetadata
     const metadata = await this.metadataRepo.upsertMetadata({
       id,
@@ -58,8 +45,8 @@ export class VideoMetadataFacade implements IVideoFacade {
   }
 
   async updateVideo(
-    video: VideoStorageDto,
-  ): Promise<VideoStorageDto | undefined> {
+    video: VideoEntity & MetadataEntity,
+  ): Promise<(VideoEntity & MetadataEntity) | undefined> {
     const videoData = await this.videoRepo.postVideo(video)
     const metadata = await this.metadataRepo.getMetadata(video.id)
 

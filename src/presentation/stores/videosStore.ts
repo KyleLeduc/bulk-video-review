@@ -1,13 +1,9 @@
 import type { ParsedVideo } from '@domain/entities'
-import { applyFilters } from '@app/services'
+import { applyFilters } from '@domain/services'
 import { defineStore } from 'pinia'
 import { toRaw } from 'vue'
 
-import {
-  addVideosUseCase,
-  updateThumbUseCase,
-  updateVotesUseCase,
-} from '@app/dependencies'
+import { addVideosUseCase, updateThumbUseCase, updateVotesUseCase } from '@app'
 
 interface State {
   _videos: Map<string, ParsedVideo>
