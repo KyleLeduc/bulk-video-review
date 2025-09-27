@@ -1,9 +1,13 @@
 import type { ParsedVideo } from '@domain/entities'
-import { applyFilters } from '@domain/services'
 import { defineStore } from 'pinia'
 import { toRaw } from 'vue'
 
-import { addVideosUseCase, updateThumbUseCase, updateVotesUseCase } from '@app'
+import {
+  addVideosUseCase,
+  filterVideosUseCase,
+  updateThumbUseCase,
+  updateVotesUseCase,
+} from '@infra/di/container'
 
 interface State {
   _videos: Map<string, ParsedVideo>
@@ -31,7 +35,7 @@ export const useVideoStore = defineStore('videos', {
     },
 
     filteredVideos(state): ParsedVideo[] {
-      const filteredVideos = applyFilters(this.sortByPinned, {
+      const filteredVideos = filterVideosUseCase.execute(this.sortByPinned, {
         minDuration: state._minDuration,
       })
 

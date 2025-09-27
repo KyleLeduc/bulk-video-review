@@ -51,7 +51,7 @@ export function useThrottle(fn: Function, wait = 100) {
 
 export function useThrottleTyped<T extends (...args: any[]) => T>(
   fn: T,
-  wait = 100
+  wait = 100,
 ) {
   let shouldWait = false
   let lastArgs: any

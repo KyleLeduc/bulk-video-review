@@ -5,13 +5,20 @@
  -->
 <!-- Title: dependency&#45;cruiser output Pages: 1 -->
 <<<<<<< HEAD
+<<<<<<< HEAD
 <svg width="375pt" height="260pt"
  viewBox="0.00 0.00 375.00 260.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 256)">
+=======
+<svg width="466pt" height="346pt"
+ viewBox="0.00 0.00 465.50 346.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 342)">
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 <title>dependency&#45;cruiser output</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-256 371,-256 371,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-342 461.5,-342 461.5,4 -4,4"/>
 <g id="clust1" class="cluster">
 <title>cluster_src</title>
+<<<<<<< HEAD
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M18,-8C18,-8 347,-8 347,-8 353,-8 359,-14 359,-20 359,-20 359,-232 359,-232 359,-238 353,-244 347,-244 347,-244 18,-244 18,-244 12,-244 6,-238 6,-232 6,-232 6,-20 6,-20 6,-14 12,-8 18,-8"/>
 <text text-anchor="middle" x="182.5" y="-232.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
 =======
@@ -25,14 +32,19 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M14,-8C14,-8 431.5,-8 431.5,-8 437.5,-8 443.5,-14 443.5,-20 443.5,-20 443.5,-318 443.5,-318 443.5,-324 437.5,-330 431.5,-330 431.5,-330 14,-330 14,-330 8,-330 2,-324 2,-318 2,-318 2,-20 2,-20 2,-14 8,-8 14,-8"/>
 <text text-anchor="middle" x="222.75" y="-318.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
 >>>>>>> 4f3ceb0 (add claude_user)
+=======
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M14,-8C14,-8 437.5,-8 437.5,-8 443.5,-8 449.5,-14 449.5,-20 449.5,-20 449.5,-318 449.5,-318 449.5,-324 443.5,-330 437.5,-330 437.5,-330 14,-330 14,-330 8,-330 2,-324 2,-318 2,-318 2,-20 2,-20 2,-14 8,-8 14,-8"/>
+<text text-anchor="middle" x="225.75" y="-318.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_src/application</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M26,-119C26,-119 76,-119 76,-119 82,-119 88,-125 88,-131 88,-131 88,-189 88,-189 88,-195 82,-201 76,-201 76,-201 26,-201 26,-201 20,-201 14,-195 14,-189 14,-189 14,-131 14,-131 14,-125 20,-119 26,-119"/>
-<text text-anchor="middle" x="51" y="-189.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M274,-16C274,-16 324,-16 324,-16 330,-16 336,-22 336,-28 336,-28 336,-86 336,-86 336,-92 330,-98 324,-98 324,-98 274,-98 274,-98 268,-98 262,-92 262,-86 262,-86 262,-28 262,-28 262,-22 268,-16 274,-16"/>
+<text text-anchor="middle" x="299" y="-86.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">application</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_src/domain</title>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M273,-34C273,-34 339,-34 339,-34 345,-34 351,-40 351,-46 351,-46 351,-164 351,-164 351,-170 345,-176 339,-176 339,-176 273,-176 273,-176 267,-176 261,-170 261,-164 261,-164 261,-46 261,-46 261,-40 267,-34 273,-34"/>
 <text text-anchor="middle" x="306" y="-164.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
@@ -40,14 +52,24 @@
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M363.5,-101C363.5,-101 423.5,-101 423.5,-101 429.5,-101 435.5,-107 435.5,-113 435.5,-113 435.5,-201 435.5,-201 435.5,-207 429.5,-213 423.5,-213 423.5,-213 363.5,-213 363.5,-213 357.5,-213 351.5,-207 351.5,-201 351.5,-201 351.5,-113 351.5,-113 351.5,-107 357.5,-101 363.5,-101"/>
 <text text-anchor="middle" x="393.5" y="-201.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
 >>>>>>> 4f3ceb0 (add claude_user)
+=======
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M363.5,-122C363.5,-122 429.5,-122 429.5,-122 435.5,-122 441.5,-128 441.5,-134 441.5,-134 441.5,-252 441.5,-252 441.5,-258 435.5,-264 429.5,-264 429.5,-264 363.5,-264 363.5,-264 357.5,-264 351.5,-258 351.5,-252 351.5,-252 351.5,-134 351.5,-134 351.5,-128 357.5,-122 363.5,-122"/>
+<text text-anchor="middle" x="396.5" y="-252.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">domain</text>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_src/infrastructure</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M116,-104C116,-104 241,-104 241,-104 247,-104 253,-110 253,-116 253,-116 253,-206 253,-206 253,-212 247,-218 241,-218 241,-218 116,-218 116,-218 110,-218 104,-212 104,-206 104,-206 104,-116 104,-116 104,-110 110,-104 116,-104"/>
-<text text-anchor="middle" x="178.5" y="-206.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">infrastructure</text>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M121,-154C121,-154 323.5,-154 323.5,-154 329.5,-154 335.5,-160 335.5,-166 335.5,-166 335.5,-282 335.5,-282 335.5,-288 329.5,-294 323.5,-294 323.5,-294 121,-294 121,-294 115,-294 109,-288 109,-282 109,-282 109,-166 109,-166 109,-160 115,-154 121,-154"/>
+<text text-anchor="middle" x="222.25" y="-282.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">infrastructure</text>
 </g>
-<!-- src/application/di -->
+<g id="clust5" class="cluster">
+<title>cluster_src/presentation</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M22,-250C22,-250 81,-250 81,-250 87,-250 93,-256 93,-262 93,-262 93,-290 93,-290 93,-296 87,-302 81,-302 81,-302 22,-302 22,-302 16,-302 10,-296 10,-290 10,-290 10,-262 10,-262 10,-256 16,-250 22,-250"/>
+<text text-anchor="middle" x="51.5" y="-290.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">presentation</text>
+</g>
+<!-- src/application/ports -->
 <g id="node1" class="node">
+<<<<<<< HEAD
 <<<<<<< HEAD
 <title>src/application/di</title>
 <g id="a_node1"><a xlink:href="src/application/di" xlink:title="di">
@@ -57,6 +79,8 @@
 <polyline fill="none" stroke="black" points="76,-173 78,-175 "/>
 <text text-anchor="start" x="46.5" y="-163.8" font-family="Helvetica,sans-Serif" font-size="9.00">di</text>
 =======
+=======
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 <title>src/application/ports</title>
 <g id="a_node1"><a xlink:href="src/application/ports" xlink:title="ports">
 <polygon fill="#ffffcc" stroke="black" points="325.5,-72 273.5,-72 271.5,-70 271.5,-54 323.5,-54 325.5,-56 325.5,-72"/>
@@ -83,11 +107,19 @@
 <g id="node3" class="node">
 <title>src/domain/constants</title>
 <g id="a_node3"><a xlink:href="src/domain/constants" xlink:title="constants">
+<<<<<<< HEAD
 <polygon fill="#ffffcc" stroke="black" points="424,-127 365,-127 363,-125 363,-109 422,-109 424,-111 424,-127"/>
 <polyline fill="none" stroke="black" points="422,-125 363,-125 "/>
 <polyline fill="none" stroke="black" points="422,-125 422,-109 "/>
 <polyline fill="none" stroke="black" points="422,-125 424,-127 "/>
 <text text-anchor="start" x="371" y="-115.8" font-family="Helvetica,sans-Serif" font-size="9.00">constants</text>
+=======
+<polygon fill="#ffffcc" stroke="black" points="427,-178 368,-178 366,-176 366,-160 425,-160 427,-162 427,-178"/>
+<polyline fill="none" stroke="black" points="425,-176 366,-176 "/>
+<polyline fill="none" stroke="black" points="425,-176 425,-160 "/>
+<polyline fill="none" stroke="black" points="425,-176 427,-178 "/>
+<text text-anchor="start" x="374" y="-166.8" font-family="Helvetica,sans-Serif" font-size="9.00">constants</text>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </a>
 </g>
 </g>
@@ -95,11 +127,19 @@
 <g id="node4" class="node">
 <title>src/domain/entities</title>
 <g id="a_node4"><a xlink:href="src/domain/entities" xlink:title="entities">
+<<<<<<< HEAD
 <polygon fill="#ffffcc" stroke="black" points="420.5,-187 368.5,-187 366.5,-185 366.5,-169 418.5,-169 420.5,-171 420.5,-187"/>
 <polyline fill="none" stroke="black" points="418.5,-185 366.5,-185 "/>
 <polyline fill="none" stroke="black" points="418.5,-185 418.5,-169 "/>
 <polyline fill="none" stroke="black" points="418.5,-185 420.5,-187 "/>
 <text text-anchor="start" x="376.5" y="-175.8" font-family="Helvetica,sans-Serif" font-size="9.00">entities</text>
+=======
+<polygon fill="#ffffcc" stroke="black" points="423.5,-208 371.5,-208 369.5,-206 369.5,-190 421.5,-190 423.5,-192 423.5,-208"/>
+<polyline fill="none" stroke="black" points="421.5,-206 369.5,-206 "/>
+<polyline fill="none" stroke="black" points="421.5,-206 421.5,-190 "/>
+<polyline fill="none" stroke="black" points="421.5,-206 423.5,-208 "/>
+<text text-anchor="start" x="379.5" y="-196.8" font-family="Helvetica,sans-Serif" font-size="9.00">entities</text>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </a>
 </g>
 </g>
@@ -107,16 +147,37 @@
 <g id="node5" class="node">
 <title>src/domain/repositories</title>
 <g id="a_node5"><a xlink:href="src/domain/repositories" xlink:title="repositories">
+<<<<<<< HEAD
 <polygon fill="#ffffcc" stroke="black" points="427.5,-157 361.5,-157 359.5,-155 359.5,-139 425.5,-139 427.5,-141 427.5,-157"/>
 <polyline fill="none" stroke="black" points="425.5,-155 359.5,-155 "/>
 <polyline fill="none" stroke="black" points="425.5,-155 425.5,-139 "/>
 <polyline fill="none" stroke="black" points="425.5,-155 427.5,-157 "/>
 <text text-anchor="start" x="367.5" y="-145.8" font-family="Helvetica,sans-Serif" font-size="9.00">repositories</text>
 >>>>>>> 4f3ceb0 (add claude_user)
+=======
+<polygon fill="#ffffcc" stroke="black" points="430.5,-148 364.5,-148 362.5,-146 362.5,-130 428.5,-130 430.5,-132 430.5,-148"/>
+<polyline fill="none" stroke="black" points="428.5,-146 362.5,-146 "/>
+<polyline fill="none" stroke="black" points="428.5,-146 428.5,-130 "/>
+<polyline fill="none" stroke="black" points="428.5,-146 430.5,-148 "/>
+<text text-anchor="start" x="370.5" y="-136.8" font-family="Helvetica,sans-Serif" font-size="9.00">repositories</text>
+</a>
+</g>
+</g>
+<!-- src/domain/valueObjects -->
+<g id="node6" class="node">
+<title>src/domain/valueObjects</title>
+<g id="a_node6"><a xlink:href="src/domain/valueObjects" xlink:title="valueObjects">
+<polygon fill="#ffffcc" stroke="black" points="433.5,-238 361.5,-238 359.5,-236 359.5,-220 431.5,-220 433.5,-222 433.5,-238"/>
+<polyline fill="none" stroke="black" points="431.5,-236 359.5,-236 "/>
+<polyline fill="none" stroke="black" points="431.5,-236 431.5,-220 "/>
+<polyline fill="none" stroke="black" points="431.5,-236 433.5,-238 "/>
+<text text-anchor="start" x="367.5" y="-226.8" font-family="Helvetica,sans-Serif" font-size="9.00">valueObjects</text>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </a>
 </g>
 </g>
 <!-- src/infrastructure/adapters -->
+<<<<<<< HEAD
 <<<<<<< HEAD
 <g id="node2" class="node">
 <title>src/infrastructure/adapters</title>
@@ -232,12 +293,23 @@
 <polyline fill="none" stroke="black" points="241,-238 243,-240 "/>
 <text text-anchor="start" x="195" y="-228.8" font-family="Helvetica,sans-Serif" font-size="9.00">adapters</text>
 >>>>>>> 4f3ceb0 (add claude_user)
+=======
+<g id="node7" class="node">
+<title>src/infrastructure/adapters</title>
+<g id="a_node7"><a xlink:href="src/infrastructure/adapters" xlink:title="adapters">
+<polygon fill="#ffffcc" stroke="black" points="243,-210 189,-210 187,-208 187,-192 241,-192 243,-194 243,-210"/>
+<polyline fill="none" stroke="black" points="241,-208 187,-208 "/>
+<polyline fill="none" stroke="black" points="241,-208 241,-192 "/>
+<polyline fill="none" stroke="black" points="241,-208 243,-210 "/>
+<text text-anchor="start" x="195" y="-198.8" font-family="Helvetica,sans-Serif" font-size="9.00">adapters</text>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </a>
 </g>
 </g>
 <!-- src/infrastructure/adapters&#45;&gt;src/application/ports -->
-<g id="edge6" class="edge">
+<g id="edge1" class="edge">
 <title>src/infrastructure/adapters&#45;&gt;src/application/ports</title>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M114.77,-125.54C105.12,-127.15 94.16,-128.97 84.13,-130.64"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="83.6,-128.6 78.03,-131.66 84.3,-132.75 83.6,-128.6"/>
@@ -257,10 +329,15 @@
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M239.53,-221.95C241.97,-220.26 244.2,-218.29 246,-216 265.94,-190.53 251.98,-175.75 262,-145 269.88,-120.83 282.22,-94 290.08,-77.82"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="292,-78.68 292.75,-72.37 288.23,-76.83 292,-78.68"/>
 >>>>>>> 4f3ceb0 (add claude_user)
+=======
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M239.39,-191.84C241.85,-190.17 244.14,-188.24 246,-186 262.31,-166.45 252.51,-154.62 262,-131 269.65,-111.97 280.94,-91.23 288.73,-77.72"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="290.62,-78.64 291.83,-72.4 286.99,-76.53 290.62,-78.64"/>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 <!-- src/infrastructure/adapters&#45;&gt;src/domain/entities -->
-<g id="edge7" class="edge">
+<g id="edge2" class="edge">
 <title>src/infrastructure/adapters&#45;&gt;src/domain/entities</title>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M146.87,-111.61C152.07,-96.47 164.64,-67.12 187,-55 212.79,-41.02 226.86,-41.69 253,-55 258.39,-57.74 256.13,-62.41 261,-66 264.57,-68.63 268.64,-70.83 272.83,-72.65"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="272.22,-74.67 278.57,-74.91 273.76,-70.76 272.22,-74.67"/>
@@ -276,10 +353,15 @@
 <text text-anchor="start" x="280" y="-48.8" font-family="Helvetica,sans-Serif" font-size="9.00">repositories</text>
 </a>
 </g>
+=======
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M239.42,-210.14C241.88,-211.81 244.15,-213.75 246,-216 262.98,-236.65 240.73,-257.8 262,-274 288.17,-293.93 310,-294.14 336,-274 357.78,-257.14 332.78,-234.2 351.5,-214 354.82,-210.42 359.02,-207.7 363.51,-205.62"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="364.5,-207.49 369.3,-203.33 362.95,-203.58 364.5,-207.49"/>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 <!-- src/infrastructure/adapters&#45;&gt;src/domain/repositories -->
-<g id="edge8" class="edge">
+<g id="edge3" class="edge">
 <title>src/infrastructure/adapters&#45;&gt;src/domain/repositories</title>
+<<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M145.82,-111.8C149.81,-94.48 161.09,-57.4 187,-42 214.14,-25.87 251.22,-32.35 276.53,-40.11"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="276.02,-42.15 282.37,-41.98 277.3,-38.15 276.02,-42.15"/>
 =======
@@ -431,38 +513,153 @@
 >>>>>>> 4f3ceb0 (add claude_user)
 </g>
 <!-- src/domain/constants -->
+=======
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M238.9,-191.87C241.51,-190.18 243.96,-188.24 246,-186 259.18,-171.55 246.1,-156.39 262,-145 276.6,-134.54 322.39,-134.54 356.29,-136.17"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="356.37,-138.28 362.47,-136.49 356.59,-134.08 356.37,-138.28"/>
+</g>
+<!-- src/infrastructure/video -->
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 <g id="node8" class="node">
-<title>src/domain/constants</title>
-<g id="a_node8"><a xlink:href="src/domain/constants" xlink:title="constants">
-<polygon fill="#ffffcc" stroke="black" points="336.5,-120 277.5,-120 275.5,-118 275.5,-102 334.5,-102 336.5,-104 336.5,-120"/>
-<polyline fill="none" stroke="black" points="334.5,-118 275.5,-118 "/>
-<polyline fill="none" stroke="black" points="334.5,-118 334.5,-102 "/>
-<polyline fill="none" stroke="black" points="334.5,-118 336.5,-120 "/>
-<text text-anchor="start" x="283.5" y="-108.8" font-family="Helvetica,sans-Serif" font-size="9.00">constants</text>
+<title>src/infrastructure/video</title>
+<g id="a_node8"><a xlink:href="src/infrastructure/video" xlink:title="video">
+<polygon fill="#ffffcc" stroke="black" points="325.5,-238 273.5,-238 271.5,-236 271.5,-220 323.5,-220 325.5,-222 325.5,-238"/>
+<polyline fill="none" stroke="black" points="323.5,-236 271.5,-236 "/>
+<polyline fill="none" stroke="black" points="323.5,-236 323.5,-220 "/>
+<polyline fill="none" stroke="black" points="323.5,-236 325.5,-238 "/>
+<text text-anchor="start" x="286" y="-226.8" font-family="Helvetica,sans-Serif" font-size="9.00">video</text>
 </a>
 </g>
 </g>
+<!-- src/infrastructure/adapters&#45;&gt;src/infrastructure/video -->
+<g id="edge4" class="edge">
+<title>src/infrastructure/adapters&#45;&gt;src/infrastructure/video</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M242.24,-210.01C249.65,-212.56 257.81,-215.36 265.52,-218.01"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="264.96,-220.04 271.31,-220 266.32,-216.07 264.96,-220.04"/>
+</g>
+<!-- src/infrastructure/video&#45;&gt;src/domain/entities -->
+<g id="edge19" class="edge">
+<title>src/infrastructure/video&#45;&gt;src/domain/entities</title>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M325.73,-220.8C337.37,-217.16 351.18,-212.85 363.43,-209.02"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="364.2,-210.98 369.3,-207.19 362.95,-206.97 364.2,-210.98"/>
+</g>
+<!-- src/infrastructure/video&#45;&gt;src/domain/valueObjects -->
+<g id="edge20" class="edge">
+<title>src/infrastructure/video&#45;&gt;src/domain/valueObjects</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M325.73,-229C334.2,-229 343.82,-229 353.15,-229"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="353.22,-231.1 359.22,-229 353.22,-226.9 353.22,-231.1"/>
+</g>
+<!-- src/infrastructure/database -->
+<g id="node9" class="node">
+<title>src/infrastructure/database</title>
+<g id="a_node9"><a xlink:href="src/infrastructure/database" xlink:title="database">
+<polygon fill="#ffffcc" stroke="black" points="327.5,-268 271.5,-268 269.5,-266 269.5,-250 325.5,-250 327.5,-252 327.5,-268"/>
+<polyline fill="none" stroke="black" points="325.5,-266 269.5,-266 "/>
+<polyline fill="none" stroke="black" points="325.5,-266 325.5,-250 "/>
+<polyline fill="none" stroke="black" points="325.5,-266 327.5,-268 "/>
+<text text-anchor="start" x="277.5" y="-256.8" font-family="Helvetica,sans-Serif" font-size="9.00">database</text>
+</a>
+</g>
+</g>
+<!-- src/infrastructure/di -->
+<g id="node10" class="node">
+<title>src/infrastructure/di</title>
+<g id="a_node10"><a xlink:href="src/infrastructure/di" xlink:title="di">
+<polygon fill="#ffffcc" stroke="black" points="171,-240 119,-240 117,-238 117,-222 169,-222 171,-224 171,-240"/>
+<polyline fill="none" stroke="black" points="169,-238 117,-238 "/>
+<polyline fill="none" stroke="black" points="169,-238 169,-222 "/>
+<polyline fill="none" stroke="black" points="169,-238 171,-240 "/>
+<text text-anchor="start" x="139.5" y="-228.8" font-family="Helvetica,sans-Serif" font-size="9.00">di</text>
+</a>
+</g>
+</g>
+<!-- src/infrastructure/di&#45;&gt;src/application/usecases -->
+<g id="edge5" class="edge">
+<title>src/infrastructure/di&#45;&gt;src/application/usecases</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M148.32,-221.9C159.53,-192.37 198.88,-98.27 262,-48 263.24,-47.02 264.55,-46.08 265.91,-45.21"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="267.2,-46.89 271.35,-42.08 265.1,-43.25 267.2,-46.89"/>
+</g>
+<!-- src/infrastructure/di&#45;&gt;src/infrastructure/adapters -->
+<g id="edge6" class="edge">
+<title>src/infrastructure/di&#45;&gt;src/infrastructure/adapters</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M165.7,-222C172.4,-219.09 179.93,-215.81 187.02,-212.73"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="188.17,-214.52 192.83,-210.2 186.49,-210.67 188.17,-214.52"/>
+</g>
+<!-- src/infrastructure/di&#45;&gt;src/infrastructure/video -->
+<g id="edge10" class="edge">
+<title>src/infrastructure/di&#45;&gt;src/infrastructure/video</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M164.43,-240.08C170.56,-242.5 177.44,-244.78 184,-246 211.09,-251.03 218.79,-250.37 246,-246 253.7,-244.76 261.81,-242.55 269.25,-240.11"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="270.33,-241.97 275.33,-238.04 268.97,-237.99 270.33,-241.97"/>
+</g>
+<!-- src/infrastructure/di&#45;&gt;src/infrastructure/database -->
+<g id="edge7" class="edge">
+<title>src/infrastructure/di&#45;&gt;src/infrastructure/database</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M159.24,-240.07C166.39,-244.15 175.35,-248.59 184,-251 209.91,-258.23 240.38,-260.03 263.22,-260.13"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="263.45,-262.23 269.45,-260.12 263.44,-258.03 263.45,-262.23"/>
+</g>
+<!-- src/infrastructure/repository -->
+<g id="node11" class="node">
+<title>src/infrastructure/repository</title>
+<g id="a_node11"><a xlink:href="src/infrastructure/repository" xlink:title="repository">
+<polygon fill="#ffffcc" stroke="black" points="246,-240 186,-240 184,-238 184,-222 244,-222 246,-224 246,-240"/>
+<polyline fill="none" stroke="black" points="244,-238 184,-238 "/>
+<polyline fill="none" stroke="black" points="244,-238 244,-222 "/>
+<polyline fill="none" stroke="black" points="244,-238 246,-240 "/>
+<text text-anchor="start" x="192" y="-228.8" font-family="Helvetica,sans-Serif" font-size="9.00">repository</text>
+</a>
+</g>
+</g>
+<!-- src/infrastructure/di&#45;&gt;src/infrastructure/repository -->
+<g id="edge8" class="edge">
+<title>src/infrastructure/di&#45;&gt;src/infrastructure/repository</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M171.09,-231C173.15,-231 175.25,-231 177.36,-231"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="177.71,-233.1 183.71,-231 177.71,-228.9 177.71,-233.1"/>
+</g>
+<!-- src/infrastructure/services -->
+<g id="node12" class="node">
+<title>src/infrastructure/services</title>
+<g id="a_node12"><a xlink:href="src/infrastructure/services" xlink:title="services">
+<polygon fill="#ffffcc" stroke="black" points="242,-180 190,-180 188,-178 188,-162 240,-162 242,-164 242,-180"/>
+<polyline fill="none" stroke="black" points="240,-178 188,-178 "/>
+<polyline fill="none" stroke="black" points="240,-178 240,-162 "/>
+<polyline fill="none" stroke="black" points="240,-178 242,-180 "/>
+<text text-anchor="start" x="196.5" y="-168.8" font-family="Helvetica,sans-Serif" font-size="9.00">services</text>
+</a>
+</g>
+</g>
+<!-- src/infrastructure/di&#45;&gt;src/infrastructure/services -->
+<g id="edge9" class="edge">
+<title>src/infrastructure/di&#45;&gt;src/infrastructure/services</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M151.3,-221.77C158.37,-211.94 170.61,-196.4 184,-186 185.21,-185.06 186.48,-184.16 187.8,-183.29"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="188.97,-185.04 193.02,-180.15 186.8,-181.44 188.97,-185.04"/>
+</g>
 <!-- src/infrastructure/repository&#45;&gt;src/domain/constants -->
-<g id="edge12" class="edge">
+<g id="edge13" class="edge">
 <title>src/infrastructure/repository&#45;&gt;src/domain/constants</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M167.53,-171.95C169.97,-170.26 172.21,-168.29 174,-166 190.28,-145.19 166.38,-124.51 187,-108 211.29,-88.55 248.27,-93.23 274.35,-100.25"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="274.05,-102.35 280.4,-101.98 275.2,-98.31 274.05,-102.35"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M238.95,-221.91C241.55,-220.22 243.99,-218.26 246,-216 259.84,-200.47 245.09,-184.13 262,-172 290.14,-151.82 330.89,-154.16 359.96,-159.62"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="359.68,-161.71 365.98,-160.83 360.5,-157.59 359.68,-161.71"/>
 </g>
 <!-- src/infrastructure/repository&#45;&gt;src/domain/entities -->
-<g id="edge13" class="edge">
+<g id="edge14" class="edge">
 <title>src/infrastructure/repository&#45;&gt;src/domain/entities</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M167.92,-171.82C170.23,-170.17 172.33,-168.24 174,-166 193.96,-139.23 162.45,-114.64 187,-92 199.07,-80.87 241.98,-79.34 272.56,-79.77"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="272.85,-81.88 278.89,-79.89 272.93,-77.68 272.85,-81.88"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M238.41,-221.87C241.16,-220.18 243.78,-218.22 246,-216 257.24,-204.76 248.47,-192.36 262,-184 289.98,-166.71 303.36,-179.95 336,-184 345.02,-185.12 354.63,-187.16 363.45,-189.38"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="363.07,-191.45 369.4,-190.94 364.13,-187.39 363.07,-191.45"/>
 </g>
 <!-- src/infrastructure/repository&#45;&gt;src/domain/repositories -->
-<g id="edge14" class="edge">
+<g id="edge15" class="edge">
 <title>src/infrastructure/repository&#45;&gt;src/domain/repositories</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M167.98,-171.87C170.28,-170.21 172.36,-168.26 174,-166 197.19,-133.98 160.16,-107.03 187,-78 192.45,-72.11 233.44,-63.63 265.6,-57.75"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="266.37,-59.75 271.9,-56.61 265.62,-55.61 266.37,-59.75"/>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M239.46,-221.89C241.91,-220.22 244.17,-218.26 246,-216 263.89,-193.87 240.51,-172.66 262,-154 265.57,-150.9 318.28,-145.7 356.39,-142.31"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="356.57,-144.4 362.37,-141.78 356.2,-140.22 356.57,-144.4"/>
+</g>
+<!-- src/infrastructure/repository&#45;&gt;src/infrastructure/database -->
+<g id="edge12" class="edge">
+<title>src/infrastructure/repository&#45;&gt;src/infrastructure/database</title>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M242.24,-240.01C249.58,-242.54 257.64,-245.31 265.29,-247.93"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="264.68,-249.94 271.03,-249.91 266.04,-245.97 264.68,-249.94"/>
 </g>
 <!-- src/infrastructure/services&#45;&gt;src/domain/entities -->
-<g id="edge16" class="edge">
+<g id="edge17" class="edge">
 <title>src/infrastructure/services&#45;&gt;src/domain/entities</title>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M167.48,-141.91C169.93,-140.23 172.18,-138.28 174,-136 189.13,-117.05 168.04,-98.13 187,-83 210.87,-63.95 246.94,-66.4 272.92,-71.78"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="272.65,-73.87 278.96,-73.12 273.56,-69.77 272.65,-73.87"/>
@@ -470,10 +667,15 @@
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M242.24,-170.9C266.56,-170.93 303.75,-171.31 336,-173 343.76,-173.41 352.1,-174.04 359.93,-174.72"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="360.2,-176.85 366.37,-175.29 360.58,-172.67 360.2,-176.85"/>
 >>>>>>> 4f3ceb0 (add claude_user)
+=======
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M242.01,-167.09C266.83,-164.36 304.92,-162.81 336,-173 344.03,-175.63 343.98,-180.15 351.5,-184 355.35,-185.97 359.52,-187.77 363.71,-189.39"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="363.04,-191.39 369.39,-191.49 364.49,-187.44 363.04,-191.39"/>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 <!-- src/infrastructure/services&#45;&gt;src/domain/repositories -->
-<g id="edge17" class="edge">
+<g id="edge18" class="edge">
 <title>src/infrastructure/services&#45;&gt;src/domain/repositories</title>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M167.91,-141.81C170.22,-140.16 172.32,-138.24 174,-136 193.26,-110.35 163.61,-86.96 187,-65 207.68,-45.59 240.18,-42.99 265.84,-44.74"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="265.71,-46.84 271.87,-45.24 266.06,-42.65 265.71,-46.84"/>
@@ -481,10 +683,15 @@
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M222.96,-161.93C231.09,-152.15 245.54,-137.15 262,-131 292.81,-119.48 303.46,-126.21 336,-131 344.56,-132.26 353.62,-134.54 361.92,-137.03"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="361.75,-139.17 368.1,-138.96 363,-135.16 361.75,-139.17"/>
 >>>>>>> 4f3ceb0 (add claude_user)
+=======
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M242.25,-165.76C248.7,-164.5 255.6,-163.18 262,-162 293.59,-156.19 329.46,-150.03 356.06,-145.55"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="356.7,-147.58 362.27,-144.51 356.01,-143.43 356.7,-147.58"/>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 <!-- src/infrastructure/dto -->
-<g id="node12" class="node">
+<g id="node13" class="node">
 <title>src/infrastructure/dto</title>
+<<<<<<< HEAD
 <g id="a_node12"><a xlink:href="src/infrastructure/dto" xlink:title="dto">
 <<<<<<< HEAD
 <polygon fill="#ffffcc" stroke="black" points="243,-132 191,-132 189,-130 189,-114 241,-114 243,-116 243,-132"/>
@@ -493,45 +700,49 @@
 <polyline fill="none" stroke="black" points="241,-130 243,-132 "/>
 <text text-anchor="start" x="208" y="-120.8" font-family="Helvetica,sans-Serif" font-size="9.00">dto</text>
 =======
+=======
+<g id="a_node13"><a xlink:href="src/infrastructure/dto" xlink:title="dto">
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 <polygon fill="#ffffcc" stroke="black" points="325.5,-208 273.5,-208 271.5,-206 271.5,-190 323.5,-190 325.5,-192 325.5,-208"/>
 <polyline fill="none" stroke="black" points="323.5,-206 271.5,-206 "/>
 <polyline fill="none" stroke="black" points="323.5,-206 323.5,-190 "/>
 <polyline fill="none" stroke="black" points="323.5,-206 325.5,-208 "/>
 <text text-anchor="start" x="290.5" y="-196.8" font-family="Helvetica,sans-Serif" font-size="9.00">dto</text>
+<<<<<<< HEAD
 >>>>>>> 4f3ceb0 (add claude_user)
+=======
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </a>
 </g>
 </g>
 <!-- src/infrastructure/services&#45;&gt;src/infrastructure/dto -->
-<g id="edge15" class="edge">
+<g id="edge16" class="edge">
 <title>src/infrastructure/services&#45;&gt;src/infrastructure/dto</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M166.86,-141.99C172.94,-139.59 179.59,-136.96 185.96,-134.45"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="186.89,-136.34 191.7,-132.19 185.35,-132.44 186.89,-136.34"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M242.24,-180.01C249.65,-182.56 257.81,-185.36 265.52,-188.01"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="264.96,-190.04 271.31,-190 266.32,-186.07 264.96,-190.04"/>
 </g>
-<!-- src/infrastructure/video&#45;&gt;src/domain/entities -->
-<g id="edge18" class="edge">
-<title>src/infrastructure/video&#45;&gt;src/domain/entities</title>
-<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M243.13,-145.83C246.88,-143.82 250.35,-141.26 253,-138 264.98,-123.25 248.54,-110.35 261,-96 264.2,-92.32 268.34,-89.54 272.81,-87.44"/>
-<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="273.79,-89.3 278.58,-85.13 272.23,-85.4 273.79,-89.3"/>
+<!-- src/infrastructure/dto&#45;&gt;src/domain/entities -->
+<g id="edge11" class="edge">
+<title>src/infrastructure/dto&#45;&gt;src/domain/entities</title>
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M325.73,-199C337.27,-199 350.93,-199 363.09,-199"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="363.3,-201.1 369.3,-199 363.3,-196.9 363.3,-201.1"/>
 </g>
-<!-- src/domain/valueObjects -->
-<g id="node11" class="node">
-<title>src/domain/valueObjects</title>
-<g id="a_node11"><a xlink:href="src/domain/valueObjects" xlink:title="valueObjects">
-<polygon fill="#ffffcc" stroke="black" points="343,-150 271,-150 269,-148 269,-132 341,-132 343,-134 343,-150"/>
-<polyline fill="none" stroke="black" points="341,-148 269,-148 "/>
-<polyline fill="none" stroke="black" points="341,-148 341,-132 "/>
-<polyline fill="none" stroke="black" points="341,-148 343,-150 "/>
-<text text-anchor="start" x="277" y="-138.8" font-family="Helvetica,sans-Serif" font-size="9.00">valueObjects</text>
+<!-- src/main.ts -->
+<g id="node14" class="node">
+<title>src/main.ts</title>
+<g id="a_node14"><a xlink:href="src/main.ts" xlink:title="main.ts">
+<path fill="#ddfeff" stroke="black" d="M72,-240C72,-240 30,-240 30,-240 27,-240 24,-237 24,-234 24,-234 24,-228 24,-228 24,-225 27,-222 30,-222 30,-222 72,-222 72,-222 75,-222 78,-225 78,-228 78,-228 78,-234 78,-234 78,-237 75,-240 72,-240"/>
+<text text-anchor="start" x="34" y="-228.8" font-family="Helvetica,sans-Serif" font-size="9.00">main.ts</text>
 </a>
 </g>
 </g>
-<!-- src/infrastructure/video&#45;&gt;src/domain/valueObjects -->
-<g id="edge19" class="edge">
-<title>src/infrastructure/video&#45;&gt;src/domain/valueObjects</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M243.4,-149.4C249.53,-148.56 256.2,-147.66 262.81,-146.75"/>
-<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="263.19,-148.82 268.85,-145.93 262.62,-144.66 263.19,-148.82"/>
+<!-- src/main.ts&#45;&gt;src/infrastructure/di -->
+<g id="edge21" class="edge">
+<title>src/main.ts&#45;&gt;src/infrastructure/di</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M78.32,-231C88.41,-231 100.05,-231 110.64,-231"/>
+<polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="110.74,-233.1 116.74,-231 110.74,-228.9 110.74,-233.1"/>
 </g>
+<<<<<<< HEAD
 <!-- src/infrastructure/dto&#45;&gt;src/domain/entities -->
 <g id="edge10" class="edge">
 <title>src/infrastructure/dto&#45;&gt;src/domain/entities</title>
@@ -561,6 +772,12 @@
 <g id="node14" class="node">
 <title>src/presentation/stores</title>
 <g id="a_node14"><a xlink:href="src/presentation/stores" xlink:title="stores">
+=======
+<!-- src/presentation/stores -->
+<g id="node15" class="node">
+<title>src/presentation/stores</title>
+<g id="a_node15"><a xlink:href="src/presentation/stores" xlink:title="stores">
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 <polygon fill="#ffffcc" stroke="black" points="78,-276 26,-276 24,-274 24,-258 76,-258 78,-260 78,-276"/>
 <polyline fill="none" stroke="black" points="76,-274 24,-274 "/>
 <polyline fill="none" stroke="black" points="76,-274 76,-258 "/>
@@ -572,15 +789,23 @@
 <!-- src/presentation/stores&#45;&gt;src/domain/entities -->
 <g id="edge22" class="edge">
 <title>src/presentation/stores&#45;&gt;src/domain/entities</title>
+<<<<<<< HEAD
 <path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M64.85,-276.1C75.95,-283.37 92.72,-292.98 109,-297 206.94,-321.2 250.72,-350.91 336,-297 372.53,-273.9 385.92,-220.06 390.42,-193.45"/>
 <polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="392.53,-193.56 391.38,-187.3 388.38,-192.91 392.53,-193.56"/>
+=======
+<path fill="none" stroke="#000000" stroke-opacity="0.200000" d="M64.85,-276.1C75.95,-283.37 92.72,-292.98 109,-297 206.94,-321.2 258.39,-361.46 336,-297 364.87,-273.02 326.94,-242.37 351.5,-214 354.69,-210.31 358.83,-207.53 363.29,-205.43"/>
+<polygon fill="none" stroke="#000000" stroke-opacity="0.200000" points="364.28,-207.29 369.07,-203.12 362.72,-203.4 364.28,-207.29"/>
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 <!-- src/presentation/stores&#45;&gt;src/infrastructure/di -->
 <g id="edge23" class="edge">
 <title>src/presentation/stores&#45;&gt;src/infrastructure/di</title>
 <path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" d="M78.2,-259.23C83.15,-257.61 88.26,-255.83 93,-254 101.69,-250.64 111.01,-246.5 119.23,-242.67"/>
 <polygon fill="#000000" fill-opacity="0.200000" stroke="#000000" stroke-width="2" stroke-opacity="0.200000" points="120.19,-244.54 124.71,-240.07 118.39,-240.74 120.19,-244.54"/>
+<<<<<<< HEAD
 >>>>>>> 4f3ceb0 (add claude_user)
+=======
+>>>>>>> fde4419 (refactor: move DI to infrastructure)
 </g>
 </g>
 </svg>

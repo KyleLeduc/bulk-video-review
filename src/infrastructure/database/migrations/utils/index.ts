@@ -25,7 +25,7 @@ export const getAllFromStore = <T>(store: IDBObjectStore): Promise<T[]> => {
  * @returns resolves on success, rejects on error or abort
  */
 export const transactionComplete = (
-  transaction: IDBTransaction
+  transaction: IDBTransaction,
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     transaction.oncomplete = () => {

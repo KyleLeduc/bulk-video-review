@@ -7,10 +7,11 @@ import '@presentation/assets/main.css'
 
 import {
   addVideosUseCase,
+  filterVideosUseCase,
   updateThumbUseCase,
   updateVotesUseCase,
   wipeVideoDataUseCase,
-} from '@app'
+} from '@infra/di/container'
 
 const app = createApp(App)
 
@@ -18,6 +19,7 @@ app.use(createPinia())
 app.use(autoAnimatePlugin)
 
 app.provide('addVideosUseCase', addVideosUseCase)
+app.provide('filterVideosUseCase', filterVideosUseCase)
 app.provide('updateThumbUseCase', updateThumbUseCase)
 app.provide('updateVotesUseCase', updateVotesUseCase)
 app.provide('wipeVideoDataUseCase', wipeVideoDataUseCase)

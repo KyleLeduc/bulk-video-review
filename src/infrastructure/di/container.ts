@@ -12,6 +12,7 @@ import {
   UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
   WipeVideoDataUseCase,
+  FilterVideosUseCase,
 } from '@app/usecases'
 
 // Infrastructure dependencies
@@ -51,3 +52,5 @@ export const updateVotesUseCase = new UpdateVideoVotesUseCase(
 export const wipeVideoDataUseCase = new WipeVideoDataUseCase(
   videoMetadataFacade,
 )
+
+export const filterVideosUseCase = new FilterVideosUseCase()
