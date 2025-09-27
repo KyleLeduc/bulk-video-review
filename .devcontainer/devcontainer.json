@@ -19,8 +19,16 @@
   // 		"onAutoForward": "notify"
   // 	}
   // }
+  "runArgs": [
+    "--env-file",
+    "${localWorkspaceFolder}/.env"
+  ],
+  "mounts": [
+    "type=bind,source=${localWorkspaceFolder}/.claude,dst=/home/node/.claude",
+    "type=bind,source=${localWorkspaceFolder}/claude_user/claude.json,target=/home/node/claude.json"
+  ],
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code && claude doctor",
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {
