@@ -1,5 +1,7 @@
 # bulk-video-review
 
+See [`AGENTS.md`](AGENTS.md) for contributor guidelines.
+
 ## High Level
 
 ### Architectural
@@ -73,6 +75,7 @@ npm run test:e2e:dev
 ```
 
 This runs the end-to-end tests against the Vite development server.
+
 It is much faster than the production build.
 
 But it's still recommended to test the production build with `test:e2e` before deploying (e.g. in CI environments):
