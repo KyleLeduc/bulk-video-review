@@ -1,99 +1,149 @@
 import type { ParsedVideo } from '@domain/entities'
 import { defineStore } from 'pinia'
-import { toRaw } from 'vue'
-
+import { computed, inject, reactive, ref, toRaw } from 'vue'
+import type {
+  AddVideosFromFilesUseCase,
+  FilterVideosUseCase,
+  UpdateVideoThumbnailsUseCase,
+  UpdateVideoVotesUseCase,
+} from '@app/usecases'
+import type { ILogger } from '@app/ports'
 import {
-  addVideosUseCase,
-  filterVideosUseCase,
-  updateThumbUseCase,
-  updateVotesUseCase,
-  logger,
-} from '@infra/di/container'
+  ADD_VIDEOS_USE_CASE_KEY,
+  FILTER_VIDEOS_USE_CASE_KEY,
+  LOGGER_KEY,
+  UPDATE_THUMB_USE_CASE_KEY,
+  UPDATE_VOTES_USE_CASE_KEY,
+} from '@presentation/di/injectionKeys'
 
-interface State {
-  _videos: Map<string, ParsedVideo>
-  _minDuration: number
+function resolveDependency<T>(dependency: T | undefined, name: string): T {
+  if (!dependency) {
+    throw new Error(`${name} dependency is missing`)
+  }
+
+  return dependency
 }
 
-export const useVideoStore = defineStore('videos', {
-  state: (): State => {
-    return {
-      _videos: new Map<string, ParsedVideo>(),
+export const useVideoStore = defineStore('videos', () => {
+  const addVideosUseCase = resolveDependency<AddVideosFromFilesUseCase>(
+    inject(ADD_VIDEOS_USE_CASE_KEY),
+    'AddVideosUseCase',
+  )
 
-      _minDuration: 0,
+  const filterVideosUseCase = resolveDependency<FilterVideosUseCase>(
+    inject(FILTER_VIDEOS_USE_CASE_KEY),
+    'FilterVideosUseCase',
+  )
+
+  const updateThumbUseCase = resolveDependency<UpdateVideoThumbnailsUseCase>(
+    inject(UPDATE_THUMB_USE_CASE_KEY),
+    'UpdateVideoThumbnailsUseCase',
+  )
+
+  const updateVotesUseCase = resolveDependency<UpdateVideoVotesUseCase>(
+    inject(UPDATE_VOTES_USE_CASE_KEY),
+    'UpdateVideoVotesUseCase',
+  )
+
+  const logger = resolveDependency<ILogger>(inject(LOGGER_KEY), 'Logger')
+
+  const videoMap = reactive(new Map<string, ParsedVideo>())
+  const minDuration = ref(0)
+
+  const sortByVotes = computed<ParsedVideo[]>(() =>
+    Array.from(videoMap.values()).sort(
+      (a, b) => Number(b.votes) - Number(a.votes),
+    ),
+  )
+
+  const sortByPinned = computed<ParsedVideo[]>(() =>
+    [...sortByVotes.value].sort((a, b) => Number(b.pinned) - Number(a.pinned)),
+  )
+
+  const filteredVideos = computed<ParsedVideo[]>(() =>
+    filterVideosUseCase.execute(sortByPinned.value, {
+      minDuration: minDuration.value,
+    }),
+  )
+
+  function addVideos(videos: ParsedVideo[]) {
+    videos.forEach((video) => {
+      videoMap.set(video.id, video)
+    })
+  }
+
+  function removeVideo(videoId: string) {
+    videoMap.delete(videoId)
+  }
+
+  function togglePinVideo(videoId: string) {
+    const video = videoMap.get(videoId)
+
+    if (video) {
+      video.pinned = !video.pinned
     }
-  },
-  getters: {
-    sortByVotes: ({ _videos }): ParsedVideo[] => {
-      return [..._videos.values()].sort(
-        (a, b) => Number(b.votes) - Number(a.votes),
-      )
-    },
-    sortByPinned(): ParsedVideo[] {
-      return this.sortByVotes.sort(
-        (a, b) => Number(b.pinned) - Number(a.pinned),
-      )
-    },
+  }
 
-    filteredVideos(state): ParsedVideo[] {
-      const filteredVideos = filterVideosUseCase.execute(this.sortByPinned, {
-        minDuration: state._minDuration,
-      })
+  function removeAllUnpinned() {
+    const pinnedVideos = Array.from(videoMap.entries()).filter(
+      ([, video]) => video.pinned,
+    )
 
-      return filteredVideos
-    },
-  },
+    videoMap.clear()
 
-  actions: {
-    addVideos(videos: ParsedVideo[]) {
-      videos.forEach((video) => {
-        this._videos.set(video.id, video)
-      })
-    },
+    pinnedVideos.forEach(([id, video]) => {
+      videoMap.set(id, video)
+    })
+  }
 
-    removeVideo(videoId: string) {
-      this._videos.delete(videoId)
-    },
+  async function updateVotes(videoId: string, delta: number) {
+    const video = videoMap.get(videoId)
+    if (!video) {
+      return
+    }
 
-    togglePinVideo(videoId: string) {
-      const video = this._videos.get(videoId)
-
-      if (video) video.pinned = !video.pinned
-    },
-
-    removeAllUnpinned() {
-      const filteredVideos = new Map()
-      this._videos.forEach((video) => {
-        if (video.pinned) filteredVideos.set(video.id, video)
-      })
-
-      this._videos = filteredVideos
-    },
-
-    async updateVotes(videoId: string, delta: number) {
-      const video = this._videos.get(videoId)
-      if (!video) return
-      try {
-        const votes = await updateVotesUseCase.execute(videoId, delta)
-        if (votes != null) {
-          video.votes = votes
-        }
-      } catch (e) {
-        logger.error('Failed to update votes', e)
+    try {
+      const votes = await updateVotesUseCase.execute(videoId, delta)
+      if (votes != null) {
+        video.votes = votes
       }
-    },
+    } catch (error) {
+      logger.error('Failed to update votes', error)
+    }
+  }
 
-    async addVideosFromFiles(files: FileList) {
-      for await (const video of addVideosUseCase.execute(files)) {
-        this.addVideos([video])
-      }
-    },
+  async function addVideosFromFiles(files: FileList) {
+    for await (const video of addVideosUseCase.execute(files)) {
+      addVideos([video])
+    }
+  }
 
-    async updateVideoThumbnails(id: string) {
-      const existing = toRaw(this._videos.get(id))
-      if (!existing) return
-      const updated = await updateThumbUseCase.execute(existing)
-      this._videos.set(id, updated)
-    },
-  },
+  async function updateVideoThumbnails(id: string) {
+    const existing = toRaw(videoMap.get(id))
+    if (!existing) {
+      return
+    }
+
+    const updated = await updateThumbUseCase.execute(existing)
+    videoMap.set(id, updated)
+  }
+
+  function setMinDuration(value: number) {
+    minDuration.value = value
+  }
+
+  return {
+    minDuration,
+    filteredVideos,
+    sortByPinned,
+    sortByVotes,
+    addVideos,
+    addVideosFromFiles,
+    removeVideo,
+    removeAllUnpinned,
+    setMinDuration,
+    togglePinVideo,
+    updateVideoThumbnails,
+    updateVotes,
+  }
 })

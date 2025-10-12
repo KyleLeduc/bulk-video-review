@@ -14,7 +14,7 @@
         name="durationFilter"
         id="durationFilter"
         :placeholder="'Duration'"
-        :value="videoStore._minDuration"
+        :value="minDuration"
       />
       <span class="validationMessage">{{ durationValidationMessage }}</span>
       <span @mouseup="appStateStore.toggleDiagnosticsPanel(true)">🧰</span>
@@ -37,11 +37,14 @@
 <script setup lang="ts">
 import { useVideoStore, useAppStateStore } from '@presentation/stores'
 import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
 
 import FileInput from '@presentation/components/inputs/FileInput.vue'
 
 const videoStore = useVideoStore()
 const appStateStore = useAppStateStore()
+
+const { minDuration } = storeToRefs(videoStore)
 
 const durationValidationMessage = ref('')
 
@@ -57,7 +60,8 @@ function handleDurationFilter(e: Event) {
     ? (durationValidationMessage.value = '')
     : (durationValidationMessage.value = 'Only numbers')
 
-  videoStore._minDuration = parseFloat(inputElement.value) || 0
+  const value = parseFloat(inputElement.value) || 0
+  videoStore.setMinDuration(value)
 }
 
 function handleColumnChange(e: Event) {
