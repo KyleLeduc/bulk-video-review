@@ -50,6 +50,28 @@
       <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(60)">
         ⏩⏩
       </div>
+      <div class="infoTrigger">
+        <span
+          class="info-icon"
+          tabindex="0"
+          role="button"
+          aria-label="Show video file details"
+        >
+          ℹ️
+        </span>
+        <div class="info-tooltip" role="tooltip">
+          <dl class="info-list">
+            <div
+              v-for="item in videoMetaEntries"
+              :key="item.key"
+              class="info-row"
+            >
+              <dt>{{ item.key }}</dt>
+              <dd>{{ item.value }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
       <div class="close" @click="handleRemoveVideo">❌</div>
     </div>
   </div>
@@ -169,6 +191,55 @@ const loopState = computed(() => {
       loopingState?.endTime !== undefined,
   }
 })
+
+const videoMetaEntries = computed(() => {
+  const values: Array<{ key: string; value: string }> = []
+
+  values.push({
+    key: 'title',
+    value: props.video.title || 'Untitled video',
+  })
+
+  values.push({
+    key: 'duration',
+    value: formatDurationWithSeconds(props.video.duration),
+  })
+
+  const thumbs = Array.isArray(props.video.thumbUrls)
+    ? props.video.thumbUrls.length
+    : 0
+  values.push({
+    key: 'thumbnail count',
+    value: thumbs ? `${thumbs} thumbnail(s)` : 'No additional thumbnails',
+  })
+
+  values.push({
+    key: 'tags',
+    value:
+      props.video.tags?.length && props.video.tags.filter(Boolean).length
+        ? props.video.tags.join(', ')
+        : '—',
+  })
+
+  values.push({
+    key: 'votes',
+    value:
+      typeof props.video.votes === 'number' ? String(props.video.votes) : '0',
+  })
+
+  return values
+})
+
+function formatDurationWithSeconds(duration: number): string {
+  if (!Number.isFinite(duration) || duration < 0) {
+    return '—'
+  }
+
+  const minutes = Math.floor(duration / 60)
+  const seconds = Math.floor(duration % 60)
+
+  return `${minutes}m ${seconds}s`
+}
 </script>
 
 <style lang="scss" scoped>
@@ -205,10 +276,86 @@ const loopState = computed(() => {
   }
 }
 
+.infoTrigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  font-size: 1.2em;
+}
+
+.info-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 240px;
+  max-width: 320px;
+  max-height: min(60vh, 320px);
+  background: rgba(20, 20, 20, 0.95);
+  color: #f7f7f7;
+  padding: 12px 14px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.2s ease,
+    visibility 0.5s ease;
+  pointer-events: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  line-height: 1.35;
+}
+
+.infoTrigger:hover .info-tooltip,
+.infoTrigger:focus-within .info-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.info-list {
+  margin: 0;
+  padding: 0;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px;
+  font-size: 0.75rem;
+  align-items: start;
+  word-break: break-word;
+}
+
+.info-row + .info-row {
+  margin-top: 4px;
+}
+
+.info-row dt {
+  font-weight: 600;
+  text-transform: capitalize;
+  color: #f0c674;
+}
+
+.info-row dd {
+  margin: 0;
+}
+
 .card:hover .cardNav,
 .card:focus-within .cardNav {
   top: 0;
   opacity: 1;
+  pointer-events: auto;
   transition:
     top 0.3s ease,
     opacity 0.3s ease;
