@@ -10,6 +10,9 @@
   //   "--env-file",
   //   "${localWorkspaceFolder}/.env"
   // ],
+  "mounts": [
+    "source=bulk-video-review-node-modules,target=/workspaces/bulk-video-review/node_modules,type=volume"
+  ],
   "postCreateCommand": "npm install && npm install -g @openai/codex && codex --help",
   "customizations": {
     "vscode": {
