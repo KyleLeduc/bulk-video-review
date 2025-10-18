@@ -60,11 +60,14 @@ export const useVideoStore = defineStore('videos', () => {
     [...sortByVotes.value].sort((a, b) => Number(b.pinned) - Number(a.pinned)),
   )
 
-  const filteredVideos = computed<ParsedVideo[]>(() =>
-    filterVideosUseCase.execute(sortByPinned.value, {
-      minDuration: minDuration.value,
-    }),
-  )
+  const filteredVideos = computed<ParsedVideo[]>(() => {
+    const minDurationFilter =
+      minDuration.value > 0 ? minDuration.value * 60 : undefined
+
+    return filterVideosUseCase.execute(sortByPinned.value, {
+      minDuration: minDurationFilter,
+    })
+  })
 
   function addVideos(videos: ParsedVideo[]) {
     videos.forEach((video) => {
@@ -129,7 +132,7 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   function setMinDuration(value: number) {
-    minDuration.value = value
+    minDuration.value = value >= 0 ? value : 0
   }
 
   return {
