@@ -65,8 +65,11 @@ export const useVideoStore = defineStore('videos', () => {
     const minDurationFilter =
       minDuration.value > 0 ? minDuration.value * 60 : undefined
 
-    return filterVideosUseCase.execute(sortByPinned.value, {
-      minDuration: minDurationFilter,
+    return filterVideosUseCase.execute({
+      videos: sortByPinned.value,
+      options: {
+        minDurationSeconds: minDurationFilter,
+      },
     })
   })
 
