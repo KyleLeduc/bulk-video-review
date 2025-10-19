@@ -3,9 +3,11 @@ import { ParsedVideoData } from '@domain/valueObjects'
 import { HTMLVideoProcessor } from './HTMLVideoProcessor'
 
 export class VideoFileParser {
-  readonly #generateMetadata = async (file: File): Promise<ParsedVideoData> => {
-    const key = await this.generateHash(file)
-    const url = URL.createObjectURL(file)
+  readonly #generateMetadata = async (
+    video: File,
+  ): Promise<ParsedVideoData> => {
+    const key = await this.generateHash(video)
+    const url = URL.createObjectURL(video)
 
     const videoMetadata = new ParsedVideoData(key)
     const videoProcessor = new HTMLVideoProcessor(url)
@@ -24,9 +26,9 @@ export class VideoFileParser {
     return videoMetadata
   }
 
-  generateHash = async (file: File) => {
+  generateHash = async (video: File) => {
     const encoder = new TextEncoder()
-    const data = encoder.encode(file.name + file.size)
+    const data = encoder.encode(video.name + video.size)
     const hashBuffer = await crypto.subtle.digest('SHA-256', data)
     const hashArray = Array.from(new Uint8Array(hashBuffer))
     const hashHex = hashArray
@@ -36,7 +38,7 @@ export class VideoFileParser {
     return hashHex
   }
 
-  readonly #isValidVideoType = (file: File) => {
+  readonly #isValidVideoType = (video: File) => {
     const validVideoMimeTypes = [
       'video/mp4', // MP4 (H.264/AAC)
       'video/webm', // WebM (VP8/VP9)
@@ -45,7 +47,7 @@ export class VideoFileParser {
       'video/x-matroska', // Matroska (WebM compatible codecs)
     ]
 
-    return validVideoMimeTypes.includes(file.type)
+    return video.type ? validVideoMimeTypes.includes(video.type) : false
   }
 
   transformVideoData = async (video: File) => {

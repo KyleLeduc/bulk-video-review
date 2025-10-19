@@ -8,6 +8,7 @@ import type {
   UpdateVideoVotesUseCase,
 } from '@app/usecases'
 import type { ILogger } from '@app/ports'
+import type { VideoImportItem } from '@domain/valueObjects'
 import {
   ADD_VIDEOS_USE_CASE_KEY,
   FILTER_VIDEOS_USE_CASE_KEY,
@@ -116,7 +117,9 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   async function addVideosFromFiles(files: FileList) {
-    for await (const video of addVideosUseCase.execute(files)) {
+    const items: VideoImportItem[] = Array.from(files).map((file) => ({ file }))
+
+    for await (const video of addVideosUseCase.execute(items)) {
       addVideos([video])
     }
   }

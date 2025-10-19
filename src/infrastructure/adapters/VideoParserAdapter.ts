@@ -2,6 +2,7 @@ import { VideoFileParser } from '@infra/video'
 import type { IVideoParser, ILogger } from '@app/ports'
 import type { ParsedVideo } from '@domain/entities'
 import type { IVideoFacade } from '@domain/repositories'
+import type { VideoImportItem } from '@domain/valueObjects'
 
 export class VideoParserAdapter implements IVideoParser {
   constructor(
@@ -10,20 +11,20 @@ export class VideoParserAdapter implements IVideoParser {
     private readonly parser: VideoFileParser = new VideoFileParser(),
   ) {}
 
-  async *parseFileList(files: FileList): AsyncGenerator<ParsedVideo> {
+  async *parseItems(items: VideoImportItem[]): AsyncGenerator<ParsedVideo> {
     const startTime = performance.now()
 
-    const { filesToProcess, foundVideos } =
-      await this.#filterExistingFromNewVideos(files)
+    const { itemsToProcess, cachedVideos } =
+      await this.#partitionExistingVideos(items)
 
-    for (const video of foundVideos) {
+    for (const video of cachedVideos) {
       yield video
     }
 
-    if (filesToProcess.length > 0) {
-      for (const file of filesToProcess) {
+    if (itemsToProcess.length > 0) {
+      for (const item of itemsToProcess) {
         try {
-          const videoItem = await this.#processFile(file)
+          const videoItem = await this.#processVideo(item)
 
           if (videoItem) yield videoItem
         } catch (e) {
@@ -36,9 +37,9 @@ export class VideoParserAdapter implements IVideoParser {
     this.logger.info(`Total time taken: ${endTime - startTime} milliseconds`)
   }
 
-  readonly #processFile = async (file: File) => {
+  readonly #processVideo = async (item: VideoImportItem) => {
     try {
-      const result = await this.parser.transformVideoData(file)
+      const result = await this.parser.transformVideoData(item.file)
       if (!result) return null
 
       const { videoEntity, url } = result
@@ -60,26 +61,27 @@ export class VideoParserAdapter implements IVideoParser {
     }
   }
 
-  readonly #filterExistingFromNewVideos = async (fileList: FileList) => {
+  readonly #partitionExistingVideos = async (items: VideoImportItem[]) => {
     const foundVideos: ParsedVideo[] = []
-    const filesToProcess: File[] = []
+    const itemsToProcess: VideoImportItem[] = []
 
-    for (const file of fileList) {
-      const videoEntity = await this.storage.getVideo(
-        await this.parser.generateHash(file),
-      )
+    for (const item of items) {
+      const hashedId = await this.parser.generateHash(item.file)
+      const videoEntity = await this.storage.getVideo(hashedId)
 
       if (videoEntity) {
+        const blobUrl = URL.createObjectURL(item.file)
+
         foundVideos.push({
           ...videoEntity,
-          url: URL.createObjectURL(file),
+          url: blobUrl,
           pinned: false,
         })
       } else {
-        filesToProcess.push(file)
+        itemsToProcess.push(item)
       }
     }
 
-    return { foundVideos, filesToProcess }
+    return { cachedVideos: foundVideos, itemsToProcess }
   }
 }

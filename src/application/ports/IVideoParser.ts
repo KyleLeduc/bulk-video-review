@@ -1,5 +1,6 @@
 import type { ParsedVideo } from '@domain/entities'
+import type { VideoImportItem } from '@domain/valueObjects'
 
 export interface IVideoParser {
-  parseFileList(files: FileList): AsyncGenerator<ParsedVideo>
+  parseItems(items: VideoImportItem[]): AsyncGenerator<ParsedVideo>
 }
