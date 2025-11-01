@@ -32,3 +32,5 @@ dev/*
 .env
 .claude/*
 claude_user/*
+
+.venv
