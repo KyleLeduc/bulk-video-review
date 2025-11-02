@@ -34,4 +34,6 @@ dev/*
 claude_user/*
 .codex
 
+.gh
+
 .venv
