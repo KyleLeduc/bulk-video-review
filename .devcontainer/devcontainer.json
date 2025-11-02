@@ -14,6 +14,7 @@
     "source=bulk-video-review-node-modules,target=/workspaces/bulk-video-review/node_modules,type=volume",
     "source=${localWorkspaceFolder}/.config/.codex,target=/root/.codex,type=bind",
     "source=${localWorkspaceFolder}/.config/.gh,target=/root/.config/gh,type=bind",
+    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind"
   ],
   "postCreateCommand": "npm install && npm install -g @openai/codex && codex --help",
   "customizations": {
