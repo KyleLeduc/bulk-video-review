@@ -11,7 +11,8 @@
   //   "${localWorkspaceFolder}/.env"
   // ],
   "mounts": [
-    "source=bulk-video-review-node-modules,target=/workspaces/bulk-video-review/node_modules,type=volume"
+    "source=bulk-video-review-node-modules,target=/workspaces/bulk-video-review/node_modules,type=volume",
+    "source=${localWorkspaceFolder}/.codex,target=/root/.codex,type=bind"
   ],
   "postCreateCommand": "npm install && npm install -g @openai/codex && codex --help",
   "customizations": {
