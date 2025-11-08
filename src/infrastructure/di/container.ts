@@ -11,7 +11,6 @@ import {
   VideoCommandAdapter,
   VideoParserAdapter,
   VideoQueryAdapter,
-  VideoStorageAdapter,
   VideoThumbnailGeneratorAdapter,
 } from '@infra/adapters'
 import {
@@ -45,8 +44,6 @@ const videoParserAdapter = new VideoParserAdapter(
   logger,
   videoFileParser,
 )
-// Keep old adapter for backward compatibility if needed
-const videoStorageAdapter = new VideoStorageAdapter(videoAggregateRepository)
 const videoCommandAdapter = new VideoCommandAdapter(
   videoAggregateRepository,
   eventPublisher,
