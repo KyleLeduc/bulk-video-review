@@ -14,11 +14,11 @@ import {
   VideoThumbnailGeneratorAdapter,
 } from '@infra/adapters'
 import {
-  AddVideosFromFilesUseCase,
-  UpdateVideoThumbnailsUseCase,
-  UpdateVideoVotesUseCase,
-  WipeVideoDataUseCase,
-  FilterVideosUseCase,
+  createAddVideosFromFilesUseCase,
+  createFilterVideosUseCase,
+  createUpdateVideoThumbnailsUseCase,
+  createUpdateVideoVotesUseCase,
+  createWipeVideoDataUseCase,
 } from '@app/usecases'
 
 // Infrastructure dependencies
@@ -52,22 +52,22 @@ export const videoQueryAdapter = new VideoQueryAdapter(videoAggregateRepository)
 const videoThumbnailGeneratorAdapter = new VideoThumbnailGeneratorAdapter()
 
 // Use cases
-export const addVideosUseCase = new AddVideosFromFilesUseCase(
-  videoParserAdapter,
-)
+export const addVideosUseCase = createAddVideosFromFilesUseCase({
+  parser: videoParserAdapter,
+})
 
-export const updateThumbUseCase = new UpdateVideoThumbnailsUseCase(
-  videoThumbnailGeneratorAdapter,
-  videoCommandAdapter,
+export const updateThumbUseCase = createUpdateVideoThumbnailsUseCase({
+  thumbnailGenerator: videoThumbnailGeneratorAdapter,
+  videoCommand: videoCommandAdapter,
   eventPublisher,
-)
+})
 
-export const updateVotesUseCase = new UpdateVideoVotesUseCase(
-  videoCommandAdapter,
-)
+export const updateVotesUseCase = createUpdateVideoVotesUseCase({
+  videoCommand: videoCommandAdapter,
+})
 
-export const wipeVideoDataUseCase = new WipeVideoDataUseCase(
-  videoAggregateRepository,
-)
+export const wipeVideoDataUseCase = createWipeVideoDataUseCase({
+  repository: videoAggregateRepository,
+})
 
-export const filterVideosUseCase = new FilterVideosUseCase()
+export const filterVideosUseCase = createFilterVideosUseCase()

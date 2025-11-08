@@ -3,6 +3,8 @@
 ## Project Structure & Module Organization
 The app follows a hexagonal layout: core domain rules live in `src/domain/...` (entities, valueObjects, repositories), orchestration sits in `src/application/...` (usecases, services, ports), and runtime adapters are in `src/infrastructure/...` (adapters, DI, dto, video pipelines). UI state and views live in `src/presentation/...` alongside Pinia stores and assets, with `App.vue` and `main.ts` wiring Vue 3. Cypress specs and fixtures stay under `cypress/`, while `scripts/` hosts auxiliary tooling such as `multiDev.ts` and dependency graph generators. Static assets belong in `public/`, and generated dependency graphs land in `dep-graphs/`.
 
+- Application use cases (`src/application/usecases`) only define orchestration logic; dependency composition for those use cases belongs in infrastructure DI modules (e.g., `src/infrastructure/di/container.ts`). Never mix DI wiring and use case definitions in the same file.
+
 ## Build, Test, and Development Commands
 Use `npm run dev` for the Vite dev server (hot reload on :5173). `npm run build` performs type-checking and produces the production bundle; follow with `npm run preview` to serve it on :4173. Run `npm run lint` to auto-fix style issues, and `npm run type-check` when validating editor diagnostics. `npm run test:unit` executes Vitest (jsdom environment scoped to `src/`), while `npm run test:e2e` spins up the preview server and runs Cypress headlessly; `npm run test:e2e:dev` opens the Cypress runner. To regenerate architectural graphs, call `npm run dep-graph`.
 

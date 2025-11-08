@@ -9,3 +9,13 @@ export class AddVideosFromFilesUseCase {
     return this.parser.parseItems(items)
   }
 }
+
+export interface AddVideosFromFilesUseCaseDeps {
+  parser: IVideoParser
+}
+
+export function createAddVideosFromFilesUseCase({
+  parser,
+}: AddVideosFromFilesUseCaseDeps): AddVideosFromFilesUseCase {
+  return new AddVideosFromFilesUseCase(parser)
+}

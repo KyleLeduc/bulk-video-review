@@ -49,3 +49,21 @@ export class UpdateVideoThumbnailsUseCase {
     }
   }
 }
+
+export interface UpdateVideoThumbnailsUseCaseDeps {
+  thumbnailGenerator: IVideoThumbnailGenerator
+  videoCommand: IVideoCommand
+  eventPublisher: IEventPublisher
+}
+
+export function createUpdateVideoThumbnailsUseCase({
+  thumbnailGenerator,
+  videoCommand,
+  eventPublisher,
+}: UpdateVideoThumbnailsUseCaseDeps): UpdateVideoThumbnailsUseCase {
+  return new UpdateVideoThumbnailsUseCase(
+    thumbnailGenerator,
+    videoCommand,
+    eventPublisher,
+  )
+}

@@ -6,3 +6,7 @@ export class FilterVideosUseCase {
     return applyFilters(request)
   }
 }
+
+export function createFilterVideosUseCase(): FilterVideosUseCase {
+  return new FilterVideosUseCase()
+}

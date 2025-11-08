@@ -7,3 +7,13 @@ export class UpdateVideoVotesUseCase {
     return this.videoCommand.updateVotes(id, delta)
   }
 }
+
+export interface UpdateVideoVotesUseCaseDeps {
+  videoCommand: IVideoCommand
+}
+
+export function createUpdateVideoVotesUseCase({
+  videoCommand,
+}: UpdateVideoVotesUseCaseDeps): UpdateVideoVotesUseCase {
+  return new UpdateVideoVotesUseCase(videoCommand)
+}
