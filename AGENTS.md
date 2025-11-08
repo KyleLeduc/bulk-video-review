@@ -14,3 +14,7 @@ Place new unit specs alongside source using `.spec.ts` or `.test.ts` suffixes an
 
 ## Commit & Pull Request Guidelines
 Follow Conventional Commit styles seen in history (`feat:`, `chore:`, `refactor:`) with concise, imperative summaries. Reference linked issues using `#123` when available and scope one logical change per commit. PRs should include: purpose, high-level approach, testing evidence (`npm run test:unit`, `npm run test:e2e`), and any dependency graph updates or screenshots that help reviewers. Request review before merging and ensure CI (where available) stays green.
+
+## Architecture Decisions
+- **Transient video blobs**: The application never persists uploaded video files or blob URLs. Browser File objects only exist for the current tab session, and duplicating large videos into IndexedDB/Cache API is both storage-heavy and confusing for users. Every session therefore requires the user to re-select files via the upload dialog.
+- **Persistent metadata only**: We still wrap each session’s videos in durable metadata (votes, pins, derived tags, thumbnails) stored through the aggregate repository so UI logic can rely on consistent domain state without hanging on to the video bytes themselves.
