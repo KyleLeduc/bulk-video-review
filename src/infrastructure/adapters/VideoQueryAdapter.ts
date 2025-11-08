@@ -1,20 +1,18 @@
 import type { VideoEntity, MetadataEntity } from '@domain/entities'
 import type { IVideoQuery } from '@app/ports'
-import type { IVideoFacade } from '@domain/repositories'
+import type { IVideoAggregateRepository } from '@domain/repositories'
 
 export class VideoQueryAdapter implements IVideoQuery {
-  constructor(private readonly facade: IVideoFacade) {}
+  constructor(private readonly repository: IVideoAggregateRepository) {}
 
   async getVideo(
     id: string,
   ): Promise<(VideoEntity & MetadataEntity) | undefined> {
-    const result = await this.facade.getVideo(id)
+    const result = await this.repository.getVideo(id)
     return result // Already the correct type from domain interface
   }
 
   async getAllVideos(): Promise<(VideoEntity & MetadataEntity)[]> {
-    // This would need to be implemented in the facade
-    // For now, return empty array as placeholder
-    return []
+    return this.repository.getAllVideos()
   }
 }

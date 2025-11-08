@@ -6,13 +6,14 @@ import type { DatabaseConnection } from '../database/DatabaseConnection'
 class MetadataRepository implements IMetadataRepository {
   constructor(private readonly db: DatabaseConnection) {}
 
-  async getMetadata(id: string): Promise<MetadataEntity> {
+  async getMetadata(id: string): Promise<MetadataEntity | undefined> {
     const store = await this.db.getStore(storeNames.metadata)
 
     return new Promise((resolve, reject) => {
       const request = store.get(id)
 
-      request.onsuccess = () => resolve(request.result as MetadataEntity)
+      request.onsuccess = () =>
+        resolve(request.result ? (request.result as MetadataEntity) : undefined)
       request.onerror = () => reject(request.error!)
     })
   }

@@ -6,13 +6,14 @@ import type { DatabaseConnection } from '../database/DatabaseConnection'
 class VideoRepository implements IVideoRepository {
   constructor(private readonly db: DatabaseConnection) {}
 
-  async getVideo(id: string): Promise<VideoEntity> {
+  async getVideo(id: string): Promise<VideoEntity | undefined> {
     const store = await this.db.getStore(storeNames.video)
 
     return new Promise((resolve, reject) => {
       const request = store.get(id)
 
-      request.onsuccess = () => resolve(request.result as VideoEntity)
+      request.onsuccess = () =>
+        resolve(request.result ? (request.result as VideoEntity) : undefined)
       request.onerror = () => reject(request.error!)
     })
   }

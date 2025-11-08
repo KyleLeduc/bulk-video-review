@@ -1,12 +1,12 @@
 import { VideoFileParser } from '@infra/video'
 import type { IVideoParser, ILogger } from '@app/ports'
 import type { ParsedVideo } from '@domain/entities'
-import type { IVideoFacade } from '@domain/repositories'
+import type { IVideoAggregateRepository } from '@domain/repositories'
 import type { VideoImportItem } from '@domain/valueObjects'
 
 export class VideoParserAdapter implements IVideoParser {
   constructor(
-    private readonly storage: IVideoFacade,
+    private readonly storage: IVideoAggregateRepository,
     private readonly logger: ILogger,
     private readonly parser: VideoFileParser = new VideoFileParser(),
   ) {}

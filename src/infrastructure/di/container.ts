@@ -1,6 +1,9 @@
 import { DatabaseConnection } from '@infra/database/DatabaseConnection'
-import { MetadataRepository, VideoRepository } from '@infra/repository'
-import { VideoMetadataFacade } from '@infra/services'
+import {
+  MetadataRepository,
+  VideoAggregateRepository,
+  VideoRepository,
+} from '@infra/repository'
 import { VideoFileParser } from '@infra/video'
 import {
   ConsoleLoggerAdapter,
@@ -27,7 +30,7 @@ const videoRepository = new VideoRepository(databaseConnection)
 export const logger = new ConsoleLoggerAdapter()
 export const eventPublisher = new NoOpEventPublisher()
 
-const videoMetadataFacade = new VideoMetadataFacade(
+const videoAggregateRepository = new VideoAggregateRepository(
   metadataRepository,
   videoRepository,
   logger,
@@ -38,17 +41,17 @@ const videoFileParser = new VideoFileParser()
 
 // Adapters
 const videoParserAdapter = new VideoParserAdapter(
-  videoMetadataFacade,
+  videoAggregateRepository,
   logger,
   videoFileParser,
 )
 // Keep old adapter for backward compatibility if needed
-const videoStorageAdapter = new VideoStorageAdapter(videoMetadataFacade)
+const videoStorageAdapter = new VideoStorageAdapter(videoAggregateRepository)
 const videoCommandAdapter = new VideoCommandAdapter(
-  videoMetadataFacade,
+  videoAggregateRepository,
   eventPublisher,
 )
-export const videoQueryAdapter = new VideoQueryAdapter(videoMetadataFacade)
+export const videoQueryAdapter = new VideoQueryAdapter(videoAggregateRepository)
 const videoThumbnailGeneratorAdapter = new VideoThumbnailGeneratorAdapter()
 
 // Use cases
@@ -67,7 +70,7 @@ export const updateVotesUseCase = new UpdateVideoVotesUseCase(
 )
 
 export const wipeVideoDataUseCase = new WipeVideoDataUseCase(
-  videoMetadataFacade,
+  videoAggregateRepository,
 )
 
 export const filterVideosUseCase = new FilterVideosUseCase()
