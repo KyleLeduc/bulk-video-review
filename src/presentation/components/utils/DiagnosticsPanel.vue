@@ -21,9 +21,10 @@ import type { WipeVideoDataUseCase } from '@/application/usecases'
 import { useAppStateStore } from '@presentation/stores'
 import { storeToRefs } from 'pinia'
 import { inject } from 'vue'
+import { WIPE_VIDEO_DATA_USE_CASE_KEY } from '@presentation/di/injectionKeys'
 
 const wipeVideoDataUseCase = inject<WipeVideoDataUseCase>(
-  'wipeVideoDataUseCase',
+  WIPE_VIDEO_DATA_USE_CASE_KEY,
 )
 
 const appState = useAppStateStore()
