@@ -9,7 +9,7 @@ import {
   ConsoleLoggerAdapter,
   NoOpEventPublisher,
   VideoCommandAdapter,
-  VideoParserAdapter,
+  VideoMetadataExtractorAdapter,
   VideoQueryAdapter,
   VideoThumbnailGeneratorAdapter,
 } from '@infra/adapters'
@@ -37,13 +37,10 @@ const videoAggregateRepository = new VideoAggregateRepository(
 
 // Infrastructure services
 const videoFileParser = new VideoFileParser()
-
-// Adapters
-const videoParserAdapter = new VideoParserAdapter(
-  videoAggregateRepository,
-  logger,
+const videoMetadataExtractorAdapter = new VideoMetadataExtractorAdapter(
   videoFileParser,
 )
+// Adapters
 const videoCommandAdapter = new VideoCommandAdapter(
   videoAggregateRepository,
   eventPublisher,
@@ -53,7 +50,9 @@ const videoThumbnailGeneratorAdapter = new VideoThumbnailGeneratorAdapter()
 
 // Use cases
 export const addVideosUseCase = createAddVideosFromFilesUseCase({
-  parser: videoParserAdapter,
+  metadataExtractor: videoMetadataExtractorAdapter,
+  aggregateRepository: videoAggregateRepository,
+  logger,
 })
 
 export const updateThumbUseCase = createUpdateVideoThumbnailsUseCase({

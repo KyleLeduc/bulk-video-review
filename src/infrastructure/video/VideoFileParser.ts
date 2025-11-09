@@ -18,7 +18,7 @@ export class VideoFileParser {
     videoMetadata.duration = videoProcessor.getDuration()
 
     const posterThumbnailTimestamp = Math.min(45, videoMetadata.duration / 10)
-    await videoProcessor.seekToTime(posterThumbnailTimestamp)
+    await videoProcessor.seekToTime(posterThumbnailTimestamp) // todo just use captureThumbnail with timestamp param
     const thumbnail = await videoProcessor.captureThumbnail()
 
     videoMetadata.thumbUrl = thumbnail
