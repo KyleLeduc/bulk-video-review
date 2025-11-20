@@ -33,7 +33,9 @@
         "github.copilot-chat",
         "github.copilot",
         "ms-azuretools.vscode-docker",
-        "emilast.LogFileHighlighter"
+        "emilast.LogFileHighlighter",
+        "MermaidChart.vscode-mermaid-chart",
+        "openai.chatgpt"
       ]
     }
   },
