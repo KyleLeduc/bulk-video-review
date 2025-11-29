@@ -1,8 +1,9 @@
+import { ParsedVideoData } from '@domain/valueObjects'
 import type {
   VideoProcessorInterface,
   VideoProcessorFactory,
 } from '../interfaces/VideoProcessorInterface'
-import { ParsedVideoData } from '@domain/valueObjects'
+import { FileHashGenerator } from './FileHashGenerator'
 
 export interface ProcessingTask {
   id: string
@@ -19,10 +20,17 @@ export class VideoProcessingPipeline {
   private activeProcessing = 0
   private maxConcurrent = 2 // Can be configured
 
-  constructor(private processorFactory: VideoProcessorFactory) {}
+  constructor(
+    private processorFactory: VideoProcessorFactory,
+    private hashGenerator: FileHashGenerator = new FileHashGenerator(),
+  ) {}
+
+  generateId(file: File): Promise<string> {
+    return this.hashGenerator.generate(file)
+  }
 
   async queueVideoProcessing(file: File): Promise<string> {
-    const taskId = await this.generateFileHash(file)
+    const taskId = await this.generateId(file)
 
     // Check if already processing/completed
     if (this.tasks.has(taskId)) {
@@ -127,14 +135,5 @@ export class VideoProcessingPipeline {
     videoData.thumbUrls.push(...additionalThumbnails)
 
     return videoData
-  }
-
-  private async generateFileHash(file: File): Promise<string> {
-    // More robust hashing using actual file content sample
-    const chunk = file.slice(0, 8192) // First 8KB
-    const buffer = await chunk.arrayBuffer()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
   }
 }
