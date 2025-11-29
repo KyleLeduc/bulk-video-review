@@ -4,12 +4,7 @@ import {
   VideoAggregateRepository,
   VideoRepository,
 } from '@infra/repository'
-import {
-  DefaultVideoProcessorFactory,
-  FileHashGenerator,
-  VideoFileParser,
-  VideoProcessingPipeline,
-} from '@infra/video'
+import { VideoFileParser } from '@infra/video'
 import {
   ConsoleLoggerAdapter,
   NoOpEventPublisher,
@@ -41,17 +36,7 @@ const videoAggregateRepository = new VideoAggregateRepository(
 )
 
 // Infrastructure services
-const videoProcessorFactory = new DefaultVideoProcessorFactory()
-const fileHashGenerator = new FileHashGenerator()
-const videoProcessingPipeline = new VideoProcessingPipeline(
-  videoProcessorFactory,
-  fileHashGenerator,
-)
-const videoFileParser = new VideoFileParser(
-  videoProcessorFactory,
-  fileHashGenerator,
-  videoProcessingPipeline,
-)
+const videoFileParser = new VideoFileParser()
 const videoMetadataExtractorAdapter = new VideoMetadataExtractorAdapter(
   videoFileParser,
 )
