@@ -50,6 +50,8 @@ export const useVideoStore = defineStore('videos', () => {
 
   const videoMap = reactive(new Map<string, ParsedVideo>())
   const minDuration = ref(0)
+  const maxDuration = ref(0)
+  const searchQuery = ref('')
 
   const sortByVotes = computed<ParsedVideo[]>(() =>
     Array.from(videoMap.values()).sort(
@@ -64,11 +66,16 @@ export const useVideoStore = defineStore('videos', () => {
   const filteredVideos = computed<ParsedVideo[]>(() => {
     const minDurationFilter =
       minDuration.value > 0 ? minDuration.value * 60 : undefined
+    const maxDurationFilter =
+      maxDuration.value > 0 ? maxDuration.value * 60 : undefined
+    const normalizedSearchQuery = searchQuery.value.trim() || undefined
 
     return filterVideosUseCase.execute({
       videos: sortByPinned.value,
       options: {
         minDurationSeconds: minDurationFilter,
+        maxDurationSeconds: maxDurationFilter,
+        searchQuery: normalizedSearchQuery,
       },
     })
   })
@@ -141,8 +148,18 @@ export const useVideoStore = defineStore('videos', () => {
     minDuration.value = value >= 0 ? value : 0
   }
 
+  function setMaxDuration(value: number) {
+    maxDuration.value = value >= 0 ? value : 0
+  }
+
+  function setSearchQuery(value: string) {
+    searchQuery.value = value
+  }
+
   return {
     minDuration,
+    maxDuration,
+    searchQuery,
     filteredVideos,
     sortByPinned,
     sortByVotes,
@@ -151,6 +168,8 @@ export const useVideoStore = defineStore('videos', () => {
     removeVideo,
     removeAllUnpinned,
     setMinDuration,
+    setMaxDuration,
+    setSearchQuery,
     togglePinVideo,
     updateVideoThumbnails,
     updateVotes,
