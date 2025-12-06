@@ -1,2 +1,5 @@
 export { VideoFileParser } from './VideoFileParser'
+export { FfmpegVideoFileParser } from './FfmpegVideoFileParser'
+export { VideoFileParserSelector } from './VideoFileParserSelector'
+export type { IVideoFileParser } from './IVideoFileParser'
 export { FileHashGenerator } from './services/FileHashGenerator'
