@@ -35,7 +35,9 @@
         "ms-azuretools.vscode-docker",
         "emilast.LogFileHighlighter",
         "MermaidChart.vscode-mermaid-chart",
-        "openai.chatgpt"
+        "openai.chatgpt",
+        "systemticks.c4-dsl-extension",
+        "antfu.vite"
       ]
     }
   },
