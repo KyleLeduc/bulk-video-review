@@ -1,15 +1,12 @@
-import type { ParsedVideo } from '@domain/entities'
 import { applyFilters } from '@domain/services'
-
-interface FilterOptions {
-  minDuration?: number
-  maxDuration?: number
-  searchString?: string
-  customFilters?: Array<(video: ParsedVideo) => boolean>
-}
+import type { VideoFilterRequest } from '@domain/valueObjects'
 
 export class FilterVideosUseCase {
-  execute(videos: ParsedVideo[], filters: FilterOptions): ParsedVideo[] {
-    return applyFilters(videos, filters)
+  execute(request: VideoFilterRequest): ReturnType<typeof applyFilters> {
+    return applyFilters(request)
   }
+}
+
+export function createFilterVideosUseCase(): FilterVideosUseCase {
+  return new FilterVideosUseCase()
 }

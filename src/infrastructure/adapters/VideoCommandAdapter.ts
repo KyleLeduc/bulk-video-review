@@ -5,16 +5,16 @@ import type {
   VideoAddedEvent,
   VideoVotesUpdatedEvent,
 } from '@app/ports'
-import type { IVideoFacade } from '@domain/repositories'
+import type { IVideoAggregateRepository } from '@domain/repositories'
 
 export class VideoCommandAdapter implements IVideoCommand {
   constructor(
-    private readonly facade: IVideoFacade,
+    private readonly repository: IVideoAggregateRepository,
     private readonly eventPublisher: IEventPublisher,
   ) {}
 
   async postVideo(video: VideoEntity): Promise<VideoEntity & MetadataEntity> {
-    const result = await this.facade.postVideo(video)
+    const result = await this.repository.postVideo(video)
 
     // Publish domain event
     const event: VideoAddedEvent = {
@@ -36,15 +36,15 @@ export class VideoCommandAdapter implements IVideoCommand {
   async updateVideo(
     video: VideoEntity & MetadataEntity,
   ): Promise<(VideoEntity & MetadataEntity) | undefined> {
-    return this.facade.updateVideo(video)
+    return this.repository.updateVideo(video)
   }
 
   async updateVotes(id: string, delta: number): Promise<number | null> {
     // Get current votes for event
-    const currentVideo = await this.facade.getVideo(id)
+    const currentVideo = await this.repository.getVideo(id)
     const oldVotes = currentVideo?.votes ?? 0
 
-    const result = await this.facade.updateVotes(id, delta)
+    const result = await this.repository.updateVotes(id, delta)
     const newVotes = result ? result.votes : null
 
     if (newVotes !== null) {
@@ -68,6 +68,6 @@ export class VideoCommandAdapter implements IVideoCommand {
   }
 
   async wipeData(): Promise<void> {
-    return this.facade.wipeData()
+    return this.repository.wipeData()
   }
 }

@@ -1,1 +1,0 @@
-export { VideoMetadataFacade } from './VideoMetadataFacade'

@@ -1,43 +1,52 @@
 import type { ParsedVideo } from '../entities'
+import type {
+  VideoFilterOptions,
+  VideoFilterRequest,
+} from '@domain/valueObjects'
 
-interface Filters {
-  minDuration?: number
-  maxDuration?: number
-  searchString?: string
-  customFilters?: Array<(video: ParsedVideo) => boolean>
+const applyDurationFilters = (
+  videos: ParsedVideo[],
+  { minDurationSeconds, maxDurationSeconds }: VideoFilterOptions,
+): ParsedVideo[] => {
+  let filteredVideos = videos
+
+  if (minDurationSeconds !== undefined) {
+    filteredVideos = filteredVideos.filter(
+      (video) => video.duration >= minDurationSeconds,
+    )
+  }
+
+  if (maxDurationSeconds !== undefined) {
+    filteredVideos = filteredVideos.filter(
+      (video) => video.duration <= maxDurationSeconds,
+    )
+  }
+
+  return filteredVideos
 }
 
-// Filter by minimum duration
-function minDurationFilter(
+const applySearchFilter = (
   videos: ParsedVideo[],
-  minDuration: number,
-): ParsedVideo[] {
-  return videos.filter((video) => video.duration >= minDuration)
-}
+  searchQuery?: string,
+): ParsedVideo[] => {
+  if (!searchQuery) {
+    return videos
+  }
 
-// Filter by maximum duration
-function maxDurationFilter(
-  videos: ParsedVideo[],
-  maxDuration: number,
-): ParsedVideo[] {
-  return videos.filter((video) => video.duration <= maxDuration)
-}
-
-// Filter by title containing a string
-function titleContainsFilter(
-  videos: ParsedVideo[],
-  searchString: string,
-): ParsedVideo[] {
+  const normalized = searchQuery.toLowerCase()
   return videos.filter((video) =>
-    video.title.toLowerCase().includes(searchString.toLowerCase()),
+    video.title.toLowerCase().includes(normalized),
   )
 }
 
-// Apply custom filters
-function customFiltersFilter(
+const applyCustomFilters = (
   videos: ParsedVideo[],
-  customFilters: Array<(video: ParsedVideo) => boolean>,
-): ParsedVideo[] {
+  customFilters?: VideoFilterOptions['customFilters'],
+): ParsedVideo[] => {
+  if (!customFilters || customFilters.length === 0) {
+    return videos
+  }
+
   return videos.filter((video) =>
     customFilters.every((filter) => filter(video)),
   )
@@ -45,31 +54,21 @@ function customFiltersFilter(
 
 /**
  * Apply multiple filters to a list of videos
- * @param videos - The list of videos to filter
- * @param filters - The filters to apply
+ * @param request - Videos and filters to apply
  * @returns The filtered list of videos
  */
-export function applyFilters(
-  videos: ParsedVideo[],
-  filters: Filters,
-): ParsedVideo[] {
-  let filteredVideos = videos
+export function applyFilters(request: VideoFilterRequest): ParsedVideo[] {
+  const { videos, options } = request
+  const pinnedVideos = videos.filter((video) => video.pinned)
+  const unpinnedVideos = videos.filter((video) => !video.pinned)
 
-  if (filters.minDuration !== undefined) {
-    filteredVideos = minDurationFilter(filteredVideos, filters.minDuration)
-  }
+  const filteredUnpinned = applyCustomFilters(
+    applySearchFilter(
+      applyDurationFilters(unpinnedVideos, options),
+      options.searchQuery,
+    ),
+    options.customFilters,
+  )
 
-  if (filters.maxDuration !== undefined) {
-    filteredVideos = maxDurationFilter(filteredVideos, filters.maxDuration)
-  }
-
-  if (filters.searchString) {
-    filteredVideos = titleContainsFilter(filteredVideos, filters.searchString)
-  }
-
-  if (filters.customFilters && filters.customFilters.length > 0) {
-    filteredVideos = customFiltersFilter(filteredVideos, filters.customFilters)
-  }
-
-  return filteredVideos
+  return [...pinnedVideos, ...filteredUnpinned]
 }

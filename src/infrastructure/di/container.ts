@@ -1,22 +1,24 @@
 import { DatabaseConnection } from '@infra/database/DatabaseConnection'
-import { MetadataRepository, VideoRepository } from '@infra/repository'
-import { VideoMetadataFacade } from '@infra/services'
+import {
+  MetadataRepository,
+  VideoAggregateRepository,
+  VideoRepository,
+} from '@infra/repository'
 import { VideoFileParser } from '@infra/video'
 import {
   ConsoleLoggerAdapter,
   NoOpEventPublisher,
   VideoCommandAdapter,
-  VideoParserAdapter,
+  VideoMetadataExtractorAdapter,
   VideoQueryAdapter,
-  VideoStorageAdapter,
   VideoThumbnailGeneratorAdapter,
 } from '@infra/adapters'
 import {
-  AddVideosFromFilesUseCase,
-  UpdateVideoThumbnailsUseCase,
-  UpdateVideoVotesUseCase,
-  WipeVideoDataUseCase,
-  FilterVideosUseCase,
+  createAddVideosFromFilesUseCase,
+  createFilterVideosUseCase,
+  createUpdateVideoThumbnailsUseCase,
+  createUpdateVideoVotesUseCase,
+  createWipeVideoDataUseCase,
 } from '@app/usecases'
 
 // Infrastructure dependencies
@@ -27,7 +29,7 @@ const videoRepository = new VideoRepository(databaseConnection)
 export const logger = new ConsoleLoggerAdapter()
 export const eventPublisher = new NoOpEventPublisher()
 
-const videoMetadataFacade = new VideoMetadataFacade(
+const videoAggregateRepository = new VideoAggregateRepository(
   metadataRepository,
   videoRepository,
   logger,
@@ -35,39 +37,36 @@ const videoMetadataFacade = new VideoMetadataFacade(
 
 // Infrastructure services
 const videoFileParser = new VideoFileParser()
-
-// Adapters
-const videoParserAdapter = new VideoParserAdapter(
-  videoMetadataFacade,
-  logger,
+const videoMetadataExtractorAdapter = new VideoMetadataExtractorAdapter(
   videoFileParser,
 )
-// Keep old adapter for backward compatibility if needed
-const videoStorageAdapter = new VideoStorageAdapter(videoMetadataFacade)
+// Adapters
 const videoCommandAdapter = new VideoCommandAdapter(
-  videoMetadataFacade,
+  videoAggregateRepository,
   eventPublisher,
 )
-export const videoQueryAdapter = new VideoQueryAdapter(videoMetadataFacade)
+export const videoQueryAdapter = new VideoQueryAdapter(videoAggregateRepository)
 const videoThumbnailGeneratorAdapter = new VideoThumbnailGeneratorAdapter()
 
 // Use cases
-export const addVideosUseCase = new AddVideosFromFilesUseCase(
-  videoParserAdapter,
-)
+export const addVideosUseCase = createAddVideosFromFilesUseCase({
+  metadataExtractor: videoMetadataExtractorAdapter,
+  aggregateRepository: videoAggregateRepository,
+  logger,
+})
 
-export const updateThumbUseCase = new UpdateVideoThumbnailsUseCase(
-  videoThumbnailGeneratorAdapter,
-  videoCommandAdapter,
+export const updateThumbUseCase = createUpdateVideoThumbnailsUseCase({
+  thumbnailGenerator: videoThumbnailGeneratorAdapter,
+  videoCommand: videoCommandAdapter,
   eventPublisher,
-)
+})
 
-export const updateVotesUseCase = new UpdateVideoVotesUseCase(
-  videoCommandAdapter,
-)
+export const updateVotesUseCase = createUpdateVideoVotesUseCase({
+  videoCommand: videoCommandAdapter,
+})
 
-export const wipeVideoDataUseCase = new WipeVideoDataUseCase(
-  videoMetadataFacade,
-)
+export const wipeVideoDataUseCase = createWipeVideoDataUseCase({
+  repository: videoAggregateRepository,
+})
 
-export const filterVideosUseCase = new FilterVideosUseCase()
+export const filterVideosUseCase = createFilterVideosUseCase()

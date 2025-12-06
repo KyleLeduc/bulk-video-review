@@ -10,6 +10,12 @@
   //   "--env-file",
   //   "${localWorkspaceFolder}/.env"
   // ],
+  "mounts": [
+    "source=bulk-video-review-node-modules,target=/workspaces/bulk-video-review/node_modules,type=volume",
+    "source=${localWorkspaceFolder}/.config/.codex,target=/root/.codex,type=bind",
+    "source=${localWorkspaceFolder}/.config/.gh,target=/root/.config/gh,type=bind",
+    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind"
+  ],
   "postCreateCommand": "npm install && npm install -g @openai/codex && codex --help",
   "customizations": {
     "vscode": {
@@ -27,7 +33,9 @@
         "github.copilot-chat",
         "github.copilot",
         "ms-azuretools.vscode-docker",
-        "emilast.LogFileHighlighter"
+        "emilast.LogFileHighlighter",
+        "MermaidChart.vscode-mermaid-chart",
+        "openai.chatgpt"
       ]
     }
   },
@@ -39,7 +47,11 @@
     "ghcr.io/devcontainers/features/github-cli:1": {
       "installDirectlyFromGitHubRelease": true,
       "version": "latest"
-    }
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/kreemer/features/chrometesting:1": {}
   }
   // optionally set remoteUser if needed
 }

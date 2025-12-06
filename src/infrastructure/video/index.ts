@@ -1,2 +1,2 @@
 export { VideoFileParser } from './VideoFileParser'
-export { HTMLVideoProcessor } from './HTMLVideoProcessor'
+export { FileHashGenerator } from './services/FileHashGenerator'

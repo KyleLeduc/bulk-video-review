@@ -1,6 +1,6 @@
-import type { VideoStorageDto } from './VideoStorageDto'
+import type { VideoAggregate } from './VideoAggregate'
 
-export interface ParsedVideo extends VideoStorageDto {
+export interface ParsedVideo extends VideoAggregate {
   url: string
   pinned: boolean
 }
