@@ -18,20 +18,6 @@ export class VideoMetadataExtractorAdapter implements IVideoMetadataExtractor {
     file: File,
     options?: ExtractVideoMetadataOptions,
   ): Promise<VideoMetadataExtractionResult | null> {
-    const result = await this.parser.transformVideoData(file)
-
-    if (!result) {
-      return null
-    }
-
-    const { videoEntity, url } = result
-    if (options?.idHint) {
-      videoEntity.id = options.idHint
-    }
-
-    return {
-      videoEntity,
-      url,
-    }
+    return this.parser.transformVideoData(file, options?.idHint)
   }
 }
