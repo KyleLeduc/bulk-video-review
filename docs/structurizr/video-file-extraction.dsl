@@ -52,6 +52,9 @@ workspace "Bulk Video Reviewer - Video File Extraction" "Component-level (C3) vi
             browserApis = container "Browser Platform APIs" "IndexedDB, URL.createObjectURL, HTMLVideoElement + canvas" "Browser" {
                 tags "External"
             }
+            idb = container "IndexedDB Storage" "Stores video + metadata aggregates" "Browser IndexedDB" {
+                tags "Database"
+            }
         }
 
         reviewer -> system.webApp.videoStore "Drops files into UI"
@@ -69,7 +72,8 @@ workspace "Bulk Video Reviewer - Video File Extraction" "Component-level (C3) vi
         system.webApp.aggregateRepo -> system.webApp.metadataRepo "Upsert metadata"
         system.webApp.videoRepo -> system.webApp.databaseConnection "Uses storeNames.video"
         system.webApp.metadataRepo -> system.webApp.databaseConnection "Uses storeNames.metadata"
-        system.webApp.databaseConnection -> system.browserApis "IndexedDB API"
+        system.webApp.databaseConnection -> system.idb "IndexedDB connection"
+        system.idb -> system.browserApis "Browser-managed storage APIs"
 
         system.webApp.addVideosUseCase -> system.webApp.loggerPort "Logs timing + failures"
         system.webApp.loggerPort -> system.webApp.loggerAdapter "Implemented by"
@@ -82,6 +86,15 @@ workspace "Bulk Video Reviewer - Video File Extraction" "Component-level (C3) vi
             autolayout lr
             title "Video File Extraction Flow (C1)"
             description "System view starting at AddVideosFromFilesUseCase.ts"
+        }
+
+        container system "video-file-extraction-c2" {
+            include system.webApp
+            include system.browserApis
+            include system.idb
+            autolayout lr
+            title "Video File Extraction Flow (C2)"
+            description "Container view: SPA orchestrates imports, uses browser APIs and IndexedDB"
         }
 
         component system.webApp "video-file-extraction-c3" {
