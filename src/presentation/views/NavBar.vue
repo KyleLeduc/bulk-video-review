@@ -1,72 +1,36 @@
 <template>
   <nav>
-    <h1>bulk-video-review</h1>
-    <FileInput />
+    <div class="nav-left">
+      <h1>bulk-video-review</h1>
+      <button class="ghost" @click="appStateStore.toggleFilterPanel()">
+        {{ isFilterPanelOpen ? 'Hide filters' : 'Show filters' }}
+      </button>
+    </div>
 
-    <div class="buttons">
-      <div class="button" @click="handleClearUnpinned">💣</div>
-    </div>
-    <div class="bulk-video-review">
-      <label for="durationFilter">Duration: </label>
-      <input
-        @keyup="handleDurationFilter"
-        type="text"
-        name="durationFilter"
-        id="durationFilter"
-        :placeholder="'Duration'"
-        :value="minDuration"
-      />
-      <span class="validationMessage">{{ durationValidationMessage }}</span>
-      <span @mouseup="appStateStore.toggleDiagnosticsPanel(true)">🧰</span>
-    </div>
-    <div class="column-selector">
-      <label for="columnCount">Columns: </label>
-      <select
-        id="columnCount"
-        v-model="appStateStore.columnCount"
-        @change="handleColumnChange"
-      >
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-      </select>
+    <div class="nav-actions">
+      <FileInput />
+
+      <button class="ghost" @click="handleClearUnpinned">Clear unpinned</button>
+
+      <button class="ghost" @click="appStateStore.toggleDiagnosticsPanel(true)">
+        Diagnostics
+      </button>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
 import { useVideoStore, useAppStateStore } from '@presentation/stores'
-import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
 import FileInput from '@presentation/components/inputs/FileInput.vue'
 
 const videoStore = useVideoStore()
 const appStateStore = useAppStateStore()
-
-const { minDuration } = storeToRefs(videoStore)
-
-const durationValidationMessage = ref('')
+const { isFilterPanelOpen } = storeToRefs(appStateStore)
 
 const handleClearUnpinned = () => {
   videoStore.removeAllUnpinned()
-}
-
-function handleDurationFilter(e: Event) {
-  const inputElement = e.target as HTMLInputElement
-  const regex = /^\d+$/
-
-  regex.test(inputElement.value) || !inputElement.value
-    ? (durationValidationMessage.value = '')
-    : (durationValidationMessage.value = 'Only numbers')
-
-  const value = parseFloat(inputElement.value) || 0
-  videoStore.setMinDuration(value)
-}
-
-function handleColumnChange(e: Event) {
-  const selectElement = e.target as HTMLSelectElement
-  appStateStore.columnCount = parseInt(selectElement.value)
 }
 </script>
 
@@ -74,16 +38,17 @@ function handleColumnChange(e: Event) {
 nav {
   position: sticky;
   top: 0;
-  padding: 0.5em 0;
-  background-color: brown;
+  padding: 0.65em 1.5em;
+  background-color: #0c121b;
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 nav > h1 {
-  color: aliceblue;
+  color: #f2f6fb;
   padding: 0;
   margin: 0;
 }
@@ -94,56 +59,24 @@ main {
   flex-direction: column;
 }
 
-header input {
-  height: 2em;
-}
-
-.bulk-video-review {
-  padding: 0 1em;
-  color: aliceblue;
-}
-
-.bulk-video-review > input {
-  margin: 0 10px;
-}
-
-.bulk-video-review > span {
-  padding-left: 1em;
-}
-
-.validationMessage {
-  color: white;
-}
-
-.errorMessage {
-  background-color: white;
-  left: 30%;
-  color: red;
-  font-weight: bold;
-  padding: 0.5em 1em;
-  border-radius: 10px;
-  position: absolute;
-}
-
-.button {
-  padding: 0.25em 0.5em;
-  background-color: azure;
-  border: 1px solid black;
-  border-radius: 5px;
-  margin: 0 0 0 0.5em;
-  cursor: pointer;
-}
-
-.buttons {
+.nav-actions {
   display: flex;
-  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.column-selector {
-  color: aliceblue;
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.column-selector select {
-  margin-left: 0.5em;
+.ghost {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f2f6fb;
+  cursor: pointer;
 }
 </style>

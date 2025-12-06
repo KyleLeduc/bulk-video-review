@@ -76,7 +76,11 @@ export const generateThumbnails = async (
   const thumbnails: string[] = []
   const durationIncrement = video.duration / count
 
-  for (let time = durationIncrement; time < video.duration; time += durationIncrement) {
+  for (
+    let time = durationIncrement;
+    time < video.duration;
+    time += durationIncrement
+  ) {
     await seekToTime(video, Math.floor(time))
     thumbnails.push(await captureThumbnail(video))
   }

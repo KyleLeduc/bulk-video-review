@@ -10,6 +10,7 @@ export const useAppStateStore = defineStore('appState', () => {
 
   const isDiagnosticsPanelOpen = ref(false)
   const columnCount = ref(4) // Default to 4 columns
+  const isFilterPanelOpen = ref(true)
 
   function toggleDiagnosticsPanel(forceOpen?: boolean) {
     if (forceOpen !== undefined) {
@@ -19,9 +20,19 @@ export const useAppStateStore = defineStore('appState', () => {
     }
   }
 
+  function toggleFilterPanel(forceOpen?: boolean) {
+    if (forceOpen !== undefined) {
+      isFilterPanelOpen.value = forceOpen
+    } else {
+      isFilterPanelOpen.value = !isFilterPanelOpen.value
+    }
+  }
+
   return {
+    isFilterPanelOpen,
     isDiagnosticsPanelOpen,
     columnCount,
     toggleDiagnosticsPanel,
+    toggleFilterPanel,
   }
 })
