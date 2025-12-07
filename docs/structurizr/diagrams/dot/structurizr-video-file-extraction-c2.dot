@@ -1,0 +1,25 @@
+digraph {
+  compound=true
+  graph [fontname="Arial", rankdir=LR, ranksep=1.0, nodesep=1.0]
+  node [fontname="Arial", shape=box, margin="0.4,0.3"]
+  edge [fontname="Arial"]
+  label=<<br /><font point-size="34">Video File Extraction Flow (C2)</font><br /><font point-size="24">Container view: SPA orchestrates imports, uses browser APIs and IndexedDB</font>>
+
+  subgraph cluster_2 {
+    margin=25
+    label=<<font point-size="24"><br />Bulk Video Reviewer</font><br /><font point-size="19">[Software System]</font>>
+    labelloc=b
+    color="#444444"
+    fontcolor="#444444"
+    fillcolor="#444444"
+
+    18 [id=18,shape=rect, label=<<font point-size="34">Browser Platform APIs</font><br /><font point-size="19">[Container: Browser]</font><br /><br /><font point-size="24">IndexedDB,<br />URL.createObjectURL,<br />HTMLVideoElement + canvas</font>>, style=filled, color="#607d8b", fillcolor="#eceff1", fontcolor="#37474f"]
+    19 [id=19,shape=cylinder, label=<<font point-size="34">IndexedDB Storage</font><br /><font point-size="19">[Container: Browser IndexedDB]</font><br /><br /><font point-size="24">Stores video + metadata<br />aggregates</font>>, style=filled, color="#a5a19e", fillcolor="#ede7e3", fontcolor="#5d4037"]
+    3 [id=3,shape=rect, label=<<font point-size="34">Web Application</font><br /><font point-size="19">[Container: TypeScript]</font><br /><br /><font point-size="24">Vue 3 SPA running in browser</font>>, style=filled, color="#444444", fillcolor="#ffffff", fontcolor="#444444"]
+  }
+
+  3 -> 18 [id=29, label=<<font point-size="24">Uses</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  3 -> 19 [id=38, label=<<font point-size="24">IndexedDB connection</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  19 -> 18 [id=39, label=<<font point-size="24">Browser-managed storage<br />APIs</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+
+}

@@ -1,0 +1,13 @@
+digraph {
+  compound=true
+  graph [fontname="Arial", rankdir=LR, ranksep=1.0, nodesep=1.0]
+  node [fontname="Arial", shape=box, margin="0.4,0.3"]
+  edge [fontname="Arial"]
+  label=<<br /><font point-size="34">Video File Extraction Flow (C1)</font><br /><font point-size="24">System view starting at AddVideosFromFilesUseCase.ts</font>>
+
+  1 [id=1,shape=rect, label=<<font point-size="34">Reviewer</font><br /><font point-size="19">[Person]</font><br /><br /><font point-size="24">Selects video files in the<br />browser</font>>, style=filled, color="#a8adb2", fillcolor="#f1f8ff", fontcolor="#0f3c61"]
+  2 [id=2,shape=rect, label=<<font point-size="34">Bulk Video Reviewer</font><br /><font point-size="19">[Software System]</font><br /><br /><font point-size="24">Browser-based bulk video<br />review tool</font>>, style=filled, color="#444444", fillcolor="#ffffff", fontcolor="#444444"]
+
+  1 -> 2 [id=22, label=<<font point-size="24">Drops files into UI</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+
+}

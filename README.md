@@ -2,47 +2,25 @@
 
 See [`AGENTS.md`](AGENTS.md) for contributor guidelines.
 
-## High Level
+## Video File Extraction Diagrams
 
-### Architectural
+Generated from the Structurizr DSL in `docs/structurizr/` (defaults to `video-file-extraction.dsl` unless you set `STRUCTURIZR_WORKSPACE`). Outputs land in `docs/structurizr/diagrams/*.png`:
 
-![](./dep-graphs/archi-graph.svg)
+### C1 - System
 
-### `src`
+![](docs/structurizr/diagrams/structurizr-video-file-extraction-c1.png)
 
-![](./dep-graphs/src-graph.svg)
+### C2 - Container
 
----
+![](docs/structurizr/diagrams/structurizr-video-file-extraction-c2.png)
 
-## DDD Related Graphs
+### C3 - Component
 
-### Domain
+![](docs/structurizr/diagrams/structurizr-video-file-extraction-c3.png)
 
-![](./dep-graphs/domain-graph.svg)
-
-### Infrastructure
-
-![](./dep-graphs/infrastructure-graph.svg)
-
-### Application
-
-![](./dep-graphs/application-graph.svg)
+Run `npm run diagram:video` after ensuring Structurizr CLI and Graphviz (`dot`) are available. The devcontainer installs both via Dockerfile; otherwise set `STRUCTURIZR_CLI` (or `STRUCTURIZR_CLI_SH`) to your local install.
 
 ---
-
-## UI related
-
-### Components
-
-![](./dep-graphs/components-graph.svg)
-
-### Video Store
-
-![](./dep-graphs/videosStore-graph.svg)
-
-### Views
-
-![](./dep-graphs/views-graph.svg)
 
 ## Project Setup
 

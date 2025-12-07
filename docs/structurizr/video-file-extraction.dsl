@@ -99,7 +99,7 @@ workspace "Bulk Video Reviewer - Video File Extraction" "Component-level (C3) vi
 
         component system.webApp "video-file-extraction-c3" {
             include *
-            autolayout lr
+            autolayout tb
             title "Video File Extraction Flow (C3)"
             description "Component view starting at AddVideosFromFilesUseCase.ts"
         }
