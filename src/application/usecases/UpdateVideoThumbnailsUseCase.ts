@@ -1,15 +1,15 @@
 import type { ParsedVideo } from '@domain/entities'
 import type {
   IVideoThumbnailGenerator,
-  IVideoCommand,
   IEventPublisher,
   VideoThumbnailUpdatedEvent,
 } from '@app/ports'
+import type { IVideoAggregateRepository } from '@domain/repositories'
 
 export class UpdateVideoThumbnailsUseCase {
   constructor(
     private readonly thumbnailGenerator: IVideoThumbnailGenerator,
-    private readonly videoCommand: IVideoCommand,
+    private readonly aggregateRepository: IVideoAggregateRepository,
     private readonly eventPublisher: IEventPublisher,
   ) {}
 
@@ -20,8 +20,9 @@ export class UpdateVideoThumbnailsUseCase {
 
     const thumbs = await this.thumbnailGenerator.generateThumbnails(video.url)
 
-    const dto = await this.videoCommand.updateVideo({
-      ...video,
+    const { url, pinned, ...aggregate } = video
+    const dto = await this.aggregateRepository.updateVideo({
+      ...aggregate,
       thumbUrls: thumbs,
     })
 
@@ -44,26 +45,26 @@ export class UpdateVideoThumbnailsUseCase {
 
     return {
       ...dto,
-      url: video.url,
-      pinned: video.pinned,
+      url,
+      pinned,
     }
   }
 }
 
 export interface UpdateVideoThumbnailsUseCaseDeps {
   thumbnailGenerator: IVideoThumbnailGenerator
-  videoCommand: IVideoCommand
+  aggregateRepository: IVideoAggregateRepository
   eventPublisher: IEventPublisher
 }
 
 export function createUpdateVideoThumbnailsUseCase({
   thumbnailGenerator,
-  videoCommand,
+  aggregateRepository,
   eventPublisher,
 }: UpdateVideoThumbnailsUseCaseDeps): UpdateVideoThumbnailsUseCase {
   return new UpdateVideoThumbnailsUseCase(
     thumbnailGenerator,
-    videoCommand,
+    aggregateRepository,
     eventPublisher,
   )
 }
