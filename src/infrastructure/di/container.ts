@@ -12,7 +12,6 @@ import {
 import {
   ConsoleLoggerAdapter,
   NoOpEventPublisher,
-  VideoCommandAdapter,
   VideoMetadataExtractorAdapter,
   VideoQueryAdapter,
   VideoThumbnailGeneratorAdapter,
@@ -51,10 +50,6 @@ const videoMetadataExtractorAdapter = new VideoMetadataExtractorAdapter(
   logger,
 )
 // Adapters
-const videoCommandAdapter = new VideoCommandAdapter(
-  videoAggregateRepository,
-  eventPublisher,
-)
 export const videoQueryAdapter = new VideoQueryAdapter(videoAggregateRepository)
 const videoThumbnailGeneratorAdapter = new VideoThumbnailGeneratorAdapter()
 
@@ -67,12 +62,13 @@ export const addVideosUseCase = createAddVideosFromFilesUseCase({
 
 export const updateThumbUseCase = createUpdateVideoThumbnailsUseCase({
   thumbnailGenerator: videoThumbnailGeneratorAdapter,
-  videoCommand: videoCommandAdapter,
+  aggregateRepository: videoAggregateRepository,
   eventPublisher,
 })
 
 export const updateVotesUseCase = createUpdateVideoVotesUseCase({
-  videoCommand: videoCommandAdapter,
+  aggregateRepository: videoAggregateRepository,
+  eventPublisher,
 })
 
 export const wipeVideoDataUseCase = createWipeVideoDataUseCase({

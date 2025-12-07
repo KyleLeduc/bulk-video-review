@@ -1,6 +1,5 @@
 export * from './IEventPublisher'
 export * from './ILogger'
-export * from './IVideoCommand'
 export * from './IVideoMetadataExtractor'
 export * from './IVideoQuery'
 export * from './IVideoThumbnailGenerator'

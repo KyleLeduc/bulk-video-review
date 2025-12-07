@@ -1,6 +1,5 @@
 export { ConsoleLoggerAdapter } from './ConsoleLoggerAdapter'
 export { NoOpEventPublisher } from './NoOpEventPublisher'
-export { VideoCommandAdapter } from './VideoCommandAdapter'
-export { VideoMetadataExtractorAdapter } from './VideoMetadataExtractorAdapter'
+export { VideoMetadataExtractorAdapter } from './video/VideoMetadataExtractorAdapter'
 export { VideoQueryAdapter } from './VideoQueryAdapter'
 export { VideoThumbnailGeneratorAdapter } from './VideoThumbnailGeneratorAdapter'
