@@ -1,0 +1,66 @@
+digraph {
+  compound=true
+  graph [fontname="Arial", rankdir=TB, ranksep=1.0, nodesep=1.0]
+  node [fontname="Arial", shape=box, margin="0.4,0.3"]
+  edge [fontname="Arial"]
+  label=<<br /><font point-size="34">Video File Extraction Flow (C3)</font><br /><font point-size="24">Component view starting at AddVideosFromFilesUseCase.ts</font>>
+
+  1 [id=1,shape=rect, label=<<font point-size="34">Reviewer</font><br /><font point-size="19">[Person]</font><br /><br /><font point-size="24">Selects video files in the<br />browser</font>>, style=filled, color="#a8adb2", fillcolor="#f1f8ff", fontcolor="#0f3c61"]
+
+  subgraph cluster_2 {
+    margin=25
+    label=<<font point-size="24"><br />Bulk Video Reviewer</font><br /><font point-size="19">[Software System]</font>>
+    labelloc=b
+    color="#444444"
+    fontcolor="#444444"
+    fillcolor="#444444"
+
+    subgraph cluster_3 {
+      margin=25
+      label=<<font point-size="24"><br />Web Application</font><br /><font point-size="19">[Container: TypeScript]</font>>
+      labelloc=b
+      color="#444444"
+      fontcolor="#444444"
+      fillcolor="#444444"
+
+      10 [id=10,shape=rect, label=<<font point-size="34">Video DOM Utilities</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">loadVideoElement +<br />captureThumbnail helpers</font>>, style=filled, color="#ababab", fillcolor="#f5f5f5", fontcolor="#424242"]
+      11 [id=11,shape=hexagon, label=<<font point-size="34">IVideoAggregateRepository</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Port for reading/writing<br />aggregate metadata</font>>, style=filled, color="#a5a1ac", fillcolor="#ede7f6", fontcolor="#4527a0"]
+      12 [id=12,shape=rect, label=<<font point-size="34">VideoAggregateRepository</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Coordinates video + metadata<br />persistence</font>>, style=filled, color="#9ea9b1", fillcolor="#e3f2fd", fontcolor="#0d47a1"]
+      13 [id=13,shape=rect, label=<<font point-size="34">VideoRepository</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Stores video entities (title,<br />thumbs, duration)</font>>, style=filled, color="#9ea9b1", fillcolor="#e3f2fd", fontcolor="#0d47a1"]
+      14 [id=14,shape=rect, label=<<font point-size="34">MetadataRepository</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Stores voting metadata</font>>, style=filled, color="#9ea9b1", fillcolor="#e3f2fd", fontcolor="#0d47a1"]
+      15 [id=15,shape=cylinder, label=<<font point-size="34">IndexedDB Connection</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Shared access to browser<br />IndexedDB stores</font>>, style=filled, color="#a5a19e", fillcolor="#ede7e3", fontcolor="#5d4037"]
+      16 [id=16,shape=hexagon, label=<<font point-size="34">ILogger</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Port for logging timing +<br />errors</font>>, style=filled, color="#a5a1ac", fillcolor="#ede7f6", fontcolor="#4527a0"]
+      17 [id=17,shape=rect, label=<<font point-size="34">ConsoleLoggerAdapter</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Console-based logger</font>>, style=filled, color="#9ea9b1", fillcolor="#e3f2fd", fontcolor="#0d47a1"]
+      4 [id=4,shape=rect, label=<<font point-size="34">Video Store (Pinia)</font><br /><font point-size="19">[Component: Pinia]</font><br /><br /><font point-size="24">Dispatches addVideosFromFiles<br />and holds UI state</font>>, style=filled, color="#a2aba3", fillcolor="#e8f5e9", fontcolor="#1b5e20"]
+      5 [id=5,shape=rect, label=<<font point-size="34">AddVideosFromFilesUseCase</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Orchestrates video imports,<br />reuses cached entries,<br />persists metadata</font>>, style=filled, color="#b2aa9c", fillcolor="#fff3e0", fontcolor="#e65100"]
+      6 [id=6,shape=hexagon, label=<<font point-size="34">IVideoMetadataExtractor</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Port for turning uploaded<br />files into parsed videos</font>>, style=filled, color="#a5a1ac", fillcolor="#ede7f6", fontcolor="#4527a0"]
+      7 [id=7,shape=rect, label=<<font point-size="34">VideoMetadataExtractorAdapter</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Adapter implementation of<br />metadata extraction</font>>, style=filled, color="#9ea9b1", fillcolor="#e3f2fd", fontcolor="#0d47a1"]
+      8 [id=8,shape=rect, label=<<font point-size="34">VideoFileParser (DOM)</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Validates MIME, creates blob<br />URLs, loads HTMLVideoElement,<br />captures thumbnail</font>>, style=filled, color="#b2ad9d", fillcolor="#fff8e1", fontcolor="#ef6c00"]
+      9 [id=9,shape=rect, label=<<font point-size="34">FileHashGenerator</font><br /><font point-size="19">[Component]</font><br /><br /><font point-size="24">Generates deterministic video<br />ids from file contents</font>>, style=filled, color="#b2ad9d", fillcolor="#fff8e1", fontcolor="#ef6c00"]
+    }
+
+    18 [id=18,shape=rect, label=<<font point-size="34">Browser Platform APIs</font><br /><font point-size="19">[Container: Browser]</font><br /><br /><font point-size="24">IndexedDB,<br />URL.createObjectURL,<br />HTMLVideoElement + canvas</font>>, style=filled, color="#607d8b", fillcolor="#eceff1", fontcolor="#37474f"]
+    19 [id=19,shape=cylinder, label=<<font point-size="34">IndexedDB Storage</font><br /><font point-size="19">[Container: Browser IndexedDB]</font><br /><br /><font point-size="24">Stores video + metadata<br />aggregates</font>>, style=filled, color="#a5a19e", fillcolor="#ede7e3", fontcolor="#5d4037"]
+  }
+
+  1 -> 4 [id=20, label=<<font point-size="24">Drops files into UI</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  4 -> 5 [id=23, label=<<font point-size="24">Requests<br />addVideosFromFiles(files)</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  5 -> 6 [id=24, label=<<font point-size="24">Generate ids + parse<br />videos</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  7 -> 8 [id=25, label=<<font point-size="24">Transforms File into<br />ParsedVideo</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  8 -> 9 [id=26, label=<<font point-size="24">Hash file bytes</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  8 -> 10 [id=27, label=<<font point-size="24">Load video + capture thumb</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  10 -> 18 [id=28, label=<<font point-size="24">Uses</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  6 -> 7 [id=30, label=<<font point-size="24">Implemented by</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  5 -> 11 [id=31, label=<<font point-size="24">Get cached aggregates or<br />persist new</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  11 -> 12 [id=32, label=<<font point-size="24">Implemented by</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  12 -> 13 [id=33, label=<<font point-size="24">Upsert video entities</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  12 -> 14 [id=34, label=<<font point-size="24">Upsert metadata</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  13 -> 15 [id=35, label=<<font point-size="24">Uses storeNames.video</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  14 -> 15 [id=36, label=<<font point-size="24">Uses storeNames.metadata</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  15 -> 19 [id=37, label=<<font point-size="24">IndexedDB connection</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  19 -> 18 [id=39, label=<<font point-size="24">Browser-managed storage<br />APIs</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  5 -> 16 [id=40, label=<<font point-size="24">Logs timing + failures</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  16 -> 17 [id=41, label=<<font point-size="24">Implemented by</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+  17 -> 18 [id=42, label=<<font point-size="24">Console output</font>>, style="dashed", color="#444444", fontcolor="#444444"]
+
+}

@@ -1,7 +1,4 @@
-import type {
-  IEventPublisher,
-  VideoVotesUpdatedEvent,
-} from '@app/ports'
+import type { IEventPublisher, VideoVotesUpdatedEvent } from '@app/ports'
 import type { IVideoAggregateRepository } from '@domain/repositories'
 
 export class UpdateVideoVotesUseCase {

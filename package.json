@@ -19,6 +19,7 @@
     "dep:script": "npx tsx ./scripts/generateDepGraphs.ts",
     "multi-dev": "npx tsx ./scripts/multiDev.ts",
     "dep-graph": "run-p dep:*",
+    "diagram:video": "node ./scripts/generateStructurizrDiagrams.mjs",
     "prepare": "husky",
     "deploy:gh": "gh-pages -d dist",
     "deploy": "run-s build deploy:gh"
