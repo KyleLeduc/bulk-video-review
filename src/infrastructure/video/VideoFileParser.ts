@@ -1,6 +1,11 @@
+import type {
+  ExtractVideoMetadataOptions,
+  VideoMetadataExtractionResult,
+} from '@app/ports'
 import type { VideoEntity } from '@domain/entities'
 import { FileHashGenerator } from './services/FileHashGenerator'
 import { captureThumbnail, loadVideoElement } from './services/videoDomUtils'
+import type { IVideoFileParser } from './IVideoFileParser'
 
 const VALID_VIDEO_MIME_TYPES = [
   'video/mp4', // MP4 (H.264/AAC)
@@ -10,7 +15,7 @@ const VALID_VIDEO_MIME_TYPES = [
   'video/x-matroska', // Matroska (WebM compatible codecs)
 ]
 
-export class VideoFileParser {
+export class VideoFileParser implements IVideoFileParser {
   constructor(
     private readonly hashGenerator: FileHashGenerator = new FileHashGenerator(),
   ) {}
@@ -20,7 +25,10 @@ export class VideoFileParser {
   private readonly isValidVideoType = (video: File) =>
     video.type ? VALID_VIDEO_MIME_TYPES.includes(video.type) : false
 
-  transformVideoData = async (video: File) => {
+  transformVideoData = async (
+    video: File,
+    options?: ExtractVideoMetadataOptions,
+  ): Promise<VideoMetadataExtractionResult | null> => {
     if (!this.isValidVideoType(video)) {
       console.log('invalid video type', video)
       return null
@@ -36,7 +44,7 @@ export class VideoFileParser {
         Math.min(45, duration * 0.1),
       )
       const thumbUrls: string[] = []
-      const id = await this.generateHash(video)
+      const id = options?.idHint ?? (await this.generateHash(video))
 
       const videoEntity: VideoEntity = {
         id,

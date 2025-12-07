@@ -4,7 +4,11 @@ import {
   VideoAggregateRepository,
   VideoRepository,
 } from '@infra/repository'
-import { VideoFileParser } from '@infra/video'
+import {
+  FfmpegVideoFileParser,
+  VideoFileParser,
+  VideoFileParserSelector,
+} from '@infra/video'
 import {
   ConsoleLoggerAdapter,
   NoOpEventPublisher,
@@ -36,9 +40,15 @@ const videoAggregateRepository = new VideoAggregateRepository(
 )
 
 // Infrastructure services
-const videoFileParser = new VideoFileParser()
+const domVideoFileParser = new VideoFileParser()
+const ffmpegVideoFileParser = new FfmpegVideoFileParser()
+const videoFileParserSelector = new VideoFileParserSelector(
+  domVideoFileParser,
+  ffmpegVideoFileParser,
+)
 const videoMetadataExtractorAdapter = new VideoMetadataExtractorAdapter(
-  videoFileParser,
+  videoFileParserSelector,
+  logger,
 )
 // Adapters
 const videoCommandAdapter = new VideoCommandAdapter(
