@@ -53,6 +53,25 @@ export const useVideoStore = defineStore('videos', () => {
   const maxDuration = ref(0)
   const searchQuery = ref('')
 
+  function revokeVideoUrl(url: string) {
+    if (!url.startsWith('blob:')) {
+      return
+    }
+
+    const revoke = (
+      URL as unknown as { revokeObjectURL?: (url: string) => void }
+    ).revokeObjectURL
+    if (typeof revoke !== 'function') {
+      return
+    }
+
+    try {
+      revoke(url)
+    } catch (error) {
+      logger.error('Failed to revoke object URL', error)
+    }
+  }
+
   const sortByVotes = computed<ParsedVideo[]>(() =>
     Array.from(videoMap.values()).sort(
       (a, b) => Number(b.votes) - Number(a.votes),
@@ -82,11 +101,22 @@ export const useVideoStore = defineStore('videos', () => {
 
   function addVideos(videos: ParsedVideo[]) {
     videos.forEach((video) => {
+      const existing = toRaw(videoMap.get(video.id))
+      if (existing) {
+        revokeVideoUrl(video.url)
+        return
+      }
+
       videoMap.set(video.id, video)
     })
   }
 
   function removeVideo(videoId: string) {
+    const existing = toRaw(videoMap.get(videoId))
+    if (existing) {
+      revokeVideoUrl(existing.url)
+    }
+
     videoMap.delete(videoId)
   }
 
@@ -102,6 +132,12 @@ export const useVideoStore = defineStore('videos', () => {
     const pinnedVideos = Array.from(videoMap.entries()).filter(
       ([, video]) => video.pinned,
     )
+
+    Array.from(videoMap.values())
+      .filter((video) => !video.pinned)
+      .forEach((video) => {
+        revokeVideoUrl(video.url)
+      })
 
     videoMap.clear()
 
