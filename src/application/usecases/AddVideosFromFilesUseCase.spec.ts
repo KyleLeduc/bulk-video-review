@@ -6,6 +6,12 @@ import type {
   IVideoSessionRegistry,
 } from '@app/ports'
 import type { VideoImportItem } from '@domain/valueObjects'
+import {
+  buildLogger,
+  buildSessionRegistry,
+  buildVideoAggregate,
+  buildVideoEntity,
+} from '@test-utils/index'
 import { AddVideosFromFilesUseCase } from './AddVideosFromFilesUseCase'
 
 type UseCaseDeps = {
@@ -30,19 +36,8 @@ const makeDeps = (overrides: Partial<UseCaseDeps> = {}): UseCaseDeps => {
     wipeData: vi.fn(async () => {}),
   }
 
-  const sessionRegistry: IVideoSessionRegistry = {
-    registerFile: vi.fn(),
-    unregisterFile: vi.fn(),
-    acquireObjectUrl: vi.fn(() => null),
-    releaseObjectUrl: vi.fn(),
-  }
-
-  const logger: ILogger = {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-  }
+  const sessionRegistry: IVideoSessionRegistry = buildSessionRegistry()
+  const logger: ILogger = buildLogger()
 
   return {
     metadataExtractor,
@@ -102,15 +97,7 @@ describe('AddVideosFromFilesUseCase', () => {
       },
       aggregateRepository: {
         ...makeDeps().aggregateRepository,
-        getVideo: vi.fn(async () => ({
-          id: 'id-1',
-          title: 'sample.mp4',
-          thumb: '',
-          duration: 0,
-          thumbUrls: [],
-          tags: [],
-          votes: 0,
-        })),
+        getVideo: vi.fn(async () => buildVideoAggregate({ id: 'id-1' })),
       },
     })
 
@@ -141,14 +128,14 @@ describe('AddVideosFromFilesUseCase', () => {
       metadataExtractor: {
         generateId: vi.fn(async () => 'id-2'),
         extract: vi.fn(async () => ({
-          videoEntity: {
+          videoEntity: buildVideoEntity({
             id: 'id-2',
             title: 'new.mp4',
             thumb: 't',
             duration: 123,
             thumbUrls: ['a'],
             tags: ['tag'],
-          },
+          }),
           url: 'blob:temp-url',
         })),
       },
@@ -203,14 +190,12 @@ describe('AddVideosFromFilesUseCase', () => {
       metadataExtractor: {
         generateId: vi.fn(async () => 'id-3'),
         extract: vi.fn(async () => ({
-          videoEntity: {
+          videoEntity: buildVideoEntity({
             id: 'id-3',
             title: 'broken.mp4',
             thumb: 't',
             duration: 1,
-            thumbUrls: [],
-            tags: [],
-          },
+          }),
           url: 'blob:temp-url-3',
         })),
       },

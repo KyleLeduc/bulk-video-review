@@ -3,30 +3,18 @@ import { describe, expect, test, vi } from 'vitest'
 import { nextTick } from 'vue'
 import type { IVideoSessionRegistry } from '@app/ports'
 import { VIDEO_SESSION_REGISTRY_KEY } from '@presentation/di/injectionKeys'
+import { buildParsedVideo, buildSessionRegistry } from '@test-utils/index'
 import VideoEmbed from './VideoEmbed.vue'
 
 describe('VideoEmbed', () => {
   test('acquires a blob URL on mount and releases it on unmount', async () => {
-    const sessionRegistry: IVideoSessionRegistry = {
-      registerFile: vi.fn(),
-      unregisterFile: vi.fn(),
+    const sessionRegistry: IVideoSessionRegistry = buildSessionRegistry({
       acquireObjectUrl: vi.fn(() => 'blob:playback'),
-      releaseObjectUrl: vi.fn(),
-    }
+    })
 
     const wrapper = mount(VideoEmbed, {
       props: {
-        video: {
-          id: 'id-1',
-          title: 'sample.mp4',
-          thumb: '',
-          duration: 0,
-          thumbUrls: [],
-          tags: [],
-          votes: 0,
-          url: '',
-          pinned: false,
-        },
+        video: buildParsedVideo({ id: 'id-1' }),
         options: {
           playing: false,
           muted: true,

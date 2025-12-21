@@ -33,6 +33,9 @@
       "@presentation/*": [
         "src/presentation/*"
       ],
+      "@test-utils/*": [
+        "src/test-utils/*"
+      ]
     }
   }
 }
