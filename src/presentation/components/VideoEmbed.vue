@@ -5,14 +5,15 @@
     :key="video.id"
     ref="videoFrame"
     @volumechange="handleVolumeChange"
-  >
-    <source :src="video.url" type="video/mp4" />
-  </video>
+    :src="playbackUrl"
+  ></video>
 </template>
 
 <script setup lang="ts">
 import type { ParsedVideo } from '@domain/entities'
-import { onMounted, reactive, ref } from 'vue'
+import { inject, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import type { IVideoSessionRegistry } from '@app/ports'
+import { VIDEO_SESSION_REGISTRY_KEY } from '@presentation/di/injectionKeys'
 
 interface VideoEmbedInitOptions {
   playing: boolean
@@ -35,6 +36,12 @@ const props = withDefaults(
 )
 
 const videoFrame = ref<HTMLVideoElement | null>(null)
+const playbackUrl = ref(props.video.url)
+const acquiredFromRegistry = ref(false)
+
+const sessionRegistry = inject<IVideoSessionRegistry>(
+  VIDEO_SESSION_REGISTRY_KEY,
+)
 
 const state = reactive({
   isMuted: false,
@@ -86,7 +93,22 @@ const controls = {
 defineExpose({ controls, state, loopingState })
 
 onMounted(() => {
+  let updatedSource = false
+
+  if (sessionRegistry && !props.video.url) {
+    const acquired = sessionRegistry.acquireObjectUrl(props.video.id)
+    if (acquired) {
+      playbackUrl.value = acquired
+      acquiredFromRegistry.value = true
+      updatedSource = true
+    }
+  }
+
   if (videoFrame.value) {
+    if (updatedSource && playbackUrl.value) {
+      videoFrame.value.src = playbackUrl.value
+    }
+
     state.isMuted = props.options.muted
     videoFrame.value.volume = props.options.volume
     videoFrame.value.muted = props.options.muted
@@ -107,6 +129,12 @@ onMounted(() => {
     if (props.options.playing) {
       videoFrame.value.play()
     }
+  }
+})
+
+onBeforeUnmount(() => {
+  if (sessionRegistry && acquiredFromRegistry.value) {
+    sessionRegistry.releaseObjectUrl(props.video.id)
   }
 })
 </script>

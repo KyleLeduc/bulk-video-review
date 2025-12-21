@@ -7,7 +7,7 @@ import type {
   UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
 } from '@app/usecases'
-import type { ILogger } from '@app/ports'
+import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import type { VideoImportItem } from '@domain/valueObjects'
 import {
   ADD_VIDEOS_USE_CASE_KEY,
@@ -15,6 +15,7 @@ import {
   LOGGER_KEY,
   UPDATE_THUMB_USE_CASE_KEY,
   UPDATE_VOTES_USE_CASE_KEY,
+  VIDEO_SESSION_REGISTRY_KEY,
 } from '@presentation/di/injectionKeys'
 
 function resolveDependency<T>(dependency: T | undefined, name: string): T {
@@ -47,28 +48,21 @@ export const useVideoStore = defineStore('videos', () => {
   )
 
   const logger = resolveDependency<ILogger>(inject(LOGGER_KEY), 'Logger')
+  const sessionRegistry = resolveDependency<IVideoSessionRegistry>(
+    inject(VIDEO_SESSION_REGISTRY_KEY),
+    'VideoSessionRegistry',
+  )
 
   const videoMap = reactive(new Map<string, ParsedVideo>())
   const minDuration = ref(0)
   const maxDuration = ref(0)
   const searchQuery = ref('')
 
-  function revokeVideoUrl(url: string) {
-    if (!url.startsWith('blob:')) {
-      return
-    }
-
-    const revoke = (
-      URL as unknown as { revokeObjectURL?: (url: string) => void }
-    ).revokeObjectURL
-    if (typeof revoke !== 'function') {
-      return
-    }
-
+  const releaseVideoResources = (videoId: string) => {
     try {
-      revoke(url)
+      sessionRegistry.unregisterFile(videoId)
     } catch (error) {
-      logger.error('Failed to revoke object URL', error)
+      logger.error('Failed to release session video resources', error)
     }
   }
 
@@ -103,7 +97,6 @@ export const useVideoStore = defineStore('videos', () => {
     videos.forEach((video) => {
       const existing = toRaw(videoMap.get(video.id))
       if (existing) {
-        revokeVideoUrl(video.url)
         return
       }
 
@@ -114,7 +107,7 @@ export const useVideoStore = defineStore('videos', () => {
   function removeVideo(videoId: string) {
     const existing = toRaw(videoMap.get(videoId))
     if (existing) {
-      revokeVideoUrl(existing.url)
+      releaseVideoResources(videoId)
     }
 
     videoMap.delete(videoId)
@@ -136,7 +129,7 @@ export const useVideoStore = defineStore('videos', () => {
     Array.from(videoMap.values())
       .filter((video) => !video.pinned)
       .forEach((video) => {
-        revokeVideoUrl(video.url)
+        releaseVideoResources(video.id)
       })
 
     videoMap.clear()

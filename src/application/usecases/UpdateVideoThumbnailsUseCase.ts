@@ -2,6 +2,7 @@ import type { ParsedVideo } from '@domain/entities'
 import type {
   IVideoThumbnailGenerator,
   IEventPublisher,
+  IVideoSessionRegistry,
   VideoThumbnailUpdatedEvent,
 } from '@app/ports'
 import type { IVideoAggregateRepository } from '@domain/repositories'
@@ -10,6 +11,7 @@ export class UpdateVideoThumbnailsUseCase {
   constructor(
     private readonly thumbnailGenerator: IVideoThumbnailGenerator,
     private readonly aggregateRepository: IVideoAggregateRepository,
+    private readonly sessionRegistry: IVideoSessionRegistry,
     private readonly eventPublisher: IEventPublisher,
   ) {}
 
@@ -18,7 +20,22 @@ export class UpdateVideoThumbnailsUseCase {
       return video
     }
 
-    const thumbs = await this.thumbnailGenerator.generateThumbnails(video.url)
+    const sourceUrl =
+      video.url || this.sessionRegistry.acquireObjectUrl(video.id)
+    if (!sourceUrl) {
+      return video
+    }
+
+    const acquiredFromRegistry = sourceUrl !== video.url
+    let thumbs: string[] = []
+
+    try {
+      thumbs = await this.thumbnailGenerator.generateThumbnails(sourceUrl)
+    } finally {
+      if (acquiredFromRegistry) {
+        this.sessionRegistry.releaseObjectUrl(video.id)
+      }
+    }
 
     const { url, pinned, ...aggregate } = video
     const dto = await this.aggregateRepository.updateVideo({
@@ -54,17 +71,20 @@ export class UpdateVideoThumbnailsUseCase {
 export interface UpdateVideoThumbnailsUseCaseDeps {
   thumbnailGenerator: IVideoThumbnailGenerator
   aggregateRepository: IVideoAggregateRepository
+  sessionRegistry: IVideoSessionRegistry
   eventPublisher: IEventPublisher
 }
 
 export function createUpdateVideoThumbnailsUseCase({
   thumbnailGenerator,
   aggregateRepository,
+  sessionRegistry,
   eventPublisher,
 }: UpdateVideoThumbnailsUseCaseDeps): UpdateVideoThumbnailsUseCase {
   return new UpdateVideoThumbnailsUseCase(
     thumbnailGenerator,
     aggregateRepository,
+    sessionRegistry,
     eventPublisher,
   )
 }

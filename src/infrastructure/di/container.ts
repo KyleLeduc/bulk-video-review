@@ -8,6 +8,7 @@ import {
   FfmpegVideoFileParser,
   VideoFileParser,
   VideoFileParserSelector,
+  VideoSessionRegistry,
 } from '@infra/video'
 import {
   ConsoleLoggerAdapter,
@@ -31,6 +32,8 @@ const videoRepository = new VideoRepository(databaseConnection)
 // Cross-cutting concern adapters
 export const logger = new ConsoleLoggerAdapter()
 export const eventPublisher = new NoOpEventPublisher()
+
+export const videoSessionRegistry = new VideoSessionRegistry(logger)
 
 const videoAggregateRepository = new VideoAggregateRepository(
   metadataRepository,
@@ -57,12 +60,14 @@ const videoThumbnailGeneratorAdapter = new VideoThumbnailGeneratorAdapter()
 export const addVideosUseCase = createAddVideosFromFilesUseCase({
   metadataExtractor: videoMetadataExtractorAdapter,
   aggregateRepository: videoAggregateRepository,
+  sessionRegistry: videoSessionRegistry,
   logger,
 })
 
 export const updateThumbUseCase = createUpdateVideoThumbnailsUseCase({
   thumbnailGenerator: videoThumbnailGeneratorAdapter,
   aggregateRepository: videoAggregateRepository,
+  sessionRegistry: videoSessionRegistry,
   eventPublisher,
 })
 
