@@ -38,3 +38,4 @@ claude_user/*
 .gh
 
 .venv
+.worktrees/
