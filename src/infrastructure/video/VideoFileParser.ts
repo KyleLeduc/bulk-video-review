@@ -37,7 +37,12 @@ export class VideoFileParser implements IVideoFileParser {
     const url = URL.createObjectURL(video)
 
     try {
-      const videoElement = await loadVideoElement(url)
+      const videoElement = await loadVideoElement(url, {
+        label: video.name,
+        timeoutMs: 5000,
+      })
+      if (!videoElement) return null
+
       const duration = videoElement.duration
       const thumbUrl = await captureThumbnail(
         videoElement,
@@ -54,6 +59,8 @@ export class VideoFileParser implements IVideoFileParser {
         thumbUrls,
         tags: [],
       }
+
+      URL.revokeObjectURL(url)
 
       return { videoEntity, url }
     } catch (error) {
