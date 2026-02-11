@@ -4,6 +4,7 @@ import type { IVideoAggregateRepository } from '@domain/repositories'
 import type {
   ILogger,
   IVideoMetadataExtractor,
+  IVideoSessionRegistry,
   VideoMetadataExtractionResult,
 } from '@app/ports'
 
@@ -17,6 +18,7 @@ export class AddVideosFromFilesUseCase {
     private readonly metadataExtractor: IVideoMetadataExtractor,
     private readonly aggregateRepository: IVideoAggregateRepository,
     private readonly logger: ILogger,
+    private readonly sessionRegistry: IVideoSessionRegistry,
   ) {}
 
   async *execute(items: VideoImportItem[]): AsyncGenerator<ParsedVideo> {
@@ -47,10 +49,10 @@ export class AddVideosFromFilesUseCase {
       const aggregate = await this.aggregateRepository.getVideo(id)
 
       if (aggregate) {
-        const url = URL.createObjectURL(item.file)
+        this.sessionRegistry.registerFile(id, item.file)
         cachedVideos.push({
           ...aggregate,
-          url,
+          url: '',
           pinned: false,
         })
       } else {
@@ -74,7 +76,12 @@ export class AddVideosFromFilesUseCase {
         return null
       }
 
-      return this.persistAndMapResult(extractionResult)
+      this.sessionRegistry.registerFile(pending.id, pending.item.file)
+      try {
+        return await this.persistAndMapResult(extractionResult)
+      } finally {
+        this.revokeObjectUrl(extractionResult.url)
+      }
     } catch (error) {
       this.logger.error('Failed to process file', error)
       return null
@@ -90,8 +97,27 @@ export class AddVideosFromFilesUseCase {
 
     return {
       ...aggregate,
-      url: extractionResult.url,
+      url: '',
       pinned: false,
+    }
+  }
+
+  private revokeObjectUrl(url: string) {
+    if (!url || !url.startsWith('blob:')) {
+      return
+    }
+
+    const revoke = (
+      URL as unknown as { revokeObjectURL?: (url: string) => void }
+    ).revokeObjectURL
+    if (typeof revoke !== 'function') {
+      return
+    }
+
+    try {
+      revoke(url)
+    } catch (error) {
+      this.logger.error('Failed to revoke object URL', error)
     }
   }
 }
@@ -100,16 +126,19 @@ export interface AddVideosFromFilesUseCaseDeps {
   metadataExtractor: IVideoMetadataExtractor
   aggregateRepository: IVideoAggregateRepository
   logger: ILogger
+  sessionRegistry: IVideoSessionRegistry
 }
 
 export function createAddVideosFromFilesUseCase({
   metadataExtractor,
   aggregateRepository,
   logger,
+  sessionRegistry,
 }: AddVideosFromFilesUseCaseDeps): AddVideosFromFilesUseCase {
   return new AddVideosFromFilesUseCase(
     metadataExtractor,
     aggregateRepository,
     logger,
+    sessionRegistry,
   )
 }

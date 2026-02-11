@@ -21,7 +21,11 @@ const handleInput = async (e: Event) => {
   if (!(e.target instanceof HTMLInputElement)) return
 
   if (e.target.files) {
-    await videoStore.addVideosFromFiles(e.target.files)
+    try {
+      await videoStore.addVideosFromFiles(e.target.files)
+    } finally {
+      e.target.value = ''
+    }
   }
 }
 </script>

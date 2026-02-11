@@ -7,7 +7,7 @@ import type {
   UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
 } from '@app/usecases'
-import type { ILogger } from '@app/ports'
+import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import type { VideoImportItem } from '@domain/valueObjects'
 import {
   ADD_VIDEOS_USE_CASE_KEY,
@@ -15,6 +15,7 @@ import {
   LOGGER_KEY,
   UPDATE_THUMB_USE_CASE_KEY,
   UPDATE_VOTES_USE_CASE_KEY,
+  VIDEO_SESSION_REGISTRY_KEY,
 } from '@presentation/di/injectionKeys'
 
 function resolveDependency<T>(dependency: T | undefined, name: string): T {
@@ -47,11 +48,23 @@ export const useVideoStore = defineStore('videos', () => {
   )
 
   const logger = resolveDependency<ILogger>(inject(LOGGER_KEY), 'Logger')
+  const sessionRegistry = resolveDependency<IVideoSessionRegistry>(
+    inject(VIDEO_SESSION_REGISTRY_KEY),
+    'VideoSessionRegistry',
+  )
 
   const videoMap = reactive(new Map<string, ParsedVideo>())
   const minDuration = ref(0)
   const maxDuration = ref(0)
   const searchQuery = ref('')
+
+  const releaseVideoResources = (videoId: string) => {
+    try {
+      sessionRegistry.unregisterFile(videoId)
+    } catch (error) {
+      logger.error('Failed to release session video resources', error)
+    }
+  }
 
   const sortByVotes = computed<ParsedVideo[]>(() =>
     Array.from(videoMap.values()).sort(
@@ -82,11 +95,21 @@ export const useVideoStore = defineStore('videos', () => {
 
   function addVideos(videos: ParsedVideo[]) {
     videos.forEach((video) => {
+      const existing = toRaw(videoMap.get(video.id))
+      if (existing) {
+        return
+      }
+
       videoMap.set(video.id, video)
     })
   }
 
   function removeVideo(videoId: string) {
+    const existing = toRaw(videoMap.get(videoId))
+    if (existing) {
+      releaseVideoResources(videoId)
+    }
+
     videoMap.delete(videoId)
   }
 
@@ -102,6 +125,12 @@ export const useVideoStore = defineStore('videos', () => {
     const pinnedVideos = Array.from(videoMap.entries()).filter(
       ([, video]) => video.pinned,
     )
+
+    Array.from(videoMap.values())
+      .filter((video) => !video.pinned)
+      .forEach((video) => {
+        releaseVideoResources(video.id)
+      })
 
     videoMap.clear()
 

@@ -11,6 +11,7 @@ import {
   logger,
   updateThumbUseCase,
   updateVotesUseCase,
+  videoSessionRegistry,
   wipeVideoDataUseCase,
 } from '@infra/di/container'
 import {
@@ -19,6 +20,7 @@ import {
   LOGGER_KEY,
   UPDATE_THUMB_USE_CASE_KEY,
   UPDATE_VOTES_USE_CASE_KEY,
+  VIDEO_SESSION_REGISTRY_KEY,
   WIPE_VIDEO_DATA_USE_CASE_KEY,
 } from '@presentation/di/injectionKeys'
 
@@ -33,5 +35,6 @@ app.provide(LOGGER_KEY, logger)
 app.provide(UPDATE_THUMB_USE_CASE_KEY, updateThumbUseCase)
 app.provide(UPDATE_VOTES_USE_CASE_KEY, updateVotesUseCase)
 app.provide(WIPE_VIDEO_DATA_USE_CASE_KEY, wipeVideoDataUseCase)
+app.provide(VIDEO_SESSION_REGISTRY_KEY, videoSessionRegistry)
 
 app.mount('#app')

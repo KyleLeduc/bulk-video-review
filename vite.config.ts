@@ -1,4 +1,5 @@
-import { defineConfig } from 'vite'
+/// <reference types="vitest" />
+import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
@@ -11,5 +12,12 @@ export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/bulk-video-review/' : '/',
   server: {
     host: '127.0.0.1',
+  },
+  test: {
+    environment: 'happy-dom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text'],
+    },
   },
 })

@@ -9,6 +9,7 @@ export class VideoThumbnailGeneratorAdapter
 {
   async generateThumbnails(url: string, count = 10): Promise<string[]> {
     const video = await loadVideoElement(url)
+    if (!video) return []
     return generateThumbnails(video, count)
   }
 }

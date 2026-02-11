@@ -20,6 +20,7 @@ coverage
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+.github/*
 .idea
 *.suo
 *.ntvs*
@@ -37,3 +38,4 @@ claude_user/*
 .gh
 
 .venv
+.worktrees/
