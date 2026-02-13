@@ -2,10 +2,10 @@ import { createPinia, setActivePinia } from 'pinia'
 import { vi } from 'vitest'
 import type { ParsedVideo, VideoAggregate, VideoEntity } from '@domain/entities'
 import type {
-  AddVideosFromFilesUseCase,
   FilterVideosUseCase,
   UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
+  VideoIngestionUseCase,
 } from '@app/usecases'
 import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import {
@@ -22,7 +22,7 @@ type UseCaseMock<T extends { execute: (...args: any[]) => any }> = {
 }
 
 type UseCaseMocks = {
-  addVideosUseCase: UseCaseMock<AddVideosFromFilesUseCase>
+  addVideosUseCase: UseCaseMock<VideoIngestionUseCase>
   filterVideosUseCase: UseCaseMock<FilterVideosUseCase>
   updateThumbUseCase: UseCaseMock<UpdateVideoThumbnailsUseCase>
   updateVotesUseCase: UseCaseMock<UpdateVideoVotesUseCase>
@@ -116,7 +116,7 @@ export const createPresentationTestContext = (
   const pinia = createPinia()
   setActivePinia(pinia)
 
-  const addVideosUseCase: UseCaseMock<AddVideosFromFilesUseCase> = {
+  const addVideosUseCase: UseCaseMock<VideoIngestionUseCase> = {
     execute: vi.fn(async function* () {
       yield* []
     }),

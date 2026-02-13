@@ -1,0 +1,229 @@
+import { describe, expect, test, vi } from 'vitest'
+import type { IVideoAggregateRepository } from '@domain/repositories'
+import type {
+  ILogger,
+  IVideoMetadataExtractor,
+  IVideoSessionRegistry,
+} from '@app/ports'
+import type { VideoImportItem } from '@domain/valueObjects'
+import {
+  buildLogger,
+  buildSessionRegistry,
+  buildVideoAggregate,
+  buildVideoEntity,
+} from '@test-utils/index'
+import { LinearVideoIngestionUseCase } from './LinearVideoIngestionUseCase'
+
+type UseCaseDeps = {
+  metadataExtractor: IVideoMetadataExtractor
+  aggregateRepository: IVideoAggregateRepository
+  sessionRegistry: IVideoSessionRegistry
+  logger: ILogger
+}
+
+const makeDeps = (overrides: Partial<UseCaseDeps> = {}): UseCaseDeps => {
+  const metadataExtractor: IVideoMetadataExtractor = {
+    generateId: vi.fn(async () => 'id-default'),
+    extract: vi.fn(async () => null),
+  }
+
+  const aggregateRepository: IVideoAggregateRepository = {
+    getVideo: vi.fn(async () => undefined),
+    getAllVideos: vi.fn(async () => []),
+    postVideo: vi.fn(async (video) => ({ ...video, votes: 0 })),
+    updateVideo: vi.fn(async (video) => video),
+    updateVotes: vi.fn(async () => null),
+    wipeData: vi.fn(async () => {}),
+  }
+
+  const sessionRegistry: IVideoSessionRegistry = buildSessionRegistry()
+  const logger: ILogger = buildLogger()
+
+  return {
+    metadataExtractor,
+    aggregateRepository,
+    sessionRegistry,
+    logger,
+    ...overrides,
+  }
+}
+
+const collect = async <T>(iterable: AsyncIterable<T>): Promise<T[]> => {
+  const results: T[] = []
+  for await (const item of iterable) {
+    results.push(item)
+  }
+  return results
+}
+
+describe('LinearVideoIngestionUseCase', () => {
+  test('yields cached videos and registers their files in session storage', async () => {
+    const file = new File(['video-bytes'], 'cached.mp4', { type: 'video/mp4' })
+    const items: VideoImportItem[] = [{ file }]
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi.fn(async () => 'id-cached'),
+        extract: vi.fn(async () => null),
+      },
+      aggregateRepository: {
+        ...makeDeps().aggregateRepository,
+        getVideo: vi.fn(async () => buildVideoAggregate({ id: 'id-cached' })),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+    )
+
+    const results = await collect(useCase.execute(items))
+
+    expect(deps.metadataExtractor.generateId).toHaveBeenCalledWith(file)
+    expect(deps.metadataExtractor.extract).not.toHaveBeenCalled()
+    expect(deps.aggregateRepository.postVideo).not.toHaveBeenCalled()
+    expect(deps.sessionRegistry.registerFile).toHaveBeenCalledWith(
+      'id-cached',
+      file,
+    )
+    expect(results).toHaveLength(1)
+    expect(results[0]).toEqual(
+      expect.objectContaining({ id: 'id-cached', url: '', pinned: false }),
+    )
+  })
+
+  test('extracts, persists, and yields new videos with mapped metadata fields', async () => {
+    const file = new File(['video-bytes'], 'new.mp4', { type: 'video/mp4' })
+    const items: VideoImportItem[] = [{ file }]
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi.fn(async () => 'id-new'),
+        extract: vi.fn(async () => ({
+          videoEntity: buildVideoEntity({
+            id: 'id-new',
+            title: 'new.mp4',
+            thumb: 'thumb-data-url',
+            duration: 37,
+            thumbUrls: [],
+            tags: [],
+          }),
+          url: 'blob:temp-url-not-used',
+        })),
+      },
+      aggregateRepository: {
+        ...makeDeps().aggregateRepository,
+        getVideo: vi.fn(async () => undefined),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+    )
+
+    const results = await collect(useCase.execute(items))
+
+    expect(deps.metadataExtractor.generateId).toHaveBeenCalledWith(file)
+    expect(deps.metadataExtractor.extract).toHaveBeenCalledWith(file, {
+      idHint: 'id-new',
+    })
+    expect(deps.aggregateRepository.postVideo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'id-new',
+        title: 'new.mp4',
+        thumb: 'thumb-data-url',
+        duration: 37,
+      }),
+    )
+    expect(deps.sessionRegistry.registerFile).toHaveBeenCalledWith(
+      'id-new',
+      file,
+    )
+
+    expect(results).toHaveLength(1)
+    expect(results[0]).toEqual(
+      expect.objectContaining({ id: 'id-new', url: '', pinned: false }),
+    )
+  })
+
+  test('skips invalid/unplayable files when extractor returns null', async () => {
+    const file = new File(['bad-bytes'], 'bad.mov', { type: 'video/quicktime' })
+    const items: VideoImportItem[] = [{ file }]
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi.fn(async () => 'id-invalid'),
+        extract: vi.fn(async () => null),
+      },
+      aggregateRepository: {
+        ...makeDeps().aggregateRepository,
+        getVideo: vi.fn(async () => undefined),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+    )
+
+    const results = await collect(useCase.execute(items))
+
+    expect(results).toHaveLength(0)
+    expect(deps.aggregateRepository.postVideo).not.toHaveBeenCalled()
+    expect(deps.sessionRegistry.registerFile).not.toHaveBeenCalled()
+    expect(deps.logger.warn).toHaveBeenCalled()
+  })
+
+  test('continues ingesting later files when one file fails unexpectedly', async () => {
+    const first = new File(['broken-bytes'], 'broken.mp4', {
+      type: 'video/mp4',
+    })
+    const second = new File(['video-bytes'], 'ok.mp4', { type: 'video/mp4' })
+    const items: VideoImportItem[] = [{ file: first }, { file: second }]
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi
+          .fn()
+          .mockResolvedValueOnce('id-broken')
+          .mockResolvedValueOnce('id-ok'),
+        extract: vi
+          .fn()
+          .mockRejectedValueOnce(new Error('decoder error'))
+          .mockResolvedValueOnce({
+            videoEntity: buildVideoEntity({
+              id: 'id-ok',
+              title: 'ok.mp4',
+              thumb: 'thumb-ok',
+              duration: 10,
+            }),
+            url: '',
+          }),
+      },
+      aggregateRepository: {
+        ...makeDeps().aggregateRepository,
+        getVideo: vi.fn(async () => undefined),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+    )
+
+    const results = await collect(useCase.execute(items))
+
+    expect(results).toHaveLength(1)
+    expect(results[0]).toEqual(expect.objectContaining({ id: 'id-ok' }))
+    expect(deps.logger.error).toHaveBeenCalled()
+  })
+})

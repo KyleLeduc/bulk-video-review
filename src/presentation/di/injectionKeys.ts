@@ -1,14 +1,14 @@
 import type { InjectionKey } from 'vue'
 import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import type {
-  AddVideosFromFilesUseCase,
   FilterVideosUseCase,
   UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
+  VideoIngestionUseCase,
   WipeVideoDataUseCase,
 } from '@app/usecases'
 
-export const ADD_VIDEOS_USE_CASE_KEY: InjectionKey<AddVideosFromFilesUseCase> =
+export const ADD_VIDEOS_USE_CASE_KEY: InjectionKey<VideoIngestionUseCase> =
   Symbol('AddVideosUseCase')
 
 export const FILTER_VIDEOS_USE_CASE_KEY: InjectionKey<FilterVideosUseCase> =

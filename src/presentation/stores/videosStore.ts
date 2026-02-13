@@ -2,10 +2,10 @@ import type { ParsedVideo } from '@domain/entities'
 import { defineStore } from 'pinia'
 import { computed, inject, reactive, ref, toRaw } from 'vue'
 import type {
-  AddVideosFromFilesUseCase,
   FilterVideosUseCase,
   UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
+  VideoIngestionUseCase,
 } from '@app/usecases'
 import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import type { VideoImportItem } from '@domain/valueObjects'
@@ -27,7 +27,7 @@ function resolveDependency<T>(dependency: T | undefined, name: string): T {
 }
 
 export const useVideoStore = defineStore('videos', () => {
-  const addVideosUseCase = resolveDependency<AddVideosFromFilesUseCase>(
+  const addVideosUseCase = resolveDependency<VideoIngestionUseCase>(
     inject(ADD_VIDEOS_USE_CASE_KEY),
     'AddVideosUseCase',
   )

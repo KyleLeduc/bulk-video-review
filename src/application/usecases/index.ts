@@ -1,5 +1,7 @@
 export * from './AddVideosFromFilesUseCase'
+export * from './LinearVideoIngestionUseCase'
 export * from './FilterVideosUseCase'
 export * from './UpdateVideoThumbnailsUseCase'
 export * from './UpdateVideoVotesUseCase'
 export * from './WipeVideoDataUseCase'
+export * from './VideoIngestionUseCase'

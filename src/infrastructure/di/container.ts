@@ -4,12 +4,7 @@ import {
   VideoAggregateRepository,
   VideoRepository,
 } from '@infra/repository'
-import {
-  FfmpegVideoFileParser,
-  VideoFileParser,
-  VideoFileParserSelector,
-  VideoSessionRegistry,
-} from '@infra/video'
+import { BrowserVideoFileParser, VideoSessionRegistry } from '@infra/video'
 import {
   ConsoleLoggerAdapter,
   NoOpEventPublisher,
@@ -18,7 +13,7 @@ import {
   VideoThumbnailGeneratorAdapter,
 } from '@infra/adapters'
 import {
-  createAddVideosFromFilesUseCase,
+  createLinearVideoIngestionUseCase,
   createFilterVideosUseCase,
   createUpdateVideoThumbnailsUseCase,
   createUpdateVideoVotesUseCase,
@@ -42,14 +37,9 @@ const videoAggregateRepository = new VideoAggregateRepository(
 )
 
 // Infrastructure services
-const domVideoFileParser = new VideoFileParser()
-const ffmpegVideoFileParser = new FfmpegVideoFileParser()
-const videoFileParserSelector = new VideoFileParserSelector(
-  domVideoFileParser,
-  ffmpegVideoFileParser,
-)
+const browserVideoFileParser = new BrowserVideoFileParser()
 const videoMetadataExtractorAdapter = new VideoMetadataExtractorAdapter(
-  videoFileParserSelector,
+  browserVideoFileParser,
   logger,
 )
 // Adapters
@@ -57,7 +47,7 @@ export const videoQueryAdapter = new VideoQueryAdapter(videoAggregateRepository)
 const videoThumbnailGeneratorAdapter = new VideoThumbnailGeneratorAdapter()
 
 // Use cases
-export const addVideosUseCase = createAddVideosFromFilesUseCase({
+export const addVideosUseCase = createLinearVideoIngestionUseCase({
   metadataExtractor: videoMetadataExtractorAdapter,
   aggregateRepository: videoAggregateRepository,
   sessionRegistry: videoSessionRegistry,

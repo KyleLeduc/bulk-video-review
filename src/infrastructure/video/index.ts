@@ -1,4 +1,5 @@
 export { VideoFileParser } from './VideoFileParser'
+export { BrowserVideoFileParser } from './BrowserVideoFileParser'
 export { FfmpegVideoFileParser } from './FfmpegVideoFileParser'
 export { VideoFileParserSelector } from './VideoFileParserSelector'
 export type { IVideoFileParser } from './IVideoFileParser'
