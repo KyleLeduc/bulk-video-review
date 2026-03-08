@@ -44,6 +44,9 @@ const stubUrlFunction = <T extends (...args: any[]) => any>(
 describe('BrowserVideoFileParser', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockImplementation(
+      (type: string) => (type === 'video/mp4' ? 'probably' : ''),
+    )
   })
 
   test('returns null for non-video files', async () => {
@@ -130,5 +133,27 @@ describe('BrowserVideoFileParser', () => {
       restoreCreate()
       restoreRevoke()
     }
+  })
+
+  test('returns null for video MIME types the current browser cannot play', async () => {
+    const parser = new BrowserVideoFileParser()
+    const file = new File(['video-bytes'], 'sample.mov', {
+      type: 'video/quicktime',
+    })
+
+    const result = await parser.transformVideoData(file)
+
+    expect(result).toBeNull()
+    expect(loadVideoElementMock).not.toHaveBeenCalled()
+  })
+
+  test('returns null for files with no MIME type and an unsupported extension', async () => {
+    const parser = new BrowserVideoFileParser()
+    const file = new File(['video-bytes'], 'sample.avi', { type: '' })
+
+    const result = await parser.transformVideoData(file)
+
+    expect(result).toBeNull()
+    expect(loadVideoElementMock).not.toHaveBeenCalled()
   })
 })

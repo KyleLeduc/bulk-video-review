@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, readlinkSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { dirname, join, resolve, sep } from 'node:path'
 
 export const ROOT_DEV_PORT = 5173
@@ -241,6 +242,37 @@ export const formatProcessSummary = (
   return `${currentMarker} ${portLabel}\tpid=${process.pid}\t${getWorktreeKey(process.cwd)}\t${process.cwd}`
 }
 
+type ResolveViteBinOptions = {
+  existsSync?: (path: string) => boolean
+  resolveModulePath?: (specifier: string) => string
+}
+
+export const resolveViteBin = (
+  worktreeRoot: string,
+  options: ResolveViteBinOptions = {},
+): string => {
+  const fileExists = options.existsSync ?? existsSync
+  const localViteBin = resolve(worktreeRoot, 'node_modules/vite/bin/vite.js')
+
+  if (fileExists(localViteBin)) {
+    return localViteBin
+  }
+
+  const requireFromWorktree = createRequire(join(worktreeRoot, 'package.json'))
+  const resolveModulePath =
+    options.resolveModulePath ??
+    ((specifier: string) => requireFromWorktree.resolve(specifier))
+
+  const vitePackagePath = resolveModulePath('vite/package.json')
+  const resolvedViteBin = resolve(dirname(vitePackagePath), 'bin/vite.js')
+
+  if (fileExists(resolvedViteBin)) {
+    return resolvedViteBin
+  }
+
+  throw new Error(`Unable to find Vite for ${worktreeRoot}`)
+}
+
 export const runWorktreeDevServer = async (
   cwd = process.cwd(),
 ): Promise<number> => {
@@ -257,11 +289,7 @@ export const runWorktreeDevServer = async (
     return 0
   }
 
-  const viteBin = resolve(worktreeRoot, 'node_modules/vite/bin/vite.js')
-
-  if (!existsSync(viteBin)) {
-    throw new Error(`Unable to find Vite at ${viteBin}`)
-  }
+  const viteBin = resolveViteBin(worktreeRoot)
 
   const child = spawn(
     process.execPath,

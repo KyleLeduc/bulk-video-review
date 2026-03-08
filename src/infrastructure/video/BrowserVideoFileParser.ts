@@ -3,6 +3,7 @@ import type {
   VideoMetadataExtractionResult,
 } from '@app/ports'
 import type { VideoEntity } from '@domain/entities'
+import { isBrowserPlayableVideoFile } from '@/shared/video/browserPlayableVideoTypes'
 import type { IVideoFileParser } from './IVideoFileParser'
 import { FileHashGenerator } from './services/FileHashGenerator'
 import { captureThumbnail, loadVideoElement } from './services/videoDomUtils'
@@ -18,7 +19,7 @@ export class BrowserVideoFileParser implements IVideoFileParser {
     video: File,
     options?: ExtractVideoMetadataOptions,
   ): Promise<VideoMetadataExtractionResult | null> {
-    if (!this.isVideoCandidate(video)) {
+    if (!isBrowserPlayableVideoFile(video)) {
       return null
     }
 
@@ -62,10 +63,6 @@ export class BrowserVideoFileParser implements IVideoFileParser {
       this.disposeVideoElement(videoElement)
       URL.revokeObjectURL(objectUrl)
     }
-  }
-
-  private isVideoCandidate(file: File): boolean {
-    return !file.type || file.type.startsWith('video/')
   }
 
   private getCoverTimestamp(duration: number): number {
