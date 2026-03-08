@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:worktree": "node --import tsx ./scripts/devWorktree.ts",
+    "dev:status": "node --import tsx ./scripts/devStatus.ts",
+    "dev:stop": "node --import tsx ./scripts/devStop.ts",
     "build": "run-p type-check build-only",
     "preview": "vite preview",
     "test:unit": "vitest --root src/ run",
