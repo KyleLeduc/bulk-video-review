@@ -6,7 +6,7 @@
     :style="{ '--nav-height': `${navHeight}px` }"
   >
     <div class="nav-left">
-      <h1>bulk-video-review</h1>
+      <NavTitle />
       <button class="ghost" @click="appStateStore.toggleFilterPanel()">
         {{ isFilterPanelOpen ? 'Hide filters' : 'Show filters' }}
       </button>
@@ -30,6 +30,7 @@ import { useVideoStore, useAppStateStore } from '@presentation/stores'
 import { storeToRefs } from 'pinia'
 
 import FileInput from '@presentation/components/inputs/FileInput.vue'
+import NavTitle from '@presentation/components/layout/NavTitle.vue'
 
 const HIDE_SCROLL_THRESHOLD = 72
 const SCROLL_DELTA_THRESHOLD = 4
@@ -99,12 +100,6 @@ onBeforeUnmount(() => {
   transform: translateY(calc(var(--nav-height, 0px) * -1));
   margin-bottom: calc(var(--nav-height, 0px) * -1);
   box-shadow: none;
-}
-
-.nav-shell > h1 {
-  color: #f2f6fb;
-  padding: 0;
-  margin: 0;
 }
 
 main {

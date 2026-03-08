@@ -28,6 +28,22 @@ describe('NavBar', () => {
     expect(wrapper.find('.nav-shell').exists()).toBe(true)
   })
 
+  test('renders the title through the dedicated NavTitle component', () => {
+    const { global } = createPresentationTestContext({
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+
+    const wrapper = mount(NavBar, {
+      global,
+      shallow: true,
+    })
+
+    expect(wrapper.findComponent({ name: 'NavTitle' }).exists()).toBe(true)
+    expect(wrapper.find('.nav-left > h1').exists()).toBe(false)
+  })
+
   test('hides on downward scroll and returns when scrolling back up', async () => {
     const { global } = createPresentationTestContext({
       sessionRegistry: {
