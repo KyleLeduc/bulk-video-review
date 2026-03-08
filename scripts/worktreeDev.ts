@@ -1,7 +1,13 @@
 import { spawn } from 'node:child_process'
-import { existsSync, readdirSync, readFileSync, readlinkSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { dirname, join, resolve, sep } from 'node:path'
+import {
+  existsSync,
+  lstatSync,
+  readdirSync,
+  readFileSync,
+  readlinkSync,
+} from 'node:fs'
+import { basename, dirname, join, resolve, sep } from 'node:path'
 
 export const ROOT_DEV_PORT = 5173
 const MAX_PORT_SCAN = 200
@@ -23,7 +29,16 @@ type PortSelection = {
   port: number
 }
 
-const WORKTREE_SEGMENT = `${sep}.worktrees${sep}`
+type WorktreeMetadata = {
+  workspaceRoot: string
+  worktreeKey: string
+}
+
+const LINKED_WORKTREE_SEGMENT = `${sep}worktrees${sep}`
+const LEGACY_WORKTREE_SEGMENTS = [
+  `${sep}.worktrees${sep}`,
+  `${sep}worktrees${sep}`,
+]
 
 const hashString = (value: string): number => {
   let hash = 0
@@ -103,26 +118,41 @@ const readProcessPorts = (
 }
 
 export const getWorkspaceRoot = (worktreeRoot: string): string => {
-  const markerIndex = worktreeRoot.indexOf(WORKTREE_SEGMENT)
+  const metadata = readWorktreeMetadata(worktreeRoot)
 
-  if (markerIndex === -1) {
-    return worktreeRoot
+  if (metadata) {
+    return metadata.workspaceRoot
   }
 
-  return worktreeRoot.slice(0, markerIndex)
+  for (const segment of LEGACY_WORKTREE_SEGMENTS) {
+    const markerIndex = worktreeRoot.indexOf(segment)
+
+    if (markerIndex !== -1) {
+      return worktreeRoot.slice(0, markerIndex)
+    }
+  }
+
+  return worktreeRoot
 }
 
 export const getWorktreeKey = (worktreeRoot: string): string => {
-  const markerIndex = worktreeRoot.indexOf(WORKTREE_SEGMENT)
+  const metadata = readWorktreeMetadata(worktreeRoot)
 
-  if (markerIndex === -1) {
-    return 'main'
+  if (metadata) {
+    return metadata.worktreeKey
   }
 
-  return (
-    worktreeRoot.slice(markerIndex + WORKTREE_SEGMENT.length).split(sep)[0] ||
-    'main'
-  )
+  for (const segment of LEGACY_WORKTREE_SEGMENTS) {
+    const markerIndex = worktreeRoot.indexOf(segment)
+
+    if (markerIndex !== -1) {
+      return (
+        worktreeRoot.slice(markerIndex + segment.length).split(sep)[0] || 'main'
+      )
+    }
+  }
+
+  return 'main'
 }
 
 export const findWorktreeRoot = (cwd: string): string => {
@@ -139,6 +169,53 @@ export const findWorktreeRoot = (cwd: string): string => {
   }
 
   return current
+}
+
+const readWorktreeMetadata = (
+  worktreeRoot: string,
+): WorktreeMetadata | null => {
+  const gitEntry = join(worktreeRoot, '.git')
+
+  if (!existsSync(gitEntry)) {
+    return null
+  }
+
+  try {
+    if (lstatSync(gitEntry).isDirectory()) {
+      return {
+        workspaceRoot: worktreeRoot,
+        worktreeKey: 'main',
+      }
+    }
+  } catch {
+    return null
+  }
+
+  try {
+    const pointer = readFileSync(gitEntry, 'utf8').trim()
+    const match = /^gitdir:\s*(.+)$/.exec(pointer)
+
+    if (!match) {
+      return null
+    }
+
+    const gitDir = resolve(worktreeRoot, match[1])
+    const markerIndex = gitDir.lastIndexOf(LINKED_WORKTREE_SEGMENT)
+
+    if (markerIndex === -1) {
+      return {
+        workspaceRoot: worktreeRoot,
+        worktreeKey: 'main',
+      }
+    }
+
+    return {
+      workspaceRoot: dirname(gitDir.slice(0, markerIndex)),
+      worktreeKey: basename(gitDir),
+    }
+  } catch {
+    return null
+  }
 }
 
 export const listViteProcesses = (): ViteServerProcess[] => {
