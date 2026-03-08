@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vitest'
 import type { IVideoAggregateRepository } from '@domain/repositories'
 import type {
+  IVideoIngestionFailureTracker,
   ILogger,
   IVideoMetadataExtractor,
   IVideoSessionRegistry,
@@ -48,6 +49,15 @@ const makeDeps = (overrides: Partial<UseCaseDeps> = {}): UseCaseDeps => {
   }
 }
 
+const buildFailureTracker = (
+  overrides: Partial<IVideoIngestionFailureTracker> = {},
+): IVideoIngestionFailureTracker => ({
+  hasFailure: vi.fn(async () => false),
+  recordFailure: vi.fn(async () => {}),
+  clearFailure: vi.fn(async () => {}),
+  ...overrides,
+})
+
 const collect = async <T>(iterable: AsyncIterable<T>): Promise<T[]> => {
   const results: T[] = []
   for await (const item of iterable) {
@@ -57,9 +67,125 @@ const collect = async <T>(iterable: AsyncIterable<T>): Promise<T[]> => {
 }
 
 describe('LinearVideoIngestionUseCase', () => {
+  test('yields previously scanned videos before parsing unseen items', async () => {
+    const newFile = new File(['video-bytes'], 'new.mp4', { type: 'video/mp4' })
+    const cachedFile = new File(['video-bytes'], 'cached.mp4', {
+      type: 'video/mp4',
+    })
+    const items: VideoImportItem[] = [{ file: newFile }, { file: cachedFile }]
+    const failureTracker = buildFailureTracker()
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi
+          .fn()
+          .mockResolvedValueOnce('id-new')
+          .mockResolvedValueOnce('id-cached'),
+        extract: vi.fn(async () => ({
+          videoEntity: buildVideoEntity({
+            id: 'id-new',
+            title: 'new.mp4',
+            thumb: 'thumb-new',
+            duration: 12,
+          }),
+          url: '',
+        })),
+      },
+      aggregateRepository: {
+        ...makeDeps().aggregateRepository,
+        getVideo: vi
+          .fn()
+          .mockResolvedValueOnce(undefined)
+          .mockResolvedValueOnce(buildVideoAggregate({ id: 'id-cached' })),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+      failureTracker,
+    )
+
+    const results = await collect(useCase.execute(items))
+
+    expect(results).toHaveLength(2)
+    expect(results.map((video) => video.id)).toEqual(['id-cached', 'id-new'])
+    expect(deps.metadataExtractor.extract).toHaveBeenCalledTimes(1)
+    expect(failureTracker.hasFailure).toHaveBeenCalledWith('id-new')
+    expect(deps.sessionRegistry.registerFile).toHaveBeenCalledWith(
+      'id-cached',
+      cachedFile,
+    )
+  })
+
+  test('defers previously failed items until after unseen items', async () => {
+    const retryFile = new File(['video-bytes'], 'retry.mp4', {
+      type: 'video/mp4',
+    })
+    const freshFile = new File(['video-bytes'], 'fresh.mp4', {
+      type: 'video/mp4',
+    })
+    const items: VideoImportItem[] = [{ file: retryFile }, { file: freshFile }]
+    const failureTracker = buildFailureTracker({
+      hasFailure: vi
+        .fn()
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false),
+    })
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi
+          .fn()
+          .mockResolvedValueOnce('id-retry')
+          .mockResolvedValueOnce('id-fresh'),
+        extract: vi
+          .fn()
+          .mockResolvedValueOnce({
+            videoEntity: buildVideoEntity({
+              id: 'id-fresh',
+              title: 'fresh.mp4',
+              thumb: 'thumb-fresh',
+              duration: 10,
+            }),
+            url: '',
+          })
+          .mockResolvedValueOnce({
+            videoEntity: buildVideoEntity({
+              id: 'id-retry',
+              title: 'retry.mp4',
+              thumb: 'thumb-retry',
+              duration: 11,
+            }),
+            url: '',
+          }),
+      },
+      aggregateRepository: {
+        ...makeDeps().aggregateRepository,
+        getVideo: vi.fn(async () => undefined),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+      failureTracker,
+    )
+
+    const results = await collect(useCase.execute(items))
+
+    expect(results.map((video) => video.id)).toEqual(['id-fresh', 'id-retry'])
+    expect(failureTracker.clearFailure).toHaveBeenCalledWith('id-retry')
+  })
+
   test('yields cached videos and registers their files in session storage', async () => {
     const file = new File(['video-bytes'], 'cached.mp4', { type: 'video/mp4' })
     const items: VideoImportItem[] = [{ file }]
+    const failureTracker = buildFailureTracker()
 
     const deps = makeDeps({
       metadataExtractor: {
@@ -77,6 +203,7 @@ describe('LinearVideoIngestionUseCase', () => {
       deps.aggregateRepository,
       deps.sessionRegistry,
       deps.logger,
+      failureTracker,
     )
 
     const results = await collect(useCase.execute(items))
@@ -97,6 +224,7 @@ describe('LinearVideoIngestionUseCase', () => {
   test('extracts, persists, and yields new videos with mapped metadata fields', async () => {
     const file = new File(['video-bytes'], 'new.mp4', { type: 'video/mp4' })
     const items: VideoImportItem[] = [{ file }]
+    const failureTracker = buildFailureTracker()
 
     const deps = makeDeps({
       metadataExtractor: {
@@ -124,6 +252,7 @@ describe('LinearVideoIngestionUseCase', () => {
       deps.aggregateRepository,
       deps.sessionRegistry,
       deps.logger,
+      failureTracker,
     )
 
     const results = await collect(useCase.execute(items))
@@ -144,6 +273,7 @@ describe('LinearVideoIngestionUseCase', () => {
       'id-new',
       file,
     )
+    expect(failureTracker.clearFailure).toHaveBeenCalledWith('id-new')
 
     expect(results).toHaveLength(1)
     expect(results[0]).toEqual(
@@ -154,6 +284,7 @@ describe('LinearVideoIngestionUseCase', () => {
   test('skips invalid/unplayable files when extractor returns null', async () => {
     const file = new File(['bad-bytes'], 'bad.mov', { type: 'video/quicktime' })
     const items: VideoImportItem[] = [{ file }]
+    const failureTracker = buildFailureTracker()
 
     const deps = makeDeps({
       metadataExtractor: {
@@ -171,6 +302,7 @@ describe('LinearVideoIngestionUseCase', () => {
       deps.aggregateRepository,
       deps.sessionRegistry,
       deps.logger,
+      failureTracker,
     )
 
     const results = await collect(useCase.execute(items))
@@ -178,6 +310,7 @@ describe('LinearVideoIngestionUseCase', () => {
     expect(results).toHaveLength(0)
     expect(deps.aggregateRepository.postVideo).not.toHaveBeenCalled()
     expect(deps.sessionRegistry.registerFile).not.toHaveBeenCalled()
+    expect(failureTracker.recordFailure).toHaveBeenCalledWith('id-invalid')
     expect(deps.logger.warn).toHaveBeenCalled()
   })
 
@@ -187,6 +320,7 @@ describe('LinearVideoIngestionUseCase', () => {
     })
     const second = new File(['video-bytes'], 'ok.mp4', { type: 'video/mp4' })
     const items: VideoImportItem[] = [{ file: first }, { file: second }]
+    const failureTracker = buildFailureTracker()
 
     const deps = makeDeps({
       metadataExtractor: {
@@ -218,12 +352,15 @@ describe('LinearVideoIngestionUseCase', () => {
       deps.aggregateRepository,
       deps.sessionRegistry,
       deps.logger,
+      failureTracker,
     )
 
     const results = await collect(useCase.execute(items))
 
     expect(results).toHaveLength(1)
     expect(results[0]).toEqual(expect.objectContaining({ id: 'id-ok' }))
+    expect(failureTracker.recordFailure).toHaveBeenCalledWith('id-broken')
+    expect(failureTracker.clearFailure).toHaveBeenCalledWith('id-ok')
     expect(deps.logger.error).toHaveBeenCalled()
   })
 })

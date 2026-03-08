@@ -73,7 +73,9 @@ describe('generateThumbnails', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const getContextSpy = vi
       .spyOn(HTMLCanvasElement.prototype, 'getContext')
-      .mockReturnValue({ drawImage: vi.fn() } as CanvasRenderingContext2D)
+      .mockReturnValue(
+        { drawImage: vi.fn() } as unknown as CanvasRenderingContext2D,
+      )
     const toDataUrlSpy = vi
       .spyOn(HTMLCanvasElement.prototype, 'toDataURL')
       .mockReturnValue('data:image/jpeg;base64,thumb')

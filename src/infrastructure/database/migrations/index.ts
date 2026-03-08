@@ -1,25 +1,26 @@
-/* eslint-disable no-fallthrough */
 import { handleParsedVideoMigration } from './v1'
 import { handleAddVideoMetadataStore } from './v2'
+import { handleAddVideoIngestionFailuresStore } from './v3'
 
-export const handleMigrations = async (
+export const handleMigrations = (
   request: IDBOpenDBRequest,
-  currentVersion: number,
+  oldVersion: number,
 ) => {
   const db = request.result
-  switch (currentVersion) {
-    case 0:
-      if (!db.objectStoreNames.contains('parsedVideo')) {
-        db.createObjectStore('parsedVideo', { keyPath: 'id' })
-      }
-    case 1:
-      handleParsedVideoMigration(request)
 
-    case 2:
-      handleAddVideoMetadataStore(request)
+  if (oldVersion === 0 && !db.objectStoreNames.contains('parsedVideo')) {
+    db.createObjectStore('parsedVideo', { keyPath: 'id' })
+  }
 
-      break
+  if (oldVersion < 1) {
+    handleParsedVideoMigration(request)
+  }
 
-    // Add more cases as necessary for other versions
+  if (oldVersion < 2) {
+    handleAddVideoMetadataStore(request)
+  }
+
+  if (oldVersion < 3) {
+    handleAddVideoIngestionFailuresStore(request)
   }
 }

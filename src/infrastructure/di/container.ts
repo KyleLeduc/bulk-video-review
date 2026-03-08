@@ -4,7 +4,11 @@ import {
   VideoAggregateRepository,
   VideoRepository,
 } from '@infra/repository'
-import { BrowserVideoFileParser, VideoSessionRegistry } from '@infra/video'
+import {
+  BrowserVideoFileParser,
+  VideoIngestionFailureTracker,
+  VideoSessionRegistry,
+} from '@infra/video'
 import {
   ConsoleLoggerAdapter,
   NoOpEventPublisher,
@@ -24,6 +28,9 @@ import {
 const databaseConnection = DatabaseConnection.getInstance()
 const metadataRepository = new MetadataRepository(databaseConnection)
 const videoRepository = new VideoRepository(databaseConnection)
+const videoIngestionFailureTracker = new VideoIngestionFailureTracker(
+  databaseConnection,
+)
 // Cross-cutting concern adapters
 export const logger = new ConsoleLoggerAdapter()
 export const eventPublisher = new NoOpEventPublisher()
@@ -52,6 +59,7 @@ export const addVideosUseCase = createLinearVideoIngestionUseCase({
   aggregateRepository: videoAggregateRepository,
   sessionRegistry: videoSessionRegistry,
   logger,
+  failureTracker: videoIngestionFailureTracker,
 })
 
 export const updateThumbUseCase = createUpdateVideoThumbnailsUseCase({

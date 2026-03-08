@@ -2,11 +2,22 @@ import type { ParsedVideo } from '@domain/entities'
 import type { VideoImportItem } from '@domain/valueObjects'
 import type { IVideoAggregateRepository } from '@domain/repositories'
 import type {
+  IVideoIngestionFailureTracker,
   ILogger,
   IVideoMetadataExtractor,
   IVideoSessionRegistry,
 } from '@app/ports'
 import type { VideoIngestionUseCase } from './VideoIngestionUseCase'
+
+type PendingVideoItem = {
+  id: string
+  item: VideoImportItem
+}
+
+type ProcessResult =
+  | { status: 'created'; video: ParsedVideo }
+  | { status: 'skipped' }
+  | { status: 'failed' }
 
 export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
   constructor(
@@ -14,6 +25,7 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     private readonly aggregateRepository: IVideoAggregateRepository,
     private readonly sessionRegistry: IVideoSessionRegistry,
     private readonly logger: ILogger,
+    private readonly failureTracker: IVideoIngestionFailureTracker,
   ) {}
 
   async *execute(items: VideoImportItem[]): AsyncGenerator<ParsedVideo> {
@@ -21,10 +33,49 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
       totalItems: items.length,
     })
 
-    let cachedCount = 0
+    const { cachedVideos, freshItems, deferredItems, partitionFailures } =
+      await this.partitionItems(items)
+
     let createdCount = 0
     let skippedCount = 0
-    let failedCount = 0
+    let failedCount = partitionFailures
+
+    for (const video of cachedVideos) {
+      yield video
+    }
+
+    for (const item of [...freshItems, ...deferredItems]) {
+      const result = await this.processItem(item)
+
+      switch (result.status) {
+        case 'created':
+          createdCount += 1
+          yield result.video
+          break
+        case 'skipped':
+          skippedCount += 1
+          break
+        case 'failed':
+          failedCount += 1
+          break
+      }
+    }
+
+    this.logger.info('[linear-ingestion] execute:complete', {
+      totalItems: items.length,
+      cachedCount: cachedVideos.length,
+      createdCount,
+      skippedCount,
+      failedCount,
+      deferredRetryCount: deferredItems.length,
+    })
+  }
+
+  private async partitionItems(items: VideoImportItem[]) {
+    const cachedVideos: ParsedVideo[] = []
+    const freshItems: PendingVideoItem[] = []
+    const deferredItems: PendingVideoItem[] = []
+    let partitionFailures = 0
 
     for (const [index, item] of items.entries()) {
       const context = this.createContext(item.file, index + 1, items.length)
@@ -35,51 +86,101 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
 
         if (existing) {
           this.sessionRegistry.registerFile(id, item.file)
-          cachedCount += 1
-          yield this.mapToParsed(existing)
+          cachedVideos.push(this.mapToParsed(existing))
           continue
         }
 
-        const extractionResult = await this.metadataExtractor.extract(
-          item.file,
-          {
-            idHint: id,
-          },
-        )
-        if (!extractionResult) {
-          skippedCount += 1
-          this.logger.warn('[linear-ingestion] item:skipped', {
-            ...context,
-            id,
-            reason: 'unplayable-or-invalid',
-          })
+        const pendingItem = { id, item }
+        const hasFailure = await this.hasRecordedFailure(id)
+
+        if (hasFailure) {
+          deferredItems.push(pendingItem)
           continue
         }
 
-        const persisted = await this.aggregateRepository.postVideo(
-          extractionResult.videoEntity,
-        )
-
-        this.sessionRegistry.registerFile(id, item.file)
-        createdCount += 1
-
-        yield this.mapToParsed(persisted)
+        freshItems.push(pendingItem)
       } catch (error) {
-        failedCount += 1
-        this.logger.error('[linear-ingestion] item:failed', {
+        partitionFailures += 1
+        this.logger.error('[linear-ingestion] partition:item:failed', {
           ...context,
           error,
         })
       }
     }
 
-    this.logger.info('[linear-ingestion] execute:complete', {
-      totalItems: items.length,
-      cachedCount,
-      createdCount,
-      skippedCount,
-      failedCount,
-    })
+    return { cachedVideos, freshItems, deferredItems, partitionFailures }
+  }
+
+  private async processItem(pending: PendingVideoItem): Promise<ProcessResult> {
+    const { item, id } = pending
+    const context = {
+      ...this.createContext(item.file, 0, 0),
+      id,
+    }
+
+    try {
+      const extractionResult = await this.metadataExtractor.extract(item.file, {
+        idHint: id,
+      })
+      if (!extractionResult) {
+        await this.recordFailure(id)
+        this.logger.warn('[linear-ingestion] item:skipped', {
+          ...context,
+          reason: 'unplayable-or-invalid',
+        })
+        return { status: 'skipped' }
+      }
+
+      const persisted = await this.aggregateRepository.postVideo(
+        extractionResult.videoEntity,
+      )
+
+      this.sessionRegistry.registerFile(id, item.file)
+      await this.clearFailure(id)
+
+      return { status: 'created', video: this.mapToParsed(persisted) }
+    } catch (error) {
+      await this.recordFailure(id)
+      this.logger.error('[linear-ingestion] item:failed', {
+        ...context,
+        error,
+      })
+      return { status: 'failed' }
+    }
+  }
+
+  private async hasRecordedFailure(videoId: string): Promise<boolean> {
+    try {
+      return await this.failureTracker.hasFailure(videoId)
+    } catch (error) {
+      this.logger.error('[linear-ingestion] failure-state:lookup-failed', {
+        videoId,
+        error,
+      })
+      return false
+    }
+  }
+
+  private async recordFailure(videoId: string): Promise<void> {
+    try {
+      await this.failureTracker.recordFailure(videoId)
+    } catch (error) {
+      this.logger.error('[linear-ingestion] failure-state:record-failed', {
+        videoId,
+        error,
+      })
+    }
+  }
+
+  private async clearFailure(videoId: string): Promise<void> {
+    try {
+      await this.failureTracker.clearFailure(videoId)
+    } catch (error) {
+      this.logger.error('[linear-ingestion] failure-state:clear-failed', {
+        videoId,
+        error,
+      })
+    }
   }
 
   private mapToParsed(aggregate: {
@@ -114,6 +215,7 @@ export interface LinearVideoIngestionUseCaseDeps {
   aggregateRepository: IVideoAggregateRepository
   sessionRegistry: IVideoSessionRegistry
   logger: ILogger
+  failureTracker: IVideoIngestionFailureTracker
 }
 
 export function createLinearVideoIngestionUseCase({
@@ -121,11 +223,13 @@ export function createLinearVideoIngestionUseCase({
   aggregateRepository,
   sessionRegistry,
   logger,
+  failureTracker,
 }: LinearVideoIngestionUseCaseDeps): LinearVideoIngestionUseCase {
   return new LinearVideoIngestionUseCase(
     metadataExtractor,
     aggregateRepository,
     sessionRegistry,
     logger,
+    failureTracker,
   )
 }

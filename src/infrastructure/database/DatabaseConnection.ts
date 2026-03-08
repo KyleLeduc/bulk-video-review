@@ -3,7 +3,7 @@ import { handleMigrations } from './migrations'
 class DatabaseConnection {
   private static instance: DatabaseConnection
   private dbName = 'VideoMetaDataDB'
-  private dbVersion = 2
+  private dbVersion = 3
   private db: IDBDatabase | null = null
 
   private constructor() {}

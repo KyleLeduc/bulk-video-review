@@ -1,1 +1,5 @@
-export const storeNames = { video: 'videoCacheDto', metadata: 'VideoMetadata' }
+export const storeNames = {
+  video: 'videoCacheDto',
+  metadata: 'VideoMetadata',
+  ingestionFailures: 'VideoIngestionFailures',
+}

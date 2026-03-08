@@ -1,4 +1,5 @@
 export * from './IEventPublisher'
+export * from './IVideoIngestionFailureTracker'
 export * from './ILogger'
 export * from './IVideoMetadataExtractor'
 export * from './IVideoQuery'
