@@ -10,6 +10,7 @@ import type {
   VideoIngestionUseCase,
 } from '@app/usecases'
 import type { ILogger, IVideoSessionRegistry } from '@app/ports'
+import { isBrowserPlayableVideoFile } from '@/shared/video/browserPlayableVideoTypes'
 import type { VideoImportItem } from '@domain/valueObjects'
 import {
   ADD_VIDEOS_USE_CASE_KEY,
@@ -420,7 +421,14 @@ export const useVideoStore = defineStore('videos', () => {
       return
     }
 
-    const items: VideoImportItem[] = Array.from(files).map((file) => ({ file }))
+    const items: VideoImportItem[] = Array.from(files)
+      .filter(isBrowserPlayableVideoFile)
+      .map((file) => ({ file }))
+
+    if (!items.length) {
+      return
+    }
+
     const deferredThumbnailQueue: ParsedVideo[] = []
 
     ingestionProgress.value = null

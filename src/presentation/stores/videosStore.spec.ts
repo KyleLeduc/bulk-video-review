@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
-import { describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { ParsedVideo } from '@domain/entities'
 import { useVideoStore } from '@presentation/stores'
 import {
@@ -19,6 +19,16 @@ const StoreHarness = defineComponent({
 })
 
 describe('useVideoStore', () => {
+  beforeEach(() => {
+    vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockImplementation(
+      (type: string) => (type === 'video/mp4' ? 'probably' : ''),
+    )
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   test('ignores re-uploaded videos without replacing session state', async () => {
     let callCount = 0
     const { global, mocks } = createPresentationTestContext({
@@ -84,6 +94,32 @@ describe('useVideoStore', () => {
     store.removeVideo('id-1')
     expect(store.sortByVotes).toHaveLength(0)
     expect(mocks.sessionRegistry.unregisterFile).toHaveBeenCalledWith('id-1')
+  })
+
+  test('filters out files the current browser cannot play before invoking ingestion', async () => {
+    const { global, mocks } = createPresentationTestContext({
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+
+    const wrapper = mount(StoreHarness, {
+      global,
+    })
+
+    const store = (wrapper.vm as any).store as ReturnType<typeof useVideoStore>
+    const playable = new File(['video-bytes'], 'sample.mp4', {
+      type: 'video/mp4',
+    })
+    const unsupported = new File(['video-bytes'], 'sample.mov', {
+      type: 'video/quicktime',
+    })
+
+    await store.addVideosFromFiles(createMockFileList(playable, unsupported))
+
+    expect(mocks.useCases.addVideosUseCase.execute).toHaveBeenCalledWith([
+      { file: playable },
+    ])
   })
 
   test('does not re-add a removed video when thumbnail generation finishes later', async () => {
