@@ -3,6 +3,8 @@ import { defineStore } from 'pinia'
 import { computed, inject, reactive, ref, toRaw } from 'vue'
 import type {
   FilterVideosUseCase,
+  VideoIngestionOutput,
+  VideoIngestionProgress,
   UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
   VideoIngestionUseCase,
@@ -25,6 +27,16 @@ function resolveDependency<T>(dependency: T | undefined, name: string): T {
 
   return dependency
 }
+
+type ThumbnailJobState = 'queued' | 'processing' | 'ready' | 'failed'
+
+const THUMBNAIL_BACKGROUND_DELAY_MS = 150
+const DEFAULT_THUMBNAIL_CONCURRENCY = 4
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max)
+
+const hasReadyThumbnails = (video: ParsedVideo) => video.thumbUrls.length > 1
 
 export const useVideoStore = defineStore('videos', () => {
   const addVideosUseCase = resolveDependency<VideoIngestionUseCase>(
@@ -57,6 +69,25 @@ export const useVideoStore = defineStore('videos', () => {
   const minDuration = ref(0)
   const maxDuration = ref(0)
   const searchQuery = ref('')
+  const ingestionProgress = ref<VideoIngestionProgress | null>(null)
+  const ingestionStartedAtMs = ref<number | null>(null)
+  const ingestionCompletedAtMs = ref<number | null>(null)
+  const thumbnailConcurrencyOverride = ref<number | null>(null)
+  const activeThumbnailJobs = ref(0)
+  const thumbnailJobState = reactive(new Map<string, ThumbnailJobState>())
+  const thumbnailQueue = reactive<string[]>([])
+  const thumbnailPriorityQueue = reactive<string[]>([])
+  const thumbnailJobPromises = new Map<string, Promise<void>>()
+  const thumbnailJobResolvers = new Map<string, () => void>()
+  let thumbnailPumpTimer: number | null = null
+
+  const isVideoIngestionEvent = (
+    item: VideoIngestionOutput,
+  ): item is Exclude<VideoIngestionOutput, ParsedVideo> =>
+    typeof item === 'object' &&
+    item !== null &&
+    'type' in item &&
+    (item.type === 'video' || item.type === 'progress')
 
   const releaseVideoResources = (videoId: string) => {
     try {
@@ -93,6 +124,233 @@ export const useVideoStore = defineStore('videos', () => {
     })
   })
 
+  const autoThumbnailConcurrency = computed(() => {
+    if (
+      typeof navigator === 'undefined' ||
+      !Number.isFinite(navigator.hardwareConcurrency)
+    ) {
+      return 2
+    }
+
+    return clamp(
+      Math.floor(navigator.hardwareConcurrency / 2),
+      1,
+      DEFAULT_THUMBNAIL_CONCURRENCY,
+    )
+  })
+
+  const effectiveThumbnailConcurrency = computed(
+    () => thumbnailConcurrencyOverride.value ?? autoThumbnailConcurrency.value,
+  )
+
+  const thumbnailQueueSummary = computed(() => {
+    let queued = 0
+    let processing = 0
+    let ready = 0
+    let failed = 0
+
+    thumbnailJobState.forEach((state) => {
+      if (state === 'queued') {
+        queued += 1
+      } else if (state === 'processing') {
+        processing += 1
+      } else if (state === 'ready') {
+        ready += 1
+      } else if (state === 'failed') {
+        failed += 1
+      }
+    })
+
+    return {
+      queued,
+      processing,
+      ready,
+      failed,
+      total: queued + processing + ready + failed,
+    }
+  })
+
+  const isIngesting = computed(() =>
+    Boolean(
+      ingestionProgress.value &&
+        ingestionProgress.value.completedCount < ingestionProgress.value.total,
+    ),
+  )
+
+  const shouldShowProgressToast = computed(() =>
+    Boolean(
+      ingestionProgress.value &&
+        (isIngesting.value ||
+          thumbnailQueueSummary.value.queued > 0 ||
+          thumbnailQueueSummary.value.processing > 0 ||
+          thumbnailQueueSummary.value.failed > 0),
+    ),
+  )
+
+  const ensureThumbnailJobPromise = (videoId: string) => {
+    const existingPromise = thumbnailJobPromises.get(videoId)
+    if (existingPromise) {
+      return existingPromise
+    }
+
+    const promise = new Promise<void>((resolve) => {
+      thumbnailJobResolvers.set(videoId, resolve)
+    })
+    thumbnailJobPromises.set(videoId, promise)
+    return promise
+  }
+
+  const settleThumbnailJob = (videoId: string) => {
+    thumbnailJobResolvers.get(videoId)?.()
+    thumbnailJobResolvers.delete(videoId)
+    thumbnailJobPromises.delete(videoId)
+  }
+
+  const removeQueuedThumbnailJob = (videoId: string) => {
+    const backgroundIndex = thumbnailQueue.indexOf(videoId)
+    if (backgroundIndex >= 0) {
+      thumbnailQueue.splice(backgroundIndex, 1)
+    }
+
+    const priorityIndex = thumbnailPriorityQueue.indexOf(videoId)
+    if (priorityIndex >= 0) {
+      thumbnailPriorityQueue.splice(priorityIndex, 1)
+    }
+  }
+
+  const clearThumbnailTracking = (videoId: string) => {
+    removeQueuedThumbnailJob(videoId)
+    thumbnailJobState.delete(videoId)
+    settleThumbnailJob(videoId)
+  }
+
+  const pumpThumbnailQueue = () => {
+    if (thumbnailPumpTimer !== null) {
+      clearTimeout(thumbnailPumpTimer)
+      thumbnailPumpTimer = null
+    }
+
+    while (activeThumbnailJobs.value < effectiveThumbnailConcurrency.value) {
+      const nextVideoId =
+        thumbnailPriorityQueue.shift() ?? thumbnailQueue.shift()
+
+      if (!nextVideoId) {
+        break
+      }
+
+      const video = toRaw(videoMap.get(nextVideoId))
+      if (!video) {
+        clearThumbnailTracking(nextVideoId)
+        continue
+      }
+
+      if (hasReadyThumbnails(video)) {
+        thumbnailJobState.set(nextVideoId, 'ready')
+        settleThumbnailJob(nextVideoId)
+        continue
+      }
+
+      if (thumbnailJobState.get(nextVideoId) !== 'queued') {
+        continue
+      }
+
+      activeThumbnailJobs.value += 1
+      thumbnailJobState.set(nextVideoId, 'processing')
+
+      void updateThumbUseCase
+        .execute(video)
+        .then((updated) => {
+          if (!videoMap.has(nextVideoId)) {
+            clearThumbnailTracking(nextVideoId)
+            return
+          }
+
+          if (hasReadyThumbnails(updated)) {
+            videoMap.set(nextVideoId, updated)
+            thumbnailJobState.set(nextVideoId, 'ready')
+            return
+          }
+
+          thumbnailJobState.set(nextVideoId, 'failed')
+        })
+        .catch((error) => {
+          if (!videoMap.has(nextVideoId)) {
+            clearThumbnailTracking(nextVideoId)
+            return
+          }
+
+          thumbnailJobState.set(nextVideoId, 'failed')
+          logger.error('Failed to update thumbnails', error)
+        })
+        .finally(() => {
+          activeThumbnailJobs.value = Math.max(activeThumbnailJobs.value - 1, 0)
+          settleThumbnailJob(nextVideoId)
+          pumpThumbnailQueue()
+        })
+    }
+  }
+
+  const scheduleThumbnailPump = (priority = false) => {
+    if (priority) {
+      pumpThumbnailQueue()
+      return
+    }
+
+    if (thumbnailPumpTimer !== null) {
+      return
+    }
+
+    thumbnailPumpTimer = window.setTimeout(
+      pumpThumbnailQueue,
+      THUMBNAIL_BACKGROUND_DELAY_MS,
+    )
+  }
+
+  const queueThumbnailJob = (videoId: string, priority = false) => {
+    const video = toRaw(videoMap.get(videoId))
+    if (!video) {
+      return Promise.resolve()
+    }
+
+    if (hasReadyThumbnails(video)) {
+      if (thumbnailJobState.has(videoId)) {
+        thumbnailJobState.set(videoId, 'ready')
+      }
+      return Promise.resolve()
+    }
+
+    const existingPromise = thumbnailJobPromises.get(videoId)
+    if (existingPromise) {
+      if (priority && thumbnailJobState.get(videoId) === 'queued') {
+        removeQueuedThumbnailJob(videoId)
+        thumbnailPriorityQueue.push(videoId)
+        scheduleThumbnailPump(true)
+      }
+
+      return existingPromise
+    }
+
+    thumbnailJobState.set(videoId, 'queued')
+    removeQueuedThumbnailJob(videoId)
+    if (priority) {
+      thumbnailPriorityQueue.push(videoId)
+    } else {
+      thumbnailQueue.push(videoId)
+    }
+
+    const promise = ensureThumbnailJobPromise(videoId)
+    scheduleThumbnailPump(priority)
+    return promise
+  }
+
+  const queueBackgroundThumbnailJob = (video: ParsedVideo) => {
+    if (hasReadyThumbnails(video)) {
+      return
+    }
+
+    void queueThumbnailJob(video.id)
+  }
+
   function addVideos(videos: ParsedVideo[]) {
     videos.forEach((video) => {
       const existing = toRaw(videoMap.get(video.id))
@@ -110,6 +368,7 @@ export const useVideoStore = defineStore('videos', () => {
       releaseVideoResources(videoId)
     }
 
+    clearThumbnailTracking(videoId)
     videoMap.delete(videoId)
   }
 
@@ -130,6 +389,7 @@ export const useVideoStore = defineStore('videos', () => {
       .filter((video) => !video.pinned)
       .forEach((video) => {
         releaseVideoResources(video.id)
+        clearThumbnailTracking(video.id)
       })
 
     videoMap.clear()
@@ -156,21 +416,48 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   async function addVideosFromFiles(files: FileList) {
-    const items: VideoImportItem[] = Array.from(files).map((file) => ({ file }))
+    if (isIngesting.value) {
+      return
+    }
 
-    for await (const video of addVideosUseCase.execute(items)) {
-      addVideos([video])
+    const items: VideoImportItem[] = Array.from(files).map((file) => ({ file }))
+    const deferredThumbnailQueue: ParsedVideo[] = []
+
+    ingestionProgress.value = null
+    ingestionStartedAtMs.value = Date.now()
+    ingestionCompletedAtMs.value = null
+
+    try {
+      for await (const item of addVideosUseCase.execute(items)) {
+        if (isVideoIngestionEvent(item)) {
+          if (item.type === 'video') {
+            addVideos([item.video])
+            deferredThumbnailQueue.push(item.video)
+          } else {
+            ingestionProgress.value = item.progress
+          }
+
+          continue
+        }
+
+        addVideos([item])
+        deferredThumbnailQueue.push(item)
+      }
+
+      deferredThumbnailQueue.forEach((video) => {
+        queueBackgroundThumbnailJob(video)
+      })
+    } finally {
+      ingestionCompletedAtMs.value = Date.now()
     }
   }
 
   async function updateVideoThumbnails(id: string) {
-    const existing = toRaw(videoMap.get(id))
-    if (!existing) {
-      return
-    }
+    await queueThumbnailJob(id, true)
+  }
 
-    const updated = await updateThumbUseCase.execute(existing)
-    videoMap.set(id, updated)
+  function requestThumbnailWarmup(id: string) {
+    void queueThumbnailJob(id, true)
   }
 
   function setMinDuration(value: number) {
@@ -185,10 +472,37 @@ export const useVideoStore = defineStore('videos', () => {
     searchQuery.value = value
   }
 
+  function setThumbnailConcurrencyOverride(value: number | null) {
+    if (value == null) {
+      thumbnailConcurrencyOverride.value = null
+    } else {
+      thumbnailConcurrencyOverride.value = clamp(
+        value,
+        1,
+        DEFAULT_THUMBNAIL_CONCURRENCY,
+      )
+    }
+
+    pumpThumbnailQueue()
+  }
+
+  function getThumbnailJobState(videoId: string) {
+    return thumbnailJobState.get(videoId)
+  }
+
   return {
     minDuration,
     maxDuration,
     searchQuery,
+    ingestionProgress,
+    ingestionStartedAtMs,
+    ingestionCompletedAtMs,
+    isIngesting,
+    thumbnailConcurrencyOverride,
+    autoThumbnailConcurrency,
+    effectiveThumbnailConcurrency,
+    thumbnailQueueSummary,
+    shouldShowProgressToast,
     filteredVideos,
     sortByPinned,
     sortByVotes,
@@ -199,7 +513,10 @@ export const useVideoStore = defineStore('videos', () => {
     setMinDuration,
     setMaxDuration,
     setSearchQuery,
+    setThumbnailConcurrencyOverride,
+    getThumbnailJobState,
     togglePinVideo,
+    requestThumbnailWarmup,
     updateVideoThumbnails,
     updateVotes,
   }

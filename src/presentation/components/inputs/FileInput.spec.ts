@@ -1,5 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test, vi } from 'vitest'
+import { nextTick } from 'vue'
+import { useVideoStore } from '@presentation/stores'
 import {
   createMockFileList,
   createPresentationTestContext,
@@ -44,5 +46,33 @@ describe('FileInput', () => {
     expect(mocks.useCases.addVideosUseCase.execute).toHaveBeenCalledTimes(1)
     expect(clearCalls).toBe(1)
     expect(currentValue).toBe('')
+  })
+
+  test('disables file selection while ingestion is already running', async () => {
+    const { global } = createPresentationTestContext({
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+
+    const wrapper = mount(FileInput, {
+      global,
+    })
+
+    const store = useVideoStore()
+    store.ingestionProgress = {
+      total: 4,
+      scanned: 4,
+      existingCount: 1,
+      newCount: 3,
+      knownErrorCount: 0,
+      createdCount: 0,
+      failedCount: 0,
+      completedCount: 2,
+    }
+
+    await nextTick()
+
+    expect(wrapper.get('input[type="file"]').attributes('disabled')).toBe('')
   })
 })

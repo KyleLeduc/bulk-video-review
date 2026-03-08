@@ -1,5 +1,12 @@
 <template>
-  <label class="file-button" :for="inputId">Choose files</label>
+  <label
+    class="file-button"
+    :class="{ 'file-button--disabled': isIngesting }"
+    :for="inputId"
+    :aria-disabled="isIngesting"
+  >
+    {{ isIngesting ? 'Scanning videos…' : 'Choose files' }}
+  </label>
   <input
     class="file-input"
     @change="handleInput"
@@ -7,17 +14,21 @@
     :id="inputId"
     webkitdirectory
     multiple
+    :disabled="isIngesting"
   />
   <div ref="videoWall"></div>
 </template>
 
 <script setup lang="ts">
 import { useVideoStore } from '@presentation/stores'
+import { storeToRefs } from 'pinia'
 
 const videoStore = useVideoStore()
+const { isIngesting } = storeToRefs(videoStore)
 const inputId = 'fileInput'
 
 const handleInput = async (e: Event) => {
+  if (isIngesting.value) return
   if (!(e.target instanceof HTMLInputElement)) return
 
   if (e.target.files) {
@@ -55,5 +66,10 @@ const handleInput = async (e: Event) => {
 
 .file-button:hover {
   border-color: rgba(255, 255, 255, 0.35);
+}
+
+.file-button--disabled {
+  cursor: progress;
+  opacity: 0.65;
 }
 </style>

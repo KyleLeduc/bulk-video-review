@@ -7,7 +7,11 @@ import type {
   IVideoMetadataExtractor,
   IVideoSessionRegistry,
 } from '@app/ports'
-import type { VideoIngestionUseCase } from './VideoIngestionUseCase'
+import type {
+  VideoIngestionEvent,
+  VideoIngestionProgress,
+  VideoIngestionUseCase,
+} from './VideoIngestionUseCase'
 
 type PendingVideoItem = {
   id: string
@@ -28,7 +32,9 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     private readonly failureTracker: IVideoIngestionFailureTracker,
   ) {}
 
-  async *execute(items: VideoImportItem[]): AsyncGenerator<ParsedVideo> {
+  async *execute(
+    items: VideoImportItem[],
+  ): AsyncGenerator<VideoIngestionEvent> {
     this.logger.info('[linear-ingestion] execute:start', {
       totalItems: items.length,
     })
@@ -40,8 +46,27 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     let skippedCount = 0
     let failedCount = partitionFailures
 
+    const progress: VideoIngestionProgress = {
+      total: items.length,
+      scanned: items.length,
+      existingCount: cachedVideos.length,
+      newCount: freshItems.length,
+      knownErrorCount: deferredItems.length,
+      createdCount,
+      failedCount,
+      completedCount: cachedVideos.length,
+    }
+
+    yield {
+      type: 'progress',
+      progress: { ...progress },
+    }
+
     for (const video of cachedVideos) {
-      yield video
+      yield {
+        type: 'video',
+        video,
+      }
     }
 
     for (const item of [...freshItems, ...deferredItems]) {
@@ -50,7 +75,11 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
       switch (result.status) {
         case 'created':
           createdCount += 1
-          yield result.video
+          progress.createdCount = createdCount
+          yield {
+            type: 'video',
+            video: result.video,
+          }
           break
         case 'skipped':
           skippedCount += 1
@@ -58,6 +87,15 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
         case 'failed':
           failedCount += 1
           break
+      }
+
+      progress.failedCount = skippedCount + failedCount
+      progress.completedCount =
+        cachedVideos.length + createdCount + skippedCount + failedCount
+
+      yield {
+        type: 'progress',
+        progress: { ...progress },
       }
     }
 

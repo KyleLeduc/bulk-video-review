@@ -1,8 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test, vi } from 'vitest'
-import {
-  createPresentationTestContext,
-} from '@test-utils/index'
+import { createPresentationTestContext } from '@test-utils/index'
 import FilterPanel from './FilterPanel.vue'
 
 describe('FilterPanel', () => {
