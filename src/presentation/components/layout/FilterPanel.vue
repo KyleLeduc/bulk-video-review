@@ -161,7 +161,11 @@ const durationRangeWarning = computed(() => {
 .filter-panel {
   background: radial-gradient(circle at 20% 20%, #1f2a3b, #0e1623 60%);
   color: #e7edf5;
+  position: sticky;
+  top: 0;
+  align-self: start;
   min-height: 100vh;
+  height: 100vh;
   padding: 1.5rem;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   transition:
@@ -170,6 +174,7 @@ const durationRangeWarning = computed(() => {
     opacity 0.3s ease;
   width: min(100%, var(--panel-size, 320px));
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .filter-panel.closed {
@@ -270,6 +275,8 @@ input:focus {
 
 @media (max-width: 900px) {
   .filter-panel {
+    position: static;
+    height: auto;
     min-height: auto;
     width: 100%;
     border-right: none;

@@ -29,6 +29,7 @@ const { isFilterPanelOpen } = storeToRefs(appStateStore)
   --panel-size: 320px;
   display: grid;
   grid-template-columns: var(--panel-size) 1fr;
+  align-items: start;
   min-height: 100vh;
   background: linear-gradient(135deg, #0d141e, #0a0f18 60%);
 }
@@ -40,6 +41,7 @@ const { isFilterPanelOpen } = storeToRefs(appStateStore)
 .content {
   background: #0f1622;
   min-height: 100vh;
+  min-width: 0;
 }
 
 @media (max-width: 900px) {

@@ -1,5 +1,10 @@
 <template>
-  <nav>
+  <nav
+    ref="navElement"
+    class="nav-shell"
+    :class="{ 'nav-shell--hidden': isHidden }"
+    :style="{ '--nav-height': `${navHeight}px` }"
+  >
     <div class="nav-left">
       <h1>bulk-video-review</h1>
       <button class="ghost" @click="appStateStore.toggleFilterPanel()">
@@ -20,24 +25,63 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useVideoStore, useAppStateStore } from '@presentation/stores'
 import { storeToRefs } from 'pinia'
 
 import FileInput from '@presentation/components/inputs/FileInput.vue'
 
+const HIDE_SCROLL_THRESHOLD = 72
+const SCROLL_DELTA_THRESHOLD = 4
+
 const videoStore = useVideoStore()
 const appStateStore = useAppStateStore()
 const { isFilterPanelOpen } = storeToRefs(appStateStore)
+const isHidden = ref(false)
+const navHeight = ref(0)
+const navElement = ref<HTMLElement | null>(null)
+let lastScrollY = 0
+
+const updateNavVisibility = () => {
+  const currentScrollY = Math.max(window.scrollY || 0, 0)
+  const delta = currentScrollY - lastScrollY
+
+  if (currentScrollY <= HIDE_SCROLL_THRESHOLD) {
+    isHidden.value = false
+    lastScrollY = currentScrollY
+    return
+  }
+
+  if (delta > SCROLL_DELTA_THRESHOLD) {
+    isHidden.value = true
+  } else if (delta < -SCROLL_DELTA_THRESHOLD) {
+    isHidden.value = false
+  }
+
+  lastScrollY = currentScrollY
+}
 
 const handleClearUnpinned = () => {
   videoStore.removeAllUnpinned()
 }
+
+onMounted(() => {
+  navHeight.value = navElement.value?.offsetHeight ?? 0
+  lastScrollY = Math.max(window.scrollY || 0, 0)
+  window.addEventListener('scroll', updateNavVisibility, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', updateNavVisibility)
+})
 </script>
 
 <style scoped>
-nav {
+.nav-shell {
   position: sticky;
   top: 0;
+  z-index: 20;
+  margin-bottom: 0;
   padding: 0.65em 1.5em;
   background-color: #0c121b;
   display: flex;
@@ -45,9 +89,19 @@ nav {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.22s ease,
+    margin-bottom 0.22s ease,
+    box-shadow 0.22s ease;
 }
 
-nav > h1 {
+.nav-shell--hidden {
+  transform: translateY(calc(var(--nav-height, 0px) * -1));
+  margin-bottom: calc(var(--nav-height, 0px) * -1);
+  box-shadow: none;
+}
+
+.nav-shell > h1 {
   color: #f2f6fb;
   padding: 0;
   margin: 0;
