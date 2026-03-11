@@ -1,21 +1,28 @@
 <template>
   <div class="card">
-    <img
-      class="thumb"
-      ref="thumbElement"
-      v-if="!state.showVideo"
-      :src="video.thumb"
-      @mouseenter="startThumbRotation"
-      @mouseleave="stopThumbRotation"
-      alt=""
-      srcset=""
-    />
-    <VideoEmbed
-      v-else
-      ref="videoElement"
-      :video="props.video"
-      :options="embedInitOptions"
-    />
+    <div
+      class="mediaFrame"
+      data-testid="video-card-media-frame"
+      :style="landscapeFrameStyle"
+    >
+      <img
+        class="thumb mediaContent"
+        ref="thumbElement"
+        v-if="!state.showVideo"
+        :src="video.thumb"
+        @mouseenter="startThumbRotation"
+        @mouseleave="stopThumbRotation"
+        alt=""
+        srcset=""
+      />
+      <VideoEmbed
+        v-else
+        ref="videoElement"
+        class="mediaContent"
+        :video="props.video"
+        :options="embedInitOptions"
+      />
+    </div>
 
     <div class="cardNav">
       <div class="pin" @click="handlePinVideo">📌</div>
@@ -106,6 +113,9 @@ const state = reactive<State>({
 
 const thumbElement = ref<HTMLImageElement | null>(null)
 const intervalId = ref<number | null>(null)
+const landscapeFrameStyle = {
+  aspectRatio: '16 / 9',
+}
 
 const updateThumbSrc = () => {
   if (thumbElement.value && props.video.thumbUrls.length > 0) {
@@ -249,6 +259,21 @@ function formatDurationWithSeconds(duration: number): string {
   border: 1px solid #f0f0f0;
   overflow: hidden;
   position: relative;
+  width: 100%;
+}
+
+.mediaFrame {
+  width: 100%;
+  overflow: hidden;
+  background: #111;
+}
+
+.mediaContent {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #111;
 }
 
 .cardNav {
