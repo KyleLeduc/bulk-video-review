@@ -31,6 +31,18 @@ Do not delete a worktree as soon as the code is ready. Keep the worktree intact 
 
 Project code is TypeScript-first with Vue 3 Composition API. Use two-space indentation, keep components in PascalCase filenames (e.g., `VideoCard.vue`), and favour camelCase for composables/services. Domain types belong in `src/domain` and should mirror the folder names (e.g., repositories in `repositories/`). Treat Pinia stores as `useXStore`. Prettier + ESLint enforce formatting; run lint before committing and avoid disabling rules unless justified inline.
 
+## Naming and readability standards
+
+- Prefer explicit names over abbreviations unless the abbreviation is domain-standard.
+- Functions should do one thing; split mixed responsibilities.
+- Prefer small composable helpers over deep nested conditionals.
+- Do not introduce abstractions unless at least one of these is true:
+  - duplication exists in 2+ real call sites
+  - a boundary/interface already exists in the architecture
+  - the abstraction simplifies testing or dependency direction
+- Keep control flow easy to read; reduce branching depth where practical.
+- Favor boring, obvious code over clever code.
+
 ## Testing Guidelines
 
 Place new unit specs alongside source using `.spec.ts` or `.test.ts` suffixes and leverage Vue Test Utils for component mounts. Target meaningful scenarios rather than implementation details. For domain/application logic, mock infrastructure dependencies so Vitest runs remain fast. End-to-end flows belong in `cypress/e2e` with descriptive `.cy.ts` names; group fixtures under `cypress/fixtures`. Record manual verification steps in PRs whenever Cypress coverage is absent.
