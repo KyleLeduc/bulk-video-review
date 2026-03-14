@@ -1,57 +1,135 @@
 # Repository Guidelines
 
+> Keep this file short, operational, and stable. Put detailed procedures inside skills.
+
+## Purpose
+
+This repository should be changed with a bias toward clarity, minimalism, and maintainability.
+
+Priorities:
+
+1. Preserve correctness
+2. Preserve or improve readability
+3. Preserve architectural boundaries
+4. Minimize code and surface area
+5. Avoid unnecessary abstractions, dependencies, and churn
+
 ## Mandatory workflow triggers
 
-- At the start of each conversation use $using-superpowers to determine which skills are applicable to the task
-- If a task affects architecture, cross-layer boundaries, public contracts, or more than 3 files, use $writing-plans before editing.
-- If a task changes implementation code, start by creating a worktree with $using-git-worktress and use $verification-before-completion before handoff.
-- If a task is primarily debugging, use $systematic-debugging.
-- If a task requests refactoring for maintainability or clarity, use $requesting-code-review after implementation.
-- If a task needs diagrams or architectural explanation, use $writing-plans or the architecture/diagram skill before editing.
-- If the task requires parallel research or isolated investigation, use subagents only for read-heavy exploration; avoid parallel write-heavy edits.
-- Never revert unrelated user changes, never use destructive git commands without approval, and stop if unexpected local changes conflict with the task.
+- If the task is ambiguous, cross-cutting, risky, or likely to touch more than 3 files, use `writing-plans` before editing.
+- If the task is primarily debugging, use `systematic-debugging` before changing code.
+- If the task changes implementation code, use `verification-before-completion` before handoff.
+- If the task introduces or changes abstractions, public contracts, dependency direction, or architectural boundaries, use `requesting-code-review` after implementation.
+- If the task requires diagrams, architecture explanation, or impact analysis, use `writing-plans` before editing and use `mcp__mermaid__generate` or `npm run diagram:video` when a rendered diagram is needed.
+- Use subagents only for clearly separable, read-heavy work. Avoid parallel write-heavy edits unless explicitly required.
 
-## Project Structure & Module Organization
+## Safety and git rules
 
-The app follows a hexagonal layout: core domain rules live in `src/domain/...` (entities, valueObjects, repositories), orchestration sits in `src/application/...` (usecases, services, ports), and runtime adapters are in `src/infrastructure/...` (adapters, DI, dto, video pipelines). UI state and views live in `src/presentation/...` alongside Pinia stores and assets, with `App.vue` and `main.ts` wiring Vue 3. Cypress specs and fixtures stay under `cypress/`, while `scripts/` hosts auxiliary tooling such as `multiDev.ts` and dependency graph generators. Static assets belong in `public/`, and generated dependency graphs land in `dep-graphs/`.
+- Never revert, overwrite, or delete unrelated user changes.
+- Never use destructive git commands without explicit approval.
+- Stop and report if the working tree contains unexpected changes that create risk.
+- Prefer the smallest safe change that solves the problem.
+- Do not rename, move, or reorganize files unless the task requires it.
+- Do not introduce new dependencies, frameworks, or patterns unless justified by the task or approved by the user.
 
-- Application use cases (`src/application/usecases`) only define orchestration logic; dependency composition for those use cases belongs in infrastructure DI modules (e.g., `src/infrastructure/di/container.ts`). Never mix DI wiring and use case definitions in the same file.
+## Change discipline
 
-## Build, Test, and Development Commands
+Before making non-trivial changes:
 
-Use `npm run dev` for the Vite dev server (hot reload on :5173). `npm run build` performs type-checking and produces the production bundle; follow with `npm run preview` to serve it on :4173. Run `npm run lint` to auto-fix style issues, and `npm run type-check` when validating editor diagnostics. `npm run test:unit` executes Vitest (jsdom environment scoped to `src/`), while `npm run test:e2e` spins up the preview server and runs Cypress headlessly; `npm run test:e2e:dev` opens the Cypress runner. To regenerate architectural graphs, call `npm run dep-graph`.
+- Identify the relevant files, layers, and boundaries.
+- Prefer modifying existing code over creating new wrappers, managers, facades, or indirection.
+- Preserve established architecture unless the task explicitly calls for structural change.
+- Keep the number of touched files as low as practical.
+- When a change has meaningful tradeoffs, state them explicitly.
 
-## Agent Worktree Workflow
+## Code quality standards
 
-Agents should perform implementation work from a git worktree instead of the primary checkout so the main workspace stays clean for review and coordination. When working inside a worktree, use `npm run dev:worktree` instead of `npm run dev`; use `npm run dev:status` to inspect active Vite servers, and `npm run dev:stop` to stop only the current worktree's server.
+### Readability
 
-Do not delete a worktree as soon as the code is ready. Keep the worktree intact until a human has manually signed off on the changes. After manual signoff, stop the worktree's dev server, remove the worktree, and clean up any temporary branch state that is no longer needed.
-
-## Coding Style & Naming Conventions
-
-Project code is TypeScript-first with Vue 3 Composition API. Use two-space indentation, keep components in PascalCase filenames (e.g., `VideoCard.vue`), and favour camelCase for composables/services. Domain types belong in `src/domain` and should mirror the folder names (e.g., repositories in `repositories/`). Treat Pinia stores as `useXStore`. Prettier + ESLint enforce formatting; run lint before committing and avoid disabling rules unless justified inline.
-
-## Naming and readability standards
-
-- Prefer explicit names over abbreviations unless the abbreviation is domain-standard.
-- Functions should do one thing; split mixed responsibilities.
-- Prefer small composable helpers over deep nested conditionals.
-- Do not introduce abstractions unless at least one of these is true:
-  - duplication exists in 2+ real call sites
-  - a boundary/interface already exists in the architecture
-  - the abstraction simplifies testing or dependency direction
-- Keep control flow easy to read; reduce branching depth where practical.
+- Prefer explicit, descriptive names over abbreviations unless the abbreviation is domain-standard.
 - Favor boring, obvious code over clever code.
+- Write code that a human reviewer can understand quickly.
+- Keep control flow shallow and easy to follow.
+- Prefer straightforward data flow over hidden behavior.
 
-## Testing Guidelines
+### Functions and modules
 
-Place new unit specs alongside source using `.spec.ts` or `.test.ts` suffixes and leverage Vue Test Utils for component mounts. Target meaningful scenarios rather than implementation details. For domain/application logic, mock infrastructure dependencies so Vitest runs remain fast. End-to-end flows belong in `cypress/e2e` with descriptive `.cy.ts` names; group fixtures under `cypress/fixtures`. Record manual verification steps in PRs whenever Cypress coverage is absent.
+- Functions should do one thing and have a clear reason to change.
+- Keep modules cohesive; avoid mixing unrelated responsibilities.
+- Split code when a unit has multiple responsibilities or confusing control flow.
+- Avoid overly large files unless the existing repo style clearly prefers them.
 
-## Commit & Pull Request Guidelines
+### Abstractions
 
-Follow Conventional Commit styles seen in history (`feat:`, `chore:`, `refactor:`) with concise, imperative summaries. Reference linked issues using `#123` when available and scope one logical change per commit. PRs should include: purpose, high-level approach, testing evidence (`npm run test:unit`, `npm run test:e2e`), and any dependency graph updates or screenshots that help reviewers. Request review before merging and ensure CI (where available) stays green.
+Do not introduce abstractions unless at least one of these is true:
 
-## Architecture Decisions
+- The same behavior is duplicated in 2+ real call sites
+- The abstraction represents an existing architectural boundary
+- The abstraction materially improves testing, dependency direction, or clarity
 
-- **Transient video blobs**: The application never persists uploaded video files or blob URLs. Browser File objects only exist for the current tab session, and duplicating large videos into IndexedDB/Cache API is both storage-heavy and confusing for users. Every session therefore requires the user to re-select files via the upload dialog.
-- **Persistent metadata only**: We still wrap each session’s videos in durable metadata (votes, pins, derived tags, thumbnails) stored through the aggregate repository so UI logic can rely on consistent domain state without hanging on to the video bytes themselves.
+Avoid:
+
+- speculative generalization
+- one-off interfaces
+- unnecessary service/factory/manager layers
+- wrappers that only pass through behavior without adding value
+
+## Architecture and boundaries
+
+- Respect existing boundaries between business logic, orchestration, I/O, persistence, transport, and presentation.
+- Do not mix concerns across layers.
+- Keep policy/business rules separate from framework and I/O details where practical.
+- Do not leak transport, storage, or UI concerns into core logic unless that is the established design of the repo.
+- If a task requires crossing boundaries, minimize the coupling introduced and explain why.
+
+## Testing and verification
+
+- Verify changes with the smallest set of checks that gives real confidence.
+- Prefer targeted tests first, then broader validation as needed.
+- Reuse existing test patterns before inventing new ones.
+- Add or update tests when behavior changes or when the risk justifies it.
+- Do not claim completion without running relevant verification steps when they are available.
+
+Standard verification steps:
+
+- `npm run lint`
+- `npm run type-check`
+- `npx vitest --root src/ run <path-or-pattern>` for targeted checks, or `npm run test:unit`
+- `npm run test:unit`, `npm run test:ci`, and `npm run test:e2e` as risk requires
+- `npm run build`
+
+## Performance and operational caution
+
+- Be mindful of runtime cost, memory use, network calls, and I/O volume.
+- Avoid accidental N+1 behavior, repeated heavy work, and unnecessary allocations where relevant.
+- Preserve logging, monitoring, and error-handling expectations already present in the repo.
+- Do not silently swallow errors.
+- Do not degrade security, validation, or auditability for convenience.
+
+## Definition of done
+
+A task is not complete until:
+
+- The requested behavior is implemented or the requested issue is explained
+- The solution is minimal and understandable
+- Naming and control flow are clear
+- Architectural boundaries are preserved or intentionally changed with explanation
+- Relevant checks have been run
+- Remaining risks, assumptions, or follow-ups are explicitly stated
+
+## Handoff format
+
+When finishing work, provide:
+
+1. What changed
+2. Why this approach was chosen
+3. What was verified
+4. Any remaining risks, assumptions, or follow-up work
+
+## Repo-specific section
+
+- Primary directories: `src/domain`, `src/application`, `src/infrastructure`, `src/presentation`, `src/shared`, `src/test-utils`, `scripts`, `cypress`, `docs/structurizr`, `public`
+- Main commands: `npm run dev`, `npm run dev:worktree`, `npm run dev:status`, `npm run dev:stop`, `npm run lint`, `npm run type-check`, `npm run test:unit`, `npm run test:ci`, `npm run test:e2e`, `npm run build`, `npm run dep-graph`, `npm run diagram:video`
+- Local architectural rules: Follow the repo's hexagonal split: `src/domain` for core rules and models, `src/application` for use cases and ports, `src/infrastructure` for adapters, persistence, video pipelines, and DI, and `src/presentation` for Vue and Pinia UI. Keep dependency wiring in `src/infrastructure/di`, not inside use cases. Prefer `mcp__git__*` for safe git and worktree operations, `mcp__chrome-devtools__*` for browser and UI investigation, `mcp__context7__*` for current library docs, and `mcp__mermaid__generate` for quick diagrams.
+- High-risk areas: video ingestion and parsing under `src/infrastructure/video*`, persistence and migrations under `src/infrastructure/database` and `src/infrastructure/repository`, orchestration in `src/application/usecases`, UI state in `src/presentation/stores`, and worktree/dev tooling in `scripts/`
+- Required skills: `using-superpowers` at conversation start; `writing-plans` for larger or architectural changes; `systematic-debugging` for bugs; `verification-before-completion` before claiming implementation work is done; `requesting-code-review` after meaningful refactors or contract changes; `using-git-worktrees` for isolated feature work; `test-driven-development` when implementing features or fixes; `dispatching-parallel-agents` or `subagent-driven-development` only for clearly separable read-heavy work; `writing-skills`, `skill-creator`, and `skill-installer` only when the task is about skills themselves
