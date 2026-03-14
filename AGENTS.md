@@ -1,5 +1,16 @@
 # Repository Guidelines
 
+## Mandatory workflow triggers
+
+- At the start of each conversation use $using-superpowers to determine which skills are applicable to the task
+- If a task affects architecture, cross-layer boundaries, public contracts, or more than 3 files, use $writing-plans before editing.
+- If a task changes implementation code, start by creating a worktree with $using-git-worktress and use $verification-before-completion before handoff.
+- If a task is primarily debugging, use $systematic-debugging.
+- If a task requests refactoring for maintainability or clarity, use $requesting-code-review after implementation.
+- If a task needs diagrams or architectural explanation, use $writing-plans or the architecture/diagram skill before editing.
+- If the task requires parallel research or isolated investigation, use subagents only for read-heavy exploration; avoid parallel write-heavy edits.
+- Never revert unrelated user changes, never use destructive git commands without approval, and stop if unexpected local changes conflict with the task.
+
 ## Project Structure & Module Organization
 
 The app follows a hexagonal layout: core domain rules live in `src/domain/...` (entities, valueObjects, repositories), orchestration sits in `src/application/...` (usecases, services, ports), and runtime adapters are in `src/infrastructure/...` (adapters, DI, dto, video pipelines). UI state and views live in `src/presentation/...` alongside Pinia stores and assets, with `App.vue` and `main.ts` wiring Vue 3. Cypress specs and fixtures stay under `cypress/`, while `scripts/` hosts auxiliary tooling such as `multiDev.ts` and dependency graph generators. Static assets belong in `public/`, and generated dependency graphs land in `dep-graphs/`.
