@@ -44,7 +44,7 @@ describe('NavBar', () => {
     expect(wrapper.find('.nav-left > h1').exists()).toBe(false)
   })
 
-  test('hides on downward scroll and returns when scrolling back up', async () => {
+  test('stays hidden through a small upward bounce and returns on sustained upward scroll', async () => {
     const { global } = createPresentationTestContext({
       sessionRegistry: {
         acquireObjectUrl: vi.fn(() => ''),
@@ -61,6 +61,12 @@ describe('NavBar', () => {
     expect(nav.classes()).not.toContain('nav-shell--hidden')
 
     setScrollY(160)
+    window.dispatchEvent(new Event('scroll'))
+    await nextTick()
+
+    expect(nav.classes()).toContain('nav-shell--hidden')
+
+    setScrollY(150)
     window.dispatchEvent(new Event('scroll'))
     await nextTick()
 

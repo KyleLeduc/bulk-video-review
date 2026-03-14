@@ -33,7 +33,9 @@ import FileInput from '@presentation/components/inputs/FileInput.vue'
 import NavTitle from '@presentation/components/layout/NavTitle.vue'
 
 const HIDE_SCROLL_THRESHOLD = 72
-const SCROLL_DELTA_THRESHOLD = 4
+const VISIBILITY_TOGGLE_DISTANCE = 24
+
+type ScrollDirection = 'down' | 'up' | null
 
 const videoStore = useVideoStore()
 const appStateStore = useAppStateStore()
@@ -42,6 +44,8 @@ const isHidden = ref(false)
 const navHeight = ref(0)
 const navElement = ref<HTMLElement | null>(null)
 let lastScrollY = 0
+let lastScrollDirection: ScrollDirection = null
+let directionChangeScrollY = 0
 
 const updateNavVisibility = () => {
   const currentScrollY = Math.max(window.scrollY || 0, 0)
@@ -49,14 +53,36 @@ const updateNavVisibility = () => {
 
   if (currentScrollY <= HIDE_SCROLL_THRESHOLD) {
     isHidden.value = false
+    lastScrollDirection = null
+    directionChangeScrollY = currentScrollY
     lastScrollY = currentScrollY
     return
   }
 
-  if (delta > SCROLL_DELTA_THRESHOLD) {
+  if (delta === 0) {
+    return
+  }
+
+  const currentDirection: ScrollDirection = delta > 0 ? 'down' : 'up'
+
+  if (currentDirection !== lastScrollDirection) {
+    lastScrollDirection = currentDirection
+    directionChangeScrollY = lastScrollY
+  }
+
+  const travelSinceDirectionChange = Math.abs(currentScrollY - directionChangeScrollY)
+
+  if (travelSinceDirectionChange < VISIBILITY_TOGGLE_DISTANCE) {
+    lastScrollY = currentScrollY
+    return
+  }
+
+  if (currentDirection === 'down') {
     isHidden.value = true
-  } else if (delta < -SCROLL_DELTA_THRESHOLD) {
+    directionChangeScrollY = currentScrollY
+  } else {
     isHidden.value = false
+    directionChangeScrollY = currentScrollY
   }
 
   lastScrollY = currentScrollY
@@ -69,6 +95,7 @@ const handleClearUnpinned = () => {
 onMounted(() => {
   navHeight.value = navElement.value?.offsetHeight ?? 0
   lastScrollY = Math.max(window.scrollY || 0, 0)
+  directionChangeScrollY = lastScrollY
   window.addEventListener('scroll', updateNavVisibility, { passive: true })
 })
 
