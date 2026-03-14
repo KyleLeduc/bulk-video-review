@@ -371,4 +371,116 @@ describe('IngestionStatusToast', () => {
 
     resolveThumbnailJob?.()
   })
+
+  test('shows queued import context instead of mixing the meter with unrelated global thumbnail counts', async () => {
+    vi.useFakeTimers()
+
+    try {
+      let addCallCount = 0
+      let resolveThumbnailJob: ((video: ReturnType<typeof buildParsedVideo>) => void) | undefined
+
+      const { global } = createPresentationTestContext({
+        useCases: {
+          addVideosUseCase: {
+            execute: vi.fn(async function* () {
+              addCallCount += 1
+
+              if (addCallCount === 1) {
+                yield {
+                  type: 'video' as const,
+                  video: buildParsedVideo({ id: 'id-1', thumbUrls: [] }),
+                }
+                yield {
+                  type: 'video' as const,
+                  video: buildParsedVideo({ id: 'id-2', thumbUrls: [] }),
+                }
+                yield {
+                  type: 'progress' as const,
+                  progress: {
+                    total: 2,
+                    scanned: 2,
+                    existingCount: 0,
+                    newCount: 2,
+                    knownErrorCount: 0,
+                    createdCount: 2,
+                    failedCount: 0,
+                    completedCount: 2,
+                  },
+                }
+                return
+              }
+
+              yield {
+                type: 'video' as const,
+                video: buildParsedVideo({ id: 'id-3', thumbUrls: [] }),
+              }
+              yield {
+                type: 'progress' as const,
+                progress: {
+                  total: 1,
+                  scanned: 1,
+                  existingCount: 0,
+                  newCount: 1,
+                  knownErrorCount: 0,
+                  createdCount: 1,
+                  failedCount: 0,
+                  completedCount: 1,
+                },
+              }
+            }),
+          },
+          updateThumbUseCase: {
+            execute: vi.fn(
+              (video) =>
+                new Promise((resolve) => {
+                  resolveThumbnailJob = resolve
+                }),
+            ),
+          },
+        },
+        sessionRegistry: {
+          acquireObjectUrl: vi.fn(() => ''),
+        },
+      })
+
+      vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockImplementation(
+        (type: string) => (type === 'video/mp4' ? 'probably' : ''),
+      )
+
+      const wrapper = mount(IngestionStatusToast, {
+        global,
+      })
+
+      const store = useVideoStore()
+      store.setThumbnailConcurrencyOverride(1)
+
+      await store.addVideosFromFiles(
+        createMockFileList(
+          new File(['video-bytes'], 'batch-a.mp4', { type: 'video/mp4' }),
+        ),
+      )
+      await vi.advanceTimersByTimeAsync(200)
+
+      void store.addVideosFromFiles(
+        createMockFileList(
+          new File(['video-bytes'], 'batch-b.mp4', { type: 'video/mp4' }),
+        ),
+      )
+      await vi.advanceTimersByTimeAsync(0)
+      await nextTick()
+
+      expect(wrapper.text()).toContain('Generated 0 / 2')
+      expect(wrapper.text()).toContain('1 import queued')
+      expect(wrapper.text()).toContain('Thumbnail drain paused')
+
+      resolveThumbnailJob?.(
+        buildParsedVideo({
+          id: 'id-1',
+          thumbUrls: ['thumb-1', 'thumb-2'],
+        }),
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

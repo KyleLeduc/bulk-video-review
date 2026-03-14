@@ -6,6 +6,7 @@ import type {
   UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
   VideoIngestionUseCase,
+  WipeVideoDataUseCase,
 } from '@app/usecases'
 import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import {
@@ -15,6 +16,7 @@ import {
   UPDATE_THUMB_USE_CASE_KEY,
   UPDATE_VOTES_USE_CASE_KEY,
   VIDEO_SESSION_REGISTRY_KEY,
+  WIPE_VIDEO_DATA_USE_CASE_KEY,
 } from '@presentation/di/injectionKeys'
 
 type UseCaseMock<T extends { execute: (...args: any[]) => any }> = {
@@ -26,6 +28,7 @@ type UseCaseMocks = {
   filterVideosUseCase: UseCaseMock<FilterVideosUseCase>
   updateThumbUseCase: UseCaseMock<UpdateVideoThumbnailsUseCase>
   updateVotesUseCase: UseCaseMock<UpdateVideoVotesUseCase>
+  wipeVideoDataUseCase: UseCaseMock<WipeVideoDataUseCase>
 }
 
 type PresentationTestContext = {
@@ -134,11 +137,16 @@ export const createPresentationTestContext = (
     execute: vi.fn(async () => null),
   }
 
+  const wipeVideoDataUseCase: UseCaseMock<WipeVideoDataUseCase> = {
+    execute: vi.fn(async () => undefined),
+  }
+
   const useCases: UseCaseMocks = {
     addVideosUseCase,
     filterVideosUseCase,
     updateThumbUseCase,
     updateVotesUseCase,
+    wipeVideoDataUseCase,
     ...(overrides.useCases ?? {}),
   }
 
@@ -161,6 +169,7 @@ export const createPresentationTestContext = (
         [UPDATE_VOTES_USE_CASE_KEY as symbol]: useCases.updateVotesUseCase,
         [LOGGER_KEY as symbol]: logger,
         [VIDEO_SESSION_REGISTRY_KEY as symbol]: sessionRegistry,
+        [WIPE_VIDEO_DATA_USE_CASE_KEY as symbol]: useCases.wipeVideoDataUseCase,
       },
     },
   }

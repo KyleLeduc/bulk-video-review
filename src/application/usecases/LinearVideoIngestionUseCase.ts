@@ -54,7 +54,7 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
       knownErrorCount: deferredItems.length,
       createdCount,
       failedCount,
-      completedCount: cachedVideos.length,
+      completedCount: cachedVideos.length + partitionFailures,
     }
 
     yield {

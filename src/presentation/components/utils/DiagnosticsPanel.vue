@@ -6,30 +6,45 @@
     </nav>
     <section class="panel-section">
       <h2>Ingestion</h2>
-      <p v-if="ingestionProgress">
-        {{ ingestionProgress.completedCount }} / {{ ingestionProgress.total }}
+      <p v-if="activeIngestionProgress">
+        {{ activeIngestionProgress.completedCount }} /
+        {{ activeIngestionProgress.total }}
         complete
       </p>
       <p v-else>No active ingestion session.</p>
-      <dl v-if="ingestionProgress" class="stats-list">
+      <dl v-if="activeIngestionProgress" class="stats-list">
         <div>
           <dt>Existing</dt>
-          <dd>{{ ingestionProgress.existingCount }}</dd>
+          <dd>{{ activeIngestionProgress.existingCount }}</dd>
         </div>
         <div>
           <dt>New</dt>
           <dd>
-            {{ ingestionProgress.createdCount }} /
-            {{ ingestionProgress.newCount }}
+            {{ activeIngestionProgress.createdCount }} /
+            {{ activeIngestionProgress.newCount }}
           </dd>
         </div>
         <div>
           <dt>Errors</dt>
-          <dd>{{ ingestionProgress.failedCount }}</dd>
+          <dd>{{ activeIngestionProgress.failedCount }}</dd>
         </div>
         <div>
           <dt>Retry queue</dt>
-          <dd>{{ ingestionProgress.knownErrorCount }}</dd>
+          <dd>{{ activeIngestionProgress.knownErrorCount }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="panel-section">
+      <h2>Queue state</h2>
+      <dl class="stats-list">
+        <div>
+          <dt>Queued imports</dt>
+          <dd>{{ queuedIngestionCount }}</dd>
+        </div>
+        <div>
+          <dt>Drain status</dt>
+          <dd>{{ drainStatusLabel }}</dd>
         </div>
       </dl>
     </section>
@@ -101,7 +116,9 @@ const videoStore = useVideoStore()
 
 const { isDiagnosticsPanelOpen } = storeToRefs(appState)
 const {
-  ingestionProgress,
+  activeIngestionSession,
+  queuedIngestionCount,
+  isThumbnailDrainPaused,
   thumbnailQueueSummary,
   thumbnailConcurrencyOverride,
   autoThumbnailConcurrency,
@@ -114,6 +131,18 @@ const concurrencySelection = computed(() =>
     ? 'auto'
     : String(thumbnailConcurrencyOverride.value),
 )
+const activeIngestionProgress = computed(
+  () => activeIngestionSession.value?.progress ?? null,
+)
+const drainStatusLabel = computed(() => {
+  if (isThumbnailDrainPaused.value) {
+    return queuedIngestionCount.value > 0
+      ? 'Thumbnail drain paused'
+      : 'Ingestion active'
+  }
+
+  return 'Thumbnail drain running'
+})
 
 const handleCloseClicked = () => {
   appState.toggleDiagnosticsPanel(false)

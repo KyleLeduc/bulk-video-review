@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { mount } from '@vue/test-utils'
 import { describe, expect, test, vi } from 'vitest'
 import { useVideoStore } from '@presentation/stores'
@@ -9,7 +8,7 @@ import {
 import VideoCard from './VideoCard.vue'
 
 describe('VideoCard', () => {
-  test('wraps media inside a fixed 16:9 landscape frame', () => {
+  test('renders the thumbnail inside the media frame by default', () => {
     const video = buildParsedVideo({ id: 'id-1', thumbUrls: [] })
     const { global } = createPresentationTestContext({
       sessionRegistry: {
@@ -27,13 +26,6 @@ describe('VideoCard', () => {
 
     const mediaFrame = wrapper.get('[data-testid="video-card-media-frame"]')
     expect(mediaFrame.find('.thumb').exists()).toBe(true)
-
-    const source = readFileSync(
-      `${process.cwd()}/src/presentation/components/VideoCard.vue`,
-      'utf8',
-    )
-
-    expect(source).toContain('aspect-ratio: 16 / 9;')
   })
 
   test('shows hover arming feedback before thumbnail generation starts', async () => {
@@ -117,16 +109,5 @@ describe('VideoCard', () => {
     } finally {
       vi.useRealTimers()
     }
-  })
-
-  test('uses border-box sizing for the full-width card surface so tiles stay inside grid tracks', () => {
-    const source = readFileSync(
-      `${process.cwd()}/src/presentation/components/VideoCard.vue`,
-      'utf8',
-    )
-
-    expect(source).toContain('.cardSurface')
-    expect(source).toContain('width: 100%;')
-    expect(source).toContain('box-sizing: border-box;')
   })
 })

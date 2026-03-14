@@ -105,13 +105,11 @@ const emit = defineEmits<{
 
 interface State {
   showVideo: boolean
-  rotateThumbs: boolean
   thumbIndex: number
 }
 
 const state = reactive<State>({
   showVideo: false,
-  rotateThumbs: false,
   thumbIndex: 0,
 })
 

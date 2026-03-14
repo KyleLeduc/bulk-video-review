@@ -16,8 +16,6 @@ export type VideoIngestionEvent =
   | { type: 'video'; video: ParsedVideo }
   | { type: 'progress'; progress: VideoIngestionProgress }
 
-export type VideoIngestionOutput = VideoIngestionEvent | ParsedVideo
-
 export interface VideoIngestionUseCase {
-  execute(items: VideoImportItem[]): AsyncGenerator<VideoIngestionOutput>
+  execute(items: VideoImportItem[]): AsyncGenerator<VideoIngestionEvent>
 }

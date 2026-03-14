@@ -10,12 +10,10 @@
   >
     <button
       class="file-button file-button--trigger"
-      :class="{ 'file-button--disabled': isIngesting }"
       data-testid="upload-picker-trigger"
       type="button"
       aria-haspopup="menu"
       :aria-expanded="isOpen ? 'true' : 'false'"
-      :disabled="isIngesting"
       @click="openFolderPicker"
     >
       <svg
@@ -34,7 +32,7 @@
         />
       </svg>
       <span class="file-button__label">
-        {{ isIngesting ? 'Scanning videos…' : 'Add videos' }}
+        {{ triggerLabel }}
       </span>
       <svg
         class="file-button__chevron"
@@ -117,7 +115,6 @@
       type="file"
       webkitdirectory
       :accept="accept"
-      :disabled="isIngesting"
       @change="handleInput"
     />
 
@@ -128,7 +125,6 @@
       type="file"
       multiple
       :accept="accept"
-      :disabled="isIngesting"
       @change="handleInput"
     />
   </div>
@@ -136,7 +132,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { getBrowserPlayableVideoAccept } from '@/shared/video/browserPlayableVideoTypes'
 import { useVideoStore } from '@presentation/stores'
 
@@ -144,7 +140,8 @@ const HOVER_MENU_DELAY_MS = 1000
 const HOVER_MENU_CLOSE_DELAY_MS = 250
 
 const videoStore = useVideoStore()
-const { isIngesting } = storeToRefs(videoStore)
+const { isIngesting, queuedIngestionCount, isThumbnailDrainPaused } =
+  storeToRefs(videoStore)
 const accept = getBrowserPlayableVideoAccept()
 const pickerRoot = ref<HTMLElement | null>(null)
 const folderInput = ref<HTMLInputElement | null>(null)
@@ -152,6 +149,19 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const isOpen = ref(false)
 let openMenuTimer: ReturnType<typeof setTimeout> | null = null
 let closeMenuTimer: ReturnType<typeof setTimeout> | null = null
+
+const triggerLabel = computed(() => {
+  if (queuedIngestionCount.value > 0) {
+    const suffix = queuedIngestionCount.value === 1 ? '' : 's'
+    return `${queuedIngestionCount.value} import queued${suffix}`
+  }
+
+  if (isIngesting.value || isThumbnailDrainPaused.value) {
+    return 'Queue videos'
+  }
+
+  return 'Add videos'
+})
 
 const clearOpenMenuTimer = () => {
   if (openMenuTimer == null) {
@@ -178,20 +188,12 @@ const closeMenu = () => {
 }
 
 const openMenu = () => {
-  if (isIngesting.value) {
-    return
-  }
-
   clearOpenMenuTimer()
   clearCloseMenuTimer()
   isOpen.value = true
 }
 
 const scheduleMenuOpen = () => {
-  if (isIngesting.value) {
-    return
-  }
-
   clearOpenMenuTimer()
   clearCloseMenuTimer()
   openMenuTimer = setTimeout(() => {
@@ -210,19 +212,11 @@ const scheduleMenuClose = () => {
 }
 
 const openFolderPicker = () => {
-  if (isIngesting.value) {
-    return
-  }
-
   closeMenu()
   folderInput.value?.click()
 }
 
 const openFilePicker = () => {
-  if (isIngesting.value) {
-    return
-  }
-
   closeMenu()
   fileInput.value?.click()
 }
@@ -237,7 +231,6 @@ const handleFocusOut = (event: FocusEvent) => {
 }
 
 const handleInput = async (e: Event) => {
-  if (isIngesting.value) return
   if (!(e.target instanceof HTMLInputElement)) return
 
   if (e.target.files) {
@@ -248,12 +241,6 @@ const handleInput = async (e: Event) => {
     }
   }
 }
-
-watch(isIngesting, (ingesting) => {
-  if (ingesting) {
-    closeMenu()
-  }
-})
 
 onBeforeUnmount(() => {
   clearOpenMenuTimer()
@@ -379,10 +366,5 @@ onBeforeUnmount(() => {
     opacity: 1;
     transform: translateY(0) scaleY(1);
   }
-}
-
-.file-button--disabled {
-  cursor: progress;
-  opacity: 0.65;
 }
 </style>

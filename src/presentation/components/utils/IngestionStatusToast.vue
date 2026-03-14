@@ -10,10 +10,14 @@
       </div>
 
       <div class="ingestion-toast__actions">
-        <p class="queue-summary">
-          Thumbs {{ thumbnailQueueSummary.processing }} active ·
-          {{ thumbnailQueueSummary.queued }} queued
-        </p>
+        <div class="queue-summary">
+          <p v-if="queueSummaryLabel" class="queue-summary__line">
+            {{ queueSummaryLabel }}
+          </p>
+          <p v-if="queueStatusLabel" class="queue-summary__line">
+            {{ queueStatusLabel }}
+          </p>
+        </div>
         <button
           class="ingestion-toast__close"
           type="button"
@@ -140,9 +144,10 @@ const {
   ingestionStartedAtMs,
   ingestionCompletedAtMs,
   isIngesting,
+  queuedIngestionCount,
+  isThumbnailDrainPaused,
   shouldShowProgressToast,
   thumbnailGenerationProgress,
-  thumbnailQueueSummary,
 } = storeToRefs(videoStore)
 const dismissed = ref(false)
 const isLingering = ref(false)
@@ -254,6 +259,25 @@ const isShowingThumbnailProgress = computed(
 const toastEyebrow = computed(() =>
   isShowingThumbnailProgress.value ? 'Thumbnail progress' : 'Ingestion status',
 )
+
+const queueSummaryLabel = computed(() => {
+  if (queuedIngestionCount.value <= 0) {
+    return null
+  }
+
+  const suffix = queuedIngestionCount.value === 1 ? '' : 's'
+  return `${queuedIngestionCount.value} import queued${suffix}`
+})
+
+const queueStatusLabel = computed(() => {
+  if (queuedIngestionCount.value <= 0) {
+    return null
+  }
+
+  return isThumbnailDrainPaused.value
+    ? 'Thumbnail drain paused'
+    : 'Thumbnail drain running'
+})
 
 const progressHeadline = computed(() => {
   if (!ingestionProgress.value) {

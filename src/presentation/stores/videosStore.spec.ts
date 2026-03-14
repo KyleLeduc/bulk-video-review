@@ -36,10 +36,13 @@ describe('useVideoStore', () => {
         addVideosUseCase: {
           execute: vi.fn(async function* () {
             callCount += 1
-            yield buildParsedVideo({
-              id: 'id-1',
-              url: callCount === 1 ? 'blob:first' : 'blob:second',
-            })
+            yield {
+              type: 'video' as const,
+              video: buildParsedVideo({
+                id: 'id-1',
+                url: callCount === 1 ? 'blob:first' : 'blob:second',
+              }),
+            }
           }),
         },
       },
@@ -71,7 +74,10 @@ describe('useVideoStore', () => {
       useCases: {
         addVideosUseCase: {
           execute: vi.fn(async function* () {
-            yield buildParsedVideo({ id: 'id-1', url: 'blob:to-remove' })
+            yield {
+              type: 'video' as const,
+              video: buildParsedVideo({ id: 'id-1', url: 'blob:to-remove' }),
+            }
           }),
         },
       },
@@ -129,7 +135,10 @@ describe('useVideoStore', () => {
       useCases: {
         addVideosUseCase: {
           execute: vi.fn(async function* () {
-            yield buildParsedVideo({ id: 'id-1', url: 'blob:to-remove' })
+            yield {
+              type: 'video' as const,
+              video: buildParsedVideo({ id: 'id-1', url: 'blob:to-remove' }),
+            }
           }),
         },
         updateThumbUseCase: {
@@ -477,5 +486,122 @@ describe('useVideoStore', () => {
     store.requestThumbnailWarmup('id-1')
 
     expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
+  })
+
+  test('queues a second import ahead of pending thumbnail drain and resumes thumbnails after the queued import runs', async () => {
+    vi.useFakeTimers()
+
+    try {
+      let addCallCount = 0
+      let resolveThumbnailJob: ((video: ParsedVideo) => void) | undefined
+
+      const { global, mocks } = createPresentationTestContext({
+        useCases: {
+          addVideosUseCase: {
+            execute: vi.fn(async function* () {
+              addCallCount += 1
+
+              if (addCallCount === 1) {
+                yield {
+                  type: 'video' as const,
+                  video: buildParsedVideo({ id: 'id-1', thumbUrls: [] }),
+                }
+                yield {
+                  type: 'video' as const,
+                  video: buildParsedVideo({ id: 'id-2', thumbUrls: [] }),
+                }
+                yield {
+                  type: 'progress' as const,
+                  progress: {
+                    total: 2,
+                    scanned: 2,
+                    existingCount: 0,
+                    newCount: 2,
+                    knownErrorCount: 0,
+                    createdCount: 2,
+                    failedCount: 0,
+                    completedCount: 2,
+                  },
+                }
+                return
+              }
+
+              yield {
+                type: 'video' as const,
+                video: buildParsedVideo({ id: 'id-3', thumbUrls: [] }),
+              }
+              yield {
+                type: 'progress' as const,
+                progress: {
+                  total: 1,
+                  scanned: 1,
+                  existingCount: 0,
+                  newCount: 1,
+                  knownErrorCount: 0,
+                  createdCount: 1,
+                  failedCount: 0,
+                  completedCount: 1,
+                },
+              }
+            }),
+          },
+          updateThumbUseCase: {
+            execute: vi.fn(
+              (video) =>
+                new Promise((resolve) => {
+                  resolveThumbnailJob = resolve
+                }),
+            ),
+          },
+        },
+        sessionRegistry: {
+          acquireObjectUrl: vi.fn(() => ''),
+        },
+      })
+
+      const wrapper = mount(StoreHarness, {
+        global,
+      })
+
+      const store = (wrapper.vm as any).store as ReturnType<typeof useVideoStore>
+      store.setThumbnailConcurrencyOverride(1)
+
+      const firstBatch = createMockFileList(
+        new File(['video-1'], 'batch-a-1.mp4', { type: 'video/mp4' }),
+      )
+      const secondBatch = createMockFileList(
+        new File(['video-2'], 'batch-b-1.mp4', { type: 'video/mp4' }),
+      )
+
+      await store.addVideosFromFiles(firstBatch)
+      await vi.advanceTimersByTimeAsync(200)
+
+      expect(mocks.useCases.addVideosUseCase.execute).toHaveBeenCalledTimes(1)
+      expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
+
+      const queuedImportPromise = store.addVideosFromFiles(secondBatch)
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(mocks.useCases.addVideosUseCase.execute).toHaveBeenCalledTimes(1)
+      expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
+
+      resolveThumbnailJob?.(
+        buildParsedVideo({
+          id: 'id-1',
+          thumbUrls: ['thumb-1', 'thumb-2'],
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(0)
+      await queuedImportPromise
+
+      expect(mocks.useCases.addVideosUseCase.execute).toHaveBeenCalledTimes(2)
+      expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
+
+      await vi.advanceTimersByTimeAsync(200)
+
+      expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

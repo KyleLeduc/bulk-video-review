@@ -1,8 +1,10 @@
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import type { ParsedVideo } from '@domain/entities'
 import { useVideoStore } from '@presentation/stores'
 import {
+  buildParsedVideo,
   createMockFileList,
   createPresentationTestContext,
 } from '@test-utils/index'
@@ -93,9 +95,7 @@ describe('FileInput', () => {
 
     await vi.advanceTimersByTimeAsync(249)
 
-    expect(wrapper.find('[data-testid="upload-picker-menu"]').exists()).toBe(
-      true,
-    )
+    expect(wrapper.find('[data-testid="upload-picker-menu"]').exists()).toBe(true)
 
     await vi.advanceTimersByTimeAsync(1)
 
@@ -198,7 +198,7 @@ describe('FileInput', () => {
     expect(fileValue).toBe('')
   })
 
-  test('disables file selection while ingestion is already running', async () => {
+  test('keeps file selection available while ingestion is already running so later imports can queue', async () => {
     const { global } = createPresentationTestContext({
       sessionRegistry: {
         acquireObjectUrl: vi.fn(() => ''),
@@ -227,22 +227,101 @@ describe('FileInput', () => {
       wrapper
         .get('[data-testid="upload-picker-trigger"]')
         .attributes('disabled'),
-    ).toBe('')
+    ).toBeUndefined()
     expect(
       wrapper.get('input[data-picker-mode="folder"]').attributes('disabled'),
-    ).toBe('')
+    ).toBeUndefined()
     expect(
       wrapper.get('input[data-picker-mode="files"]').attributes('disabled'),
-    ).toBe('')
+    ).toBeUndefined()
 
     await wrapper.get('[data-testid="upload-picker"]').trigger('mouseenter')
     await vi.advanceTimersByTimeAsync(1000)
 
     expect(wrapper.find('[data-testid="upload-picker-menu"]').exists()).toBe(
-      false,
+      true,
     )
     expect(
       wrapper.get('[data-testid="upload-picker-trigger"]').text(),
-    ).toContain('Scanning videos…')
+    ).toContain('Queue videos')
+  })
+
+  test('shows queued import feedback while thumbnail draining is paused for a later import', async () => {
+    let addCallCount = 0
+    let resolveThumbnailJob: ((video: ParsedVideo) => void) | undefined
+
+    const { global } = createPresentationTestContext({
+      useCases: {
+        addVideosUseCase: {
+          execute: vi.fn(async function* () {
+            addCallCount += 1
+
+            if (addCallCount === 1) {
+              yield {
+                type: 'video' as const,
+                video: buildParsedVideo({ id: 'id-1', thumbUrls: [] }),
+              }
+              yield {
+                type: 'progress' as const,
+                progress: {
+                  total: 1,
+                  scanned: 1,
+                  existingCount: 0,
+                  newCount: 1,
+                  knownErrorCount: 0,
+                  createdCount: 1,
+                  failedCount: 0,
+                  completedCount: 1,
+                },
+              }
+            }
+          }),
+        },
+        updateThumbUseCase: {
+          execute: vi.fn(
+            () =>
+              new Promise<ParsedVideo>((resolve) => {
+                resolveThumbnailJob = resolve
+              }),
+          ),
+        },
+      },
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+
+    const wrapper = mount(FileInput, {
+      global,
+    })
+
+    const store = useVideoStore()
+    store.setThumbnailConcurrencyOverride(1)
+
+    await store.addVideosFromFiles(
+      createMockFileList(
+        new File(['video-bytes'], 'batch-a.mp4', { type: 'video/mp4' }),
+      ),
+    )
+    await vi.advanceTimersByTimeAsync(200)
+
+    void store.addVideosFromFiles(
+      createMockFileList(
+        new File(['video-bytes'], 'batch-b.mp4', { type: 'video/mp4' }),
+      ),
+    )
+    await vi.advanceTimersByTimeAsync(0)
+    await nextTick()
+
+    expect(
+      wrapper.get('[data-testid="upload-picker-trigger"]').text(),
+    ).toContain('1 import queued')
+
+    resolveThumbnailJob?.(
+      buildParsedVideo({
+        id: 'id-1',
+        thumbUrls: ['thumb-1', 'thumb-2'],
+      }),
+    )
   })
 })

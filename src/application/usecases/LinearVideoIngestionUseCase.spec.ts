@@ -467,4 +467,88 @@ describe('LinearVideoIngestionUseCase', () => {
       }),
     )
   })
+
+  test('counts partition failures as completed work even when no processing loop runs', async () => {
+    const brokenA = new File(['broken-a'], 'broken-a.mp4', { type: 'video/mp4' })
+    const brokenB = new File(['broken-b'], 'broken-b.mp4', { type: 'video/mp4' })
+    const items: VideoImportItem[] = [{ file: brokenA }, { file: brokenB }]
+    const failureTracker = buildFailureTracker()
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi
+          .fn()
+          .mockRejectedValueOnce(new Error('bad-a'))
+          .mockRejectedValueOnce(new Error('bad-b')),
+        extract: vi.fn(async () => null),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+      failureTracker,
+    )
+
+    const events = await collect(useCase.execute(items))
+    const progressEvents = events.filter((event) => event?.type === 'progress')
+
+    expect(progressEvents).toHaveLength(1)
+    expect(progressEvents[0]).toEqual(
+      expect.objectContaining({
+        type: 'progress',
+        progress: expect.objectContaining({
+          total: 2,
+          failedCount: 2,
+          completedCount: 2,
+        }),
+      }),
+    )
+  })
+
+  test('includes partition failures in the initial completed count when only cached items remain', async () => {
+    const cached = new File(['cached'], 'cached.mp4', { type: 'video/mp4' })
+    const broken = new File(['broken'], 'broken.mp4', { type: 'video/mp4' })
+    const items: VideoImportItem[] = [{ file: cached }, { file: broken }]
+    const failureTracker = buildFailureTracker()
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi
+          .fn()
+          .mockResolvedValueOnce('id-cached')
+          .mockRejectedValueOnce(new Error('bad-b')),
+        extract: vi.fn(async () => null),
+      },
+      aggregateRepository: {
+        ...makeDeps().aggregateRepository,
+        getVideo: vi.fn(async () => buildVideoAggregate({ id: 'id-cached' })),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+      failureTracker,
+    )
+
+    const events = await collect(useCase.execute(items))
+    const progressEvents = events.filter((event) => event?.type === 'progress')
+
+    expect(progressEvents[0]).toEqual(
+      expect.objectContaining({
+        type: 'progress',
+        progress: expect.objectContaining({
+          total: 2,
+          existingCount: 1,
+          failedCount: 1,
+          completedCount: 2,
+        }),
+      }),
+    )
+  })
 })
