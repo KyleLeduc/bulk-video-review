@@ -1,5 +1,16 @@
 # Repository Guidelines
 
+## Mandatory workflow triggers
+
+- At the start of each conversation use $using-superpowers to determine which skills are applicable to the task
+- If a task affects architecture, cross-layer boundaries, public contracts, or more than 3 files, use $writing-plans before editing.
+- If a task changes implementation code, start by creating a worktree with $using-git-worktress and use $verification-before-completion before handoff.
+- If a task is primarily debugging, use $systematic-debugging.
+- If a task requests refactoring for maintainability or clarity, use $requesting-code-review after implementation.
+- If a task needs diagrams or architectural explanation, use $writing-plans or the architecture/diagram skill before editing.
+- If the task requires parallel research or isolated investigation, use subagents only for read-heavy exploration; avoid parallel write-heavy edits.
+- Never revert unrelated user changes, never use destructive git commands without approval, and stop if unexpected local changes conflict with the task.
+
 ## Project Structure & Module Organization
 
 The app follows a hexagonal layout: core domain rules live in `src/domain/...` (entities, valueObjects, repositories), orchestration sits in `src/application/...` (usecases, services, ports), and runtime adapters are in `src/infrastructure/...` (adapters, DI, dto, video pipelines). UI state and views live in `src/presentation/...` alongside Pinia stores and assets, with `App.vue` and `main.ts` wiring Vue 3. Cypress specs and fixtures stay under `cypress/`, while `scripts/` hosts auxiliary tooling such as `multiDev.ts` and dependency graph generators. Static assets belong in `public/`, and generated dependency graphs land in `dep-graphs/`.
@@ -19,6 +30,18 @@ Do not delete a worktree as soon as the code is ready. Keep the worktree intact 
 ## Coding Style & Naming Conventions
 
 Project code is TypeScript-first with Vue 3 Composition API. Use two-space indentation, keep components in PascalCase filenames (e.g., `VideoCard.vue`), and favour camelCase for composables/services. Domain types belong in `src/domain` and should mirror the folder names (e.g., repositories in `repositories/`). Treat Pinia stores as `useXStore`. Prettier + ESLint enforce formatting; run lint before committing and avoid disabling rules unless justified inline.
+
+## Naming and readability standards
+
+- Prefer explicit names over abbreviations unless the abbreviation is domain-standard.
+- Functions should do one thing; split mixed responsibilities.
+- Prefer small composable helpers over deep nested conditionals.
+- Do not introduce abstractions unless at least one of these is true:
+  - duplication exists in 2+ real call sites
+  - a boundary/interface already exists in the architecture
+  - the abstraction simplifies testing or dependency direction
+- Keep control flow easy to read; reduce branching depth where practical.
+- Favor boring, obvious code over clever code.
 
 ## Testing Guidelines
 

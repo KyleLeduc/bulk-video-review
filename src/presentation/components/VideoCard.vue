@@ -8,7 +8,7 @@
     />
 
     <div class="cardSurface">
-      <div class="cardMedia">
+      <div class="cardMedia" data-testid="video-card-media-frame">
         <img
           class="thumb"
           ref="thumbElement"
@@ -367,6 +367,7 @@ function formatDurationWithSeconds(duration: number): string {
 .cardSurface {
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
   border: 1px solid #f0f0f0;
   overflow: hidden;
   position: relative;
