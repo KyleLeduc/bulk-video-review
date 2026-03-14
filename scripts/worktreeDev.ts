@@ -330,21 +330,42 @@ export const resolveViteBin = (
 ): string => {
   const fileExists = options.existsSync ?? existsSync
   const localViteBin = resolve(worktreeRoot, 'node_modules/vite/bin/vite.js')
+  const workspaceRoot = getWorkspaceRoot(worktreeRoot)
+  const workspaceViteBin = resolve(
+    workspaceRoot,
+    'node_modules/vite/bin/vite.js',
+  )
 
   if (fileExists(localViteBin)) {
     return localViteBin
   }
 
-  const requireFromWorktree = createRequire(join(worktreeRoot, 'package.json'))
-  const resolveModulePath =
-    options.resolveModulePath ??
-    ((specifier: string) => requireFromWorktree.resolve(specifier))
+  if (workspaceRoot !== worktreeRoot && fileExists(workspaceViteBin)) {
+    return workspaceViteBin
+  }
 
-  const vitePackagePath = resolveModulePath('vite/package.json')
-  const resolvedViteBin = resolve(dirname(vitePackagePath), 'bin/vite.js')
+  const packageRoots = [worktreeRoot]
 
-  if (fileExists(resolvedViteBin)) {
-    return resolvedViteBin
+  if (workspaceRoot !== worktreeRoot) {
+    packageRoots.push(workspaceRoot)
+  }
+
+  for (const packageRoot of packageRoots) {
+    try {
+      const resolveModulePath =
+        options.resolveModulePath ??
+        ((specifier: string) =>
+          createRequire(join(packageRoot, 'package.json')).resolve(specifier))
+
+      const vitePackagePath = resolveModulePath('vite/package.json')
+      const resolvedViteBin = resolve(dirname(vitePackagePath), 'bin/vite.js')
+
+      if (fileExists(resolvedViteBin)) {
+        return resolvedViteBin
+      }
+    } catch {
+      continue
+    }
   }
 
   throw new Error(`Unable to find Vite for ${worktreeRoot}`)

@@ -28,6 +28,30 @@ Run `npm run diagram:video` after ensuring Structurizr CLI and Graphviz (`dot`) 
 npm install
 ```
 
+## Worktree Workflow
+
+Create a bootstrapped worktree with:
+
+```sh
+npm run worktree:add -- <branch>
+```
+
+This creates `.worktrees/<branch-name>` by default, links the main workspace `node_modules`, and links any repo-root `.env` or `.env.*` files into the new worktree.
+
+To bootstrap an existing worktree from the main checkout:
+
+```sh
+npm run worktree:bootstrap -- .worktrees/<branch-name>
+```
+
+After bootstrap, run the worktree-aware dev helpers from inside the worktree:
+
+```sh
+npm run dev:worktree
+npm run dev:status
+npm run dev:stop
+```
+
 ### Compile and Hot-Reload for Development
 
 ```sh
