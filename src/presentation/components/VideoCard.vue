@@ -120,7 +120,7 @@ const intervalId = ref<number | null>(null)
 const hoverWarmupTimeoutId = ref<number | null>(null)
 const hoverWarmupProgressIntervalId = ref<number | null>(null)
 const hoverWarmupProgress = ref(0)
-const HOVER_WARMUP_DELAY_MS = 250
+const HOVER_WARMUP_DELAY_MS = 750
 const thumbnailJobState = computed(() =>
   videoStore.getThumbnailJobState(props.video.id),
 )

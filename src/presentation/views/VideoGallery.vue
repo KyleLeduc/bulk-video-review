@@ -55,7 +55,7 @@ function handleRemove(id: string) {
 .container {
   display: grid;
   grid-template-columns: repeat(v-bind(columnCount), minmax(0, 1fr));
-  gap: 0.9rem;
+  gap: 0;
   align-items: start;
 }
 </style>
