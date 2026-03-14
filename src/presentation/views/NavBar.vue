@@ -70,7 +70,9 @@ const updateNavVisibility = () => {
     directionChangeScrollY = lastScrollY
   }
 
-  const travelSinceDirectionChange = Math.abs(currentScrollY - directionChangeScrollY)
+  const travelSinceDirectionChange = Math.abs(
+    currentScrollY - directionChangeScrollY,
+  )
 
   if (travelSinceDirectionChange < VISIBILITY_TOGGLE_DISTANCE) {
     lastScrollY = currentScrollY

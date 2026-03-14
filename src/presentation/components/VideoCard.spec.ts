@@ -1,7 +1,10 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { buildParsedVideo, createPresentationTestContext } from '@test-utils/index'
+import {
+  buildParsedVideo,
+  createPresentationTestContext,
+} from '@test-utils/index'
 import VideoCard from './VideoCard.vue'
 
 describe('VideoCard', () => {

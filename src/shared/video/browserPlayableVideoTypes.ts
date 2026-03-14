@@ -75,9 +75,7 @@ export const isBrowserPlayableVideoFile = (file: File): boolean => {
 
   const normalizedMimeType = normalizeMimeType(file.type)
   if (!isGenericMimeType(normalizedMimeType)) {
-    return playableTypes.some(
-      ({ mimeType }) => mimeType === normalizedMimeType,
-    )
+    return playableTypes.some(({ mimeType }) => mimeType === normalizedMimeType)
   }
 
   const extension = getFileExtension(file.name)

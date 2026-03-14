@@ -5,7 +5,9 @@ import { readFileSync } from 'node:fs'
 describe('NavTitle', () => {
   test('renders the shimmer title markup', async () => {
     const navTitlePath = './NavTitle.vue'
-    const navTitleModule = await import(/* @vite-ignore */ navTitlePath).catch(() => null)
+    const navTitleModule = await import(/* @vite-ignore */ navTitlePath).catch(
+      () => null,
+    )
 
     expect(navTitleModule).not.toBeNull()
 
@@ -39,7 +41,9 @@ describe('NavTitle', () => {
       'utf8',
     )
 
-    expect(source).toContain("font-family: 'DejaVu Serif', 'Liberation Serif', serif;")
+    expect(source).toContain(
+      "font-family: 'DejaVu Serif', 'Liberation Serif', serif;",
+    )
     expect(source).toContain('font-variant-caps: all-small-caps;')
     expect(source).toContain('font-weight: 700;')
   })
