@@ -2,10 +2,8 @@
   <aside v-if="shouldRenderToast && ingestionProgress" class="ingestion-toast">
     <div class="ingestion-toast__header">
       <div>
-        <p class="eyebrow">Ingestion status</p>
-        <h2>
-          {{ ingestionProgress.completedCount }} / {{ ingestionProgress.total }}
-        </h2>
+        <p class="eyebrow">{{ toastEyebrow }}</p>
+        <h2>{{ progressHeadline }}</h2>
         <p v-if="ingestionElapsedLabel" class="ingestion-toast__timing">
           {{ ingestionElapsedLabel }}
         </p>
@@ -28,48 +26,102 @@
     </div>
 
     <div class="ingestion-toast__meter" aria-hidden="true">
-      <span
-        class="segment segment--existing"
-        :style="{ width: `${segmentWidth(ingestionProgress.existingCount)}%` }"
-      />
-      <span
-        class="segment segment--new"
-        :style="{ width: `${segmentWidth(ingestionProgress.createdCount)}%` }"
-      />
-      <span
-        class="segment segment--error"
-        :style="{ width: `${segmentWidth(ingestionProgress.failedCount)}%` }"
-      />
+      <template v-if="isShowingThumbnailProgress">
+        <span
+          class="segment segment--generated"
+          :style="{
+            width: `${segmentWidth(thumbnailGenerationProgress.generatedCount, thumbnailGenerationProgress.total)}%`,
+          }"
+        />
+        <span
+          class="segment segment--pending"
+          :style="{
+            width: `${segmentWidth(thumbnailGenerationProgress.pendingCount, thumbnailGenerationProgress.total)}%`,
+          }"
+        />
+        <span
+          class="segment segment--failed"
+          :style="{
+            width: `${segmentWidth(thumbnailGenerationProgress.failedCount, thumbnailGenerationProgress.total)}%`,
+          }"
+        />
+      </template>
+      <template v-else>
+        <span
+          class="segment segment--existing"
+          :style="{
+            width: `${segmentWidth(ingestionProgress.existingCount, ingestionProgress.total)}%`,
+          }"
+        />
+        <span
+          class="segment segment--new"
+          :style="{
+            width: `${segmentWidth(ingestionProgress.createdCount, ingestionProgress.total)}%`,
+          }"
+        />
+        <span
+          class="segment segment--error"
+          :style="{
+            width: `${segmentWidth(ingestionProgress.failedCount, ingestionProgress.total)}%`,
+          }"
+        />
+      </template>
     </div>
 
     <div class="ingestion-toast__legend" aria-label="Ingestion status colors">
-      <span class="legend-item">
-        <span
-          class="legend-swatch legend-swatch--existing"
-          aria-hidden="true"
-        />
-        Existing
-      </span>
-      <span class="legend-item">
-        <span class="legend-swatch legend-swatch--new" aria-hidden="true" />
-        New
-      </span>
-      <span class="legend-item">
-        <span class="legend-swatch legend-swatch--error" aria-hidden="true" />
-        Error
-      </span>
+      <template v-if="isShowingThumbnailProgress">
+        <span class="legend-item">
+          <span class="legend-swatch legend-swatch--generated" aria-hidden="true" />
+          Generated
+        </span>
+        <span class="legend-item">
+          <span class="legend-swatch legend-swatch--pending" aria-hidden="true" />
+          Pending
+        </span>
+        <span class="legend-item">
+          <span class="legend-swatch legend-swatch--failed" aria-hidden="true" />
+          Failed
+        </span>
+      </template>
+      <template v-else>
+        <span class="legend-item">
+          <span
+            class="legend-swatch legend-swatch--existing"
+            aria-hidden="true"
+          />
+          Existing
+        </span>
+        <span class="legend-item">
+          <span class="legend-swatch legend-swatch--new" aria-hidden="true" />
+          New
+        </span>
+        <span class="legend-item">
+          <span class="legend-swatch legend-swatch--error" aria-hidden="true" />
+          Error
+        </span>
+      </template>
     </div>
 
     <div class="ingestion-toast__stats">
-      <span>Existing {{ ingestionProgress.existingCount }}</span>
-      <span
-        >New {{ ingestionProgress.createdCount }} /
-        {{ ingestionProgress.newCount }}</span
-      >
-      <span>Error {{ ingestionProgress.failedCount }}</span>
-      <span v-if="ingestionProgress.knownErrorCount > 0">
-        Retry queue {{ ingestionProgress.knownErrorCount }}
-      </span>
+      <template v-if="isShowingThumbnailProgress">
+        <span>
+          Generated {{ thumbnailGenerationProgress.generatedCount }} /
+          {{ thumbnailGenerationProgress.total }}
+        </span>
+        <span>Pending {{ thumbnailGenerationProgress.pendingCount }}</span>
+        <span>Failed {{ thumbnailGenerationProgress.failedCount }}</span>
+      </template>
+      <template v-else>
+        <span>Existing {{ ingestionProgress.existingCount }}</span>
+        <span
+          >New {{ ingestionProgress.createdCount }} /
+          {{ ingestionProgress.newCount }}</span
+        >
+        <span>Error {{ ingestionProgress.failedCount }}</span>
+        <span v-if="ingestionProgress.knownErrorCount > 0">
+          Retry queue {{ ingestionProgress.knownErrorCount }}
+        </span>
+      </template>
     </div>
   </aside>
 </template>
@@ -88,6 +140,8 @@ const {
   ingestionStartedAtMs,
   ingestionCompletedAtMs,
   isIngesting,
+  shouldShowProgressToast,
+  thumbnailGenerationProgress,
   thumbnailQueueSummary,
 } = storeToRefs(videoStore)
 const dismissed = ref(false)
@@ -151,24 +205,30 @@ watch(ingestionProgress, (progress, previous) => {
     isLingering.value = false
     clearDismissTimer()
 
-    if (progress.completedCount >= progress.total) {
+    if (progress.completedCount >= progress.total && !shouldShowProgressToast.value) {
       startDismissCountdown()
     }
   }
 })
 
-watch(isIngesting, (ingesting, wasIngesting) => {
+watch(isIngesting, (ingesting) => {
   if (ingesting) {
     startElapsedTimer()
-    isLingering.value = false
-    clearDismissTimer()
     return
   }
 
   clearElapsedTimer()
   syncElapsedClock()
+})
 
-  if (!wasIngesting || !ingestionProgress.value || dismissed.value) {
+watch(shouldShowProgressToast, (isVisible, wasVisible) => {
+  if (isVisible) {
+    isLingering.value = false
+    clearDismissTimer()
+    return
+  }
+
+  if (!wasVisible || !ingestionProgress.value || dismissed.value) {
     return
   }
 
@@ -184,8 +244,28 @@ const shouldRenderToast = computed(
   () =>
     Boolean(ingestionProgress.value) &&
     !dismissed.value &&
-    (isIngesting.value || isLingering.value),
+    (shouldShowProgressToast.value || isLingering.value),
 )
+
+const isShowingThumbnailProgress = computed(
+  () => !isIngesting.value && thumbnailGenerationProgress.value.hasWork,
+)
+
+const toastEyebrow = computed(() =>
+  isShowingThumbnailProgress.value ? 'Thumbnail progress' : 'Ingestion status',
+)
+
+const progressHeadline = computed(() => {
+  if (!ingestionProgress.value) {
+    return ''
+  }
+
+  if (isShowingThumbnailProgress.value) {
+    return `Generated ${thumbnailGenerationProgress.value.generatedCount} / ${thumbnailGenerationProgress.value.total}`
+  }
+
+  return `${ingestionProgress.value.completedCount} / ${ingestionProgress.value.total}`
+})
 
 const formatElapsedSeconds = (elapsedMs: number) =>
   `${(elapsedMs / 1000).toFixed(1)}s`
@@ -215,8 +295,7 @@ const ingestionElapsedLabel = computed(() => {
   return `Completed in ${formatElapsedSeconds(elapsedMs)}`
 })
 
-const segmentWidth = (count: number) => {
-  const total = ingestionProgress.value?.total ?? 0
+const segmentWidth = (count: number, total: number) => {
   if (!total) {
     return 0
   }
@@ -350,6 +429,30 @@ h2 {
 }
 
 .legend-swatch--error {
+  background: linear-gradient(90deg, #ff7a59, #ffb366);
+}
+
+.segment--generated {
+  background: linear-gradient(90deg, #ffb347, #ffd27d);
+}
+
+.legend-swatch--generated {
+  background: linear-gradient(90deg, #ffb347, #ffd27d);
+}
+
+.segment--pending {
+  background: linear-gradient(90deg, #3f8cff, #7cb8ff);
+}
+
+.legend-swatch--pending {
+  background: linear-gradient(90deg, #3f8cff, #7cb8ff);
+}
+
+.segment--failed {
+  background: linear-gradient(90deg, #ff7a59, #ffb366);
+}
+
+.legend-swatch--failed {
   background: linear-gradient(90deg, #ff7a59, #ffb366);
 }
 

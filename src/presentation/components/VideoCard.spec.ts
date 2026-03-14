@@ -56,6 +56,7 @@ describe('VideoCard', () => {
       })
 
       const store = useVideoStore()
+      const requestWarmupSpy = vi.spyOn(store, 'requestThumbnailWarmup')
       store.addVideos([video])
 
       await wrapper.get('img.thumb').trigger('mouseenter')
@@ -104,10 +105,10 @@ describe('VideoCard', () => {
 
       await wrapper.get('img.thumb').trigger('mouseenter')
 
-      await vi.advanceTimersByTimeAsync(200)
+      await vi.advanceTimersByTimeAsync(700)
       expect(mocks.useCases.updateThumbUseCase.execute).not.toHaveBeenCalled()
 
-      await vi.advanceTimersByTimeAsync(60)
+      await vi.advanceTimersByTimeAsync(100)
       expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
       expect(wrapper.classes()).toContain('card--thumbnail-active')
       const ring = wrapper.get('.thumbnail-activity-ring')

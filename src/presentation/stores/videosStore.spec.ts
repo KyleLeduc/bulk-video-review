@@ -352,4 +352,130 @@ describe('useVideoStore', () => {
       vi.useRealTimers()
     }
   })
+
+  test('tracks thumbnail generation progress for the current ingestion session', async () => {
+    vi.useFakeTimers()
+
+    try {
+      let resolveThumbnailJob: ((video: ParsedVideo) => void) | undefined
+
+      const { global } = createPresentationTestContext({
+        useCases: {
+          addVideosUseCase: {
+            execute: vi.fn(async function* () {
+              yield {
+                type: 'video' as const,
+                video: buildParsedVideo({ id: 'id-1', thumbUrls: [] }),
+              }
+              yield {
+                type: 'progress' as const,
+                progress: {
+                  total: 1,
+                  scanned: 1,
+                  existingCount: 0,
+                  newCount: 1,
+                  knownErrorCount: 0,
+                  createdCount: 1,
+                  failedCount: 0,
+                  completedCount: 1,
+                },
+              }
+            }),
+          },
+          updateThumbUseCase: {
+            execute: vi.fn(
+              (video) =>
+                new Promise((resolve) => {
+                  resolveThumbnailJob = resolve
+                }),
+            ),
+          },
+        },
+        sessionRegistry: {
+          acquireObjectUrl: vi.fn(() => ''),
+        },
+      })
+
+      const wrapper = mount(StoreHarness, {
+        global,
+      })
+
+      const store = (wrapper.vm as any).store as ReturnType<
+        typeof useVideoStore
+      >
+      const file = new File(['video-bytes'], 'sample.mp4', {
+        type: 'video/mp4',
+      })
+
+      await store.addVideosFromFiles(createMockFileList(file))
+
+      expect((store as any).thumbnailGenerationProgress).toEqual(
+        expect.objectContaining({
+          total: 1,
+          generatedCount: 0,
+          pendingCount: 1,
+          failedCount: 0,
+        }),
+      )
+
+      await vi.advanceTimersByTimeAsync(200)
+      expect((store as any).thumbnailGenerationProgress).toEqual(
+        expect.objectContaining({
+          total: 1,
+          generatedCount: 0,
+          pendingCount: 1,
+          failedCount: 0,
+        }),
+      )
+
+      resolveThumbnailJob?.(
+        buildParsedVideo({
+          id: 'id-1',
+          thumbUrls: ['thumb-1', 'thumb-2'],
+        }),
+      )
+
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect((store as any).thumbnailGenerationProgress).toEqual(
+        expect.objectContaining({
+          total: 1,
+          generatedCount: 1,
+          pendingCount: 0,
+          failedCount: 0,
+        }),
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  test('starts thumbnail generation immediately for a direct warmup request', async () => {
+    const { global, mocks } = createPresentationTestContext({
+      useCases: {
+        updateThumbUseCase: {
+          execute: vi.fn(
+            () =>
+              new Promise(() => {
+                // Keep pending so the call itself is the assertion target.
+              }),
+          ),
+        },
+      },
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+
+    const wrapper = mount(StoreHarness, {
+      global,
+    })
+
+    const store = (wrapper.vm as any).store as ReturnType<typeof useVideoStore>
+    store.addVideos([buildParsedVideo({ id: 'id-1', thumbUrls: [] })])
+
+    store.requestThumbnailWarmup('id-1')
+
+    expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
+  })
 })

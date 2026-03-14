@@ -75,6 +75,7 @@ export const useVideoStore = defineStore('videos', () => {
   const ingestionCompletedAtMs = ref<number | null>(null)
   const thumbnailConcurrencyOverride = ref<number | null>(null)
   const activeThumbnailJobs = ref(0)
+  const ingestionThumbnailVideoIds = reactive<string[]>([])
   const thumbnailJobState = reactive(new Map<string, ThumbnailJobState>())
   const thumbnailQueue = reactive<string[]>([])
   const thumbnailPriorityQueue = reactive<string[]>([])
@@ -171,6 +172,42 @@ export const useVideoStore = defineStore('videos', () => {
     }
   })
 
+  const thumbnailGenerationProgress = computed(() => {
+    let generatedCount = 0
+    let queuedCount = 0
+    let processingCount = 0
+    let failedCount = 0
+
+    ingestionThumbnailVideoIds.forEach((videoId) => {
+      const state = thumbnailJobState.get(videoId)
+
+      if (state === 'ready') {
+        generatedCount += 1
+      } else if (state === 'queued') {
+        queuedCount += 1
+      } else if (state === 'processing') {
+        processingCount += 1
+      } else if (state === 'failed') {
+        failedCount += 1
+      }
+    })
+
+    const total = ingestionThumbnailVideoIds.length
+    const pendingCount = queuedCount + processingCount
+
+    return {
+      total,
+      generatedCount,
+      queuedCount,
+      processingCount,
+      pendingCount,
+      failedCount,
+      completedCount: generatedCount + failedCount,
+      hasWork: total > 0,
+      isActive: pendingCount > 0,
+    }
+  })
+
   const isIngesting = computed(() =>
     Boolean(
       ingestionProgress.value &&
@@ -182,9 +219,8 @@ export const useVideoStore = defineStore('videos', () => {
     Boolean(
       ingestionProgress.value &&
         (isIngesting.value ||
-          thumbnailQueueSummary.value.queued > 0 ||
-          thumbnailQueueSummary.value.processing > 0 ||
-          thumbnailQueueSummary.value.failed > 0),
+          thumbnailGenerationProgress.value.isActive ||
+          thumbnailGenerationProgress.value.failedCount > 0),
     ),
   )
 
@@ -219,8 +255,24 @@ export const useVideoStore = defineStore('videos', () => {
     }
   }
 
+  const removeTrackedIngestionThumbnailVideo = (videoId: string) => {
+    const trackedIndex = ingestionThumbnailVideoIds.indexOf(videoId)
+    if (trackedIndex >= 0) {
+      ingestionThumbnailVideoIds.splice(trackedIndex, 1)
+    }
+  }
+
+  const trackIngestionThumbnailVideo = (videoId: string) => {
+    if (ingestionThumbnailVideoIds.includes(videoId)) {
+      return
+    }
+
+    ingestionThumbnailVideoIds.push(videoId)
+  }
+
   const clearThumbnailTracking = (videoId: string) => {
     removeQueuedThumbnailJob(videoId)
+    removeTrackedIngestionThumbnailVideo(videoId)
     thumbnailJobState.delete(videoId)
     settleThumbnailJob(videoId)
   }
@@ -349,6 +401,7 @@ export const useVideoStore = defineStore('videos', () => {
       return
     }
 
+    trackIngestionThumbnailVideo(video.id)
     void queueThumbnailJob(video.id)
   }
 
@@ -434,6 +487,7 @@ export const useVideoStore = defineStore('videos', () => {
     ingestionProgress.value = null
     ingestionStartedAtMs.value = Date.now()
     ingestionCompletedAtMs.value = null
+    ingestionThumbnailVideoIds.splice(0, ingestionThumbnailVideoIds.length)
 
     try {
       for await (const item of addVideosUseCase.execute(items)) {
@@ -510,6 +564,7 @@ export const useVideoStore = defineStore('videos', () => {
     autoThumbnailConcurrency,
     effectiveThumbnailConcurrency,
     thumbnailQueueSummary,
+    thumbnailGenerationProgress,
     shouldShowProgressToast,
     filteredVideos,
     sortByPinned,
