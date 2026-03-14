@@ -193,19 +193,36 @@ describe('worktree dev helpers', () => {
   })
 
   test('resolves vite from the shared workspace install when the worktree has no local package', () => {
-    const localBin = `${nestedWorktree}/node_modules/vite/bin/vite.js`
-    const sharedPackage = `${workspaceRoot}/node_modules/vite/package.json`
-    const sharedBin = `${workspaceRoot}/node_modules/vite/bin/vite.js`
+    const fixture = createLinkedWorktreeFixture([
+      '.config',
+      'superpowers',
+      'worktrees',
+      'bulk-video-review',
+      'feat-shared-vite',
+    ])
 
-    const viteBin = resolveViteBin(nestedWorktree, {
-      existsSync: (path) => path === sharedBin,
-      resolveModulePath: (specifier) => {
-        expect(specifier).toBe('vite/package.json')
-        expect(localBin).not.toBe(sharedBin)
-        return sharedPackage
-      },
-    })
+    try {
+      mkdirSync(join(fixture.repoRoot, 'node_modules', 'vite', 'bin'), {
+        recursive: true,
+      })
+      writeFileSync(join(fixture.repoRoot, 'package.json'), '{}\n')
+      writeFileSync(join(fixture.worktreeRoot, 'package.json'), '{}\n')
+      writeFileSync(
+        join(fixture.repoRoot, 'node_modules', 'vite', 'package.json'),
+        '{}\n',
+      )
+      writeFileSync(
+        join(fixture.repoRoot, 'node_modules', 'vite', 'bin', 'vite.js'),
+        '',
+      )
 
-    expect(viteBin).toBe(sharedBin)
+      const viteBin = resolveViteBin(fixture.worktreeRoot)
+
+      expect(viteBin).toBe(
+        join(fixture.repoRoot, 'node_modules', 'vite', 'bin', 'vite.js'),
+      )
+    } finally {
+      fixture.cleanup()
+    }
   })
 })

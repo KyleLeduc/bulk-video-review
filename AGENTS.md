@@ -32,6 +32,13 @@ Priorities:
 - Do not rename, move, or reorganize files unless the task requires it.
 - Do not introduce new dependencies, frameworks, or patterns unless justified by the task or approved by the user.
 
+## Worktree workflow
+
+- Create new worktrees with `npm run worktree:add -- <branch> [path]` instead of raw `git worktree add`.
+- If entering an existing or manually created worktree, run `npm run worktree:bootstrap -- [path]` before `npm` or dev commands.
+- Do not run `npm install` inside a worktree unless you intentionally want a separate local install; the normal path is the shared root `node_modules` symlink plus shared repo-root `.env*` symlinks.
+- Inside a worktree, use `npm run dev:worktree`, `npm run dev:status`, and `npm run dev:stop` rather than `npm run dev`.
+
 ## Change discipline
 
 Before making non-trivial changes:
@@ -94,7 +101,7 @@ Standard verification steps:
 
 - `npm run lint`
 - `npm run type-check`
-- `npx vitest --root src/ run <path-or-pattern>` for targeted checks, or `npm run test:unit`
+- `npx vitest run <path-or-pattern> --exclude .worktrees/**` for targeted checks, or `npm run test:unit`
 - `npm run test:unit`, `npm run test:ci`, and `npm run test:e2e` as risk requires
 - `npm run build`
 
@@ -129,7 +136,7 @@ When finishing work, provide:
 ## Repo-specific section
 
 - Primary directories: `src/domain`, `src/application`, `src/infrastructure`, `src/presentation`, `src/shared`, `src/test-utils`, `scripts`, `cypress`, `docs/structurizr`, `public`
-- Main commands: `npm run dev`, `npm run dev:worktree`, `npm run dev:status`, `npm run dev:stop`, `npm run lint`, `npm run type-check`, `npm run test:unit`, `npm run test:ci`, `npm run test:e2e`, `npm run build`, `npm run dep-graph`, `npm run diagram:video`
+- Main commands: `npm run dev`, `npm run dev:worktree`, `npm run dev:status`, `npm run dev:stop`, `npm run worktree:add -- <branch> [path]`, `npm run worktree:bootstrap -- [path]`, `npm run lint`, `npm run type-check`, `npm run test:unit`, `npm run test:ci`, `npm run test:e2e`, `npm run build`, `npm run dep-graph`, `npm run diagram:video`
 - Local architectural rules: Follow the repo's hexagonal split: `src/domain` for core rules and models, `src/application` for use cases and ports, `src/infrastructure` for adapters, persistence, video pipelines, and DI, and `src/presentation` for Vue and Pinia UI. Keep dependency wiring in `src/infrastructure/di`, not inside use cases. Prefer `mcp__git__*` for safe git and worktree operations, `mcp__chrome-devtools__*` for browser and UI investigation, `mcp__context7__*` for current library docs, and `mcp__mermaid__generate` for quick diagrams.
 - High-risk areas: video ingestion and parsing under `src/infrastructure/video*`, persistence and migrations under `src/infrastructure/database` and `src/infrastructure/repository`, orchestration in `src/application/usecases`, UI state in `src/presentation/stores`, and worktree/dev tooling in `scripts/`
 - Required skills: `using-superpowers` at conversation start; `writing-plans` for larger or architectural changes; `systematic-debugging` for bugs; `verification-before-completion` before claiming implementation work is done; `requesting-code-review` after meaningful refactors or contract changes; `using-git-worktrees` for isolated feature work; `test-driven-development` when implementing features or fixes; `dispatching-parallel-agents` or `subagent-driven-development` only for clearly separable read-heavy work; `writing-skills`, `skill-creator`, and `skill-installer` only when the task is about skills themselves
