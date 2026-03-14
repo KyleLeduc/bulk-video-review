@@ -38,6 +38,7 @@ Priorities:
 - If entering an existing or manually created worktree, run `npm run worktree:bootstrap -- [path]` before `npm` or dev commands.
 - Do not run `npm install` inside a worktree unless you intentionally want a separate local install; the normal path is the shared root `node_modules` symlink plus shared repo-root `.env*` symlinks.
 - Inside a worktree, use `npm run dev:worktree`, `npm run dev:status`, and `npm run dev:stop` rather than `npm run dev`.
+- From the main workspace root, `npm run dev:worktree` can interactively target an existing `./.worktrees/*` checkout; use `npm run dev:worktree -- <name-or-path>` to target one directly, and prefer the explicit form in non-interactive contexts.
 
 ## Change discipline
 

@@ -19,6 +19,13 @@ export type ViteServerProcess = {
   ports: number[]
 }
 
+export type ManagedWorktreeChoice = {
+  alreadyRunning: boolean
+  name: string
+  path: string
+  port: number
+}
+
 type PortSelectionOptions = {
   worktreeRoot: string
   activeServers: ViteServerProcess[]
@@ -32,6 +39,16 @@ type PortSelection = {
 type WorktreeMetadata = {
   workspaceRoot: string
   worktreeKey: string
+}
+
+type ResolveWorktreeDevTargetOptions = {
+  activeServers?: ViteServerProcess[]
+  cwd?: string
+  interactive: boolean
+  promptForChoice?: (
+    choices: ManagedWorktreeChoice[],
+  ) => Promise<ManagedWorktreeChoice | null>
+  targetArg?: string
 }
 
 const LINKED_WORKTREE_SEGMENT = `${sep}worktrees${sep}`
@@ -317,6 +334,135 @@ export const formatProcessSummary = (
     process.ports.length > 0 ? process.ports.join(',') : 'no-listener'
 
   return `${currentMarker} ${portLabel}\tpid=${process.pid}\t${getWorktreeKey(process.cwd)}\t${process.cwd}`
+}
+
+const getManagedWorktreesRoot = (currentWorktreeRoot: string): string =>
+  join(getWorkspaceRoot(currentWorktreeRoot), '.worktrees')
+
+const isWorktreeRoot = (path: string): boolean => existsSync(join(path, '.git'))
+
+export const listManagedWorktreeRoots = (
+  currentWorktreeRoot: string,
+): string[] => {
+  const managedWorktreesRoot = getManagedWorktreesRoot(currentWorktreeRoot)
+
+  if (!existsSync(managedWorktreesRoot)) {
+    return []
+  }
+
+  return readdirSync(managedWorktreesRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => join(managedWorktreesRoot, entry.name))
+    .filter(isWorktreeRoot)
+    .sort((left, right) => basename(left).localeCompare(basename(right)))
+}
+
+export const parseManagedWorktreeSelection = (
+  answer: string,
+  choiceCount: number,
+): number | null => {
+  const trimmedAnswer = answer.trim()
+
+  if (trimmedAnswer === '') {
+    return null
+  }
+
+  if (!/^\d+$/.test(trimmedAnswer)) {
+    return -1
+  }
+
+  const selection = Number.parseInt(trimmedAnswer, 10)
+
+  if (selection < 1 || selection > choiceCount) {
+    return -1
+  }
+
+  return selection - 1
+}
+
+const resolveExplicitWorktreeRoot = (
+  currentWorktreeRoot: string,
+  targetArg: string,
+): string => {
+  const bareManagedCandidate = join(
+    getManagedWorktreesRoot(currentWorktreeRoot),
+    targetArg,
+  )
+
+  if (
+    targetArg === basename(targetArg) &&
+    isWorktreeRoot(bareManagedCandidate)
+  ) {
+    return bareManagedCandidate
+  }
+
+  const resolvedTarget = resolve(
+    getWorkspaceRoot(currentWorktreeRoot),
+    targetArg,
+  )
+
+  if (isWorktreeRoot(resolvedTarget)) {
+    return resolvedTarget
+  }
+
+  throw new Error(`Unable to find a worktree root for "${targetArg}".`)
+}
+
+const getManagedWorktreeChoices = (
+  currentWorktreeRoot: string,
+  activeServers: ViteServerProcess[],
+): ManagedWorktreeChoice[] =>
+  listManagedWorktreeRoots(currentWorktreeRoot).map((path) => {
+    const selection = pickWorktreePort({
+      worktreeRoot: path,
+      activeServers,
+    })
+
+    return {
+      alreadyRunning: selection.alreadyRunning,
+      name: getWorktreeKey(path),
+      path,
+      port: selection.port,
+    }
+  })
+
+export const resolveWorktreeDevTarget = async ({
+  activeServers = listViteProcesses(),
+  cwd = process.cwd(),
+  interactive,
+  promptForChoice,
+  targetArg,
+}: ResolveWorktreeDevTargetOptions): Promise<string | null> => {
+  const currentWorktreeRoot = findWorktreeRoot(cwd)
+
+  if (targetArg) {
+    return resolveExplicitWorktreeRoot(currentWorktreeRoot, targetArg)
+  }
+
+  const workspaceRoot = getWorkspaceRoot(currentWorktreeRoot)
+
+  if (currentWorktreeRoot !== workspaceRoot) {
+    return currentWorktreeRoot
+  }
+
+  const choices = getManagedWorktreeChoices(currentWorktreeRoot, activeServers)
+
+  if (choices.length === 0) {
+    return currentWorktreeRoot
+  }
+
+  if (!interactive) {
+    throw new Error(
+      'Managed worktrees exist in ./.worktrees. Use an interactive terminal, pass a worktree name/path, or run the command inside the worktree.',
+    )
+  }
+
+  if (!promptForChoice) {
+    throw new Error('A prompt handler is required to choose a worktree.')
+  }
+
+  const selectedChoice = await promptForChoice(choices)
+  return selectedChoice?.path ?? null
 }
 
 type ResolveViteBinOptions = {

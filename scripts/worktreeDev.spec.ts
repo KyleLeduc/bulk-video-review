@@ -3,10 +3,13 @@
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 import {
   ROOT_DEV_PORT,
   getStopTargetPids,
+  listManagedWorktreeRoots,
+  parseManagedWorktreeSelection,
+  resolveWorktreeDevTarget,
   getWorkspaceRoot,
   getWorktreeKey,
   pickWorktreePort,
@@ -38,6 +41,39 @@ const createLinkedWorktreeFixture = (segments: string[]) => {
     repoRoot,
     worktreeKey,
     worktreeRoot,
+  }
+}
+
+const createManagedWorktreeFixture = (names: string[]) => {
+  const root = mkdtempSync(join(tmpdir(), 'worktree-picker-'))
+  const repoRoot = join(root, 'repo')
+
+  mkdirSync(join(repoRoot, '.git', 'worktrees'), { recursive: true })
+  writeFileSync(join(repoRoot, 'package.json'), '{}\n')
+
+  const worktrees = names.map((name) => {
+    const worktreeRoot = join(repoRoot, '.worktrees', name)
+
+    mkdirSync(join(repoRoot, '.git', 'worktrees', name), {
+      recursive: true,
+    })
+    mkdirSync(worktreeRoot, { recursive: true })
+    writeFileSync(
+      join(worktreeRoot, '.git'),
+      `gitdir: ${join(repoRoot, '.git', 'worktrees', name)}\n`,
+    )
+    writeFileSync(join(worktreeRoot, 'package.json'), '{}\n')
+
+    return {
+      name,
+      worktreeRoot,
+    }
+  })
+
+  return {
+    cleanup: () => rmSync(root, { force: true, recursive: true }),
+    repoRoot,
+    worktrees,
   }
 }
 
@@ -224,5 +260,127 @@ describe('worktree dev helpers', () => {
     } finally {
       fixture.cleanup()
     }
+  })
+
+  test('lists managed worktrees in sorted order and ignores non-directory entries', () => {
+    const fixture = createManagedWorktreeFixture(['zeta', 'alpha'])
+
+    try {
+      writeFileSync(
+        join(fixture.repoRoot, '.worktrees', 'README.md'),
+        '# notes\n',
+      )
+
+      expect(listManagedWorktreeRoots(fixture.repoRoot)).toEqual([
+        join(fixture.repoRoot, '.worktrees', 'alpha'),
+        join(fixture.repoRoot, '.worktrees', 'zeta'),
+      ])
+    } finally {
+      fixture.cleanup()
+    }
+  })
+
+  test('keeps the current linked worktree target without prompting', async () => {
+    const fixture = createManagedWorktreeFixture(['alpha', 'beta'])
+    const promptForChoice = vi.fn()
+
+    try {
+      await expect(
+        resolveWorktreeDevTarget({
+          cwd: fixture.worktrees[0].worktreeRoot,
+          interactive: true,
+          promptForChoice,
+        }),
+      ).resolves.toBe(fixture.worktrees[0].worktreeRoot)
+      expect(promptForChoice).not.toHaveBeenCalled()
+    } finally {
+      fixture.cleanup()
+    }
+  })
+
+  test('uses the explicit target without prompting from the workspace root', async () => {
+    const fixture = createManagedWorktreeFixture(['alpha', 'beta'])
+    const promptForChoice = vi.fn()
+
+    try {
+      await expect(
+        resolveWorktreeDevTarget({
+          cwd: fixture.repoRoot,
+          targetArg: 'beta',
+          interactive: false,
+          promptForChoice,
+        }),
+      ).resolves.toBe(fixture.worktrees[1].worktreeRoot)
+      expect(promptForChoice).not.toHaveBeenCalled()
+    } finally {
+      fixture.cleanup()
+    }
+  })
+
+  test('prompts for a managed worktree when run from the workspace root', async () => {
+    const fixture = createManagedWorktreeFixture(['alpha', 'beta'])
+    const activeServers: ViteServerProcess[] = [
+      {
+        pid: 41,
+        cwd: fixture.worktrees[0].worktreeRoot,
+        cmd: 'node vite',
+        ports: [5260],
+      },
+    ]
+    const promptForChoice = vi.fn(async (choices) => {
+      expect(choices).toMatchObject([
+        {
+          alreadyRunning: true,
+          name: 'alpha',
+          path: fixture.worktrees[0].worktreeRoot,
+          port: 5260,
+        },
+        {
+          alreadyRunning: false,
+          name: 'beta',
+          path: fixture.worktrees[1].worktreeRoot,
+          port: expect.any(Number),
+        },
+      ])
+
+      return choices[1]
+    })
+
+    try {
+      await expect(
+        resolveWorktreeDevTarget({
+          activeServers,
+          cwd: fixture.repoRoot,
+          interactive: true,
+          promptForChoice,
+        }),
+      ).resolves.toBe(fixture.worktrees[1].worktreeRoot)
+      expect(promptForChoice).toHaveBeenCalledTimes(1)
+    } finally {
+      fixture.cleanup()
+    }
+  })
+
+  test('fails fast without a tty when managed worktrees exist at the workspace root', async () => {
+    const fixture = createManagedWorktreeFixture(['alpha'])
+
+    try {
+      await expect(
+        resolveWorktreeDevTarget({
+          cwd: fixture.repoRoot,
+          interactive: false,
+        }),
+      ).rejects.toThrow(/interactive terminal/i)
+    } finally {
+      fixture.cleanup()
+    }
+  })
+
+  test('rejects malformed interactive selection input', () => {
+    expect(parseManagedWorktreeSelection('', 2)).toBeNull()
+    expect(parseManagedWorktreeSelection('1abc', 2)).toBe(-1)
+    expect(parseManagedWorktreeSelection('1.5', 2)).toBe(-1)
+    expect(parseManagedWorktreeSelection('3', 2)).toBe(-1)
+    expect(parseManagedWorktreeSelection('2', 2)).toBe(1)
   })
 })

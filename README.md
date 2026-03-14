@@ -52,6 +52,16 @@ npm run dev:status
 npm run dev:stop
 ```
 
+From the main workspace root, `npm run dev:worktree` now prompts you to pick one of the existing entries under `./.worktrees/`. To skip the prompt, target a worktree directly:
+
+```sh
+npm run dev:worktree -- thumbnail-queue
+# or
+npm run dev:worktree -- .worktrees/thumbnail-queue
+```
+
+If you run `npm run dev:worktree` from the main workspace root without an interactive TTY and `./.worktrees/` contains managed checkouts, the command exits with an error and asks you to pass `<name-or-path>` explicitly.
+
 ### Compile and Hot-Reload for Development
 
 ```sh
