@@ -1,0 +1,11 @@
+{
+  "name": "claude-agent-harness-template",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "agent:doctor": "node ./scripts/agentDoctor.mjs",
+    "diagram:doctor": "node ./scripts/diagramDoctor.mjs",
+    "diagram:validate": "node ./scripts/validateStructurizrWorkspace.mjs",
+    "diagram:structurizr": "node ./scripts/generateStructurizrDiagrams.mjs"
+  }
+}

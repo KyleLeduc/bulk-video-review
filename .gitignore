@@ -39,3 +39,7 @@ claude_user/*
 
 .venv
 .worktrees/
+
+
+!.template/codex/.config/.codex/
+!.template/codex/.config/.codex/**

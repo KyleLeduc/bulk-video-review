@@ -1,0 +1,58 @@
+{
+  // Friendly display name for the Codex-focused devcontainer.
+  "name": "Codex + Structurizr",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  // Forward the common Vite port; change or add ports for your own app.
+  "forwardPorts": [
+    5173
+  ],
+  "mounts": [
+    // Keep dependencies inside a named Docker volume so rebuilds do not thrash host files.
+    "source=${localWorkspaceFolderBasename}-node-modules,target=/workspaces/${localWorkspaceFolderBasename}/node_modules,type=volume",
+    // Reuse local Codex config and installed skills inside the container.
+    "source=${localWorkspaceFolder}/.config/.codex,target=/root/.codex,type=bind",
+    // Reuse the host git identity without baking secrets into the image.
+    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind"
+  ],
+  // Install project dependencies after the workspace is created, then sanity-check key CLIs.
+  "postCreateCommand": "npm install && codex --help && structurizr --help",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-docker",
+        "bpruitt-goddard.mermaid-markdown-syntax-highlighting",
+        "bierner.markdown-mermaid",
+        "MermaidChart.vscode-mermaid-chart",
+        "systemticks.c4-dsl-extension",
+        "openai.chatgpt"
+      ]
+    }
+  },
+  "features": {
+    // Git inside the container keeps repo and worktree flows available to agents.
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
+      "version": "latest"
+    },
+    // GitHub CLI is still useful for repo automation even in the Codex tree.
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    },
+    // Python is often useful for one-off automation and tooling scripts.
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    // Chrome testing support enables browser automation and UI verification tools.
+    "ghcr.io/kreemer/features/chrometesting:1": {},
+    // Structurizr CLI runs on Java, so keep a JDK available in the container.
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17"
+    }
+  }
+}
