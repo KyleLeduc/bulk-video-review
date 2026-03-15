@@ -30,10 +30,20 @@ npm install
 
 ## Worktree Workflow
 
+The canonical worktree command is:
+
+```sh
+npm run worktree
+```
+
+With no subcommand in an interactive terminal, it opens the arrow-key worktree launcher.
+
+In the interactive launcher, `Up`, `Stop`, and `Remove` prompt you to choose from the managed worktree list.
+
 Create a bootstrapped worktree with:
 
 ```sh
-npm run worktree:add -- <branch>
+npm run worktree -- add <branch>
 ```
 
 This creates `.worktrees/<branch-name>` by default, links the main workspace `node_modules`, and links any repo-root `.env` or `.env.*` files into the new worktree.
@@ -41,26 +51,33 @@ This creates `.worktrees/<branch-name>` by default, links the main workspace `no
 To bootstrap an existing worktree from the main checkout:
 
 ```sh
-npm run worktree:bootstrap -- .worktrees/<branch-name>
+npm run worktree -- bootstrap .worktrees/<branch-name>
 ```
 
-After bootstrap, run the worktree-aware dev helpers from inside the worktree:
+With no target, `npm run worktree -- bootstrap` bootstraps the current checkout or linked worktree.
+
+Common scripted commands:
 
 ```sh
-npm run dev:worktree
-npm run dev:status
-npm run dev:stop
+npm run worktree -- help
+npm run worktree -- ls
+npm run worktree -- ps
+npm run worktree -- up thumbnail-queue
+npm run worktree -- stop thumbnail-queue
+npm run worktree -- remove thumbnail-queue
 ```
 
-From the main workspace root, `npm run dev:worktree` now prompts you to pick one of the existing entries under `./.worktrees/`. To skip the prompt, target a worktree directly:
+Legacy wrappers still work and now delegate to the central CLI:
 
 ```sh
 npm run dev:worktree -- thumbnail-queue
-# or
-npm run dev:worktree -- .worktrees/thumbnail-queue
+npm run dev:status
+npm run dev:stop
+npm run worktree:add -- <branch>
+npm run worktree:bootstrap -- .worktrees/<branch-name>
 ```
 
-If you run `npm run dev:worktree` from the main workspace root without an interactive TTY and `./.worktrees/` contains managed checkouts, the command exits with an error and asks you to pass `<name-or-path>` explicitly.
+If you run `npm run worktree -- up` or `npm run worktree -- stop` from the main workspace root without an interactive TTY and `./.worktrees/` contains managed checkouts, the command exits with an error and asks you to pass an explicit worktree name or path.
 
 ### Compile and Hot-Reload for Development
 

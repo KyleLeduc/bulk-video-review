@@ -51,6 +51,13 @@ type ResolveWorktreeDevTargetOptions = {
   targetArg?: string
 }
 
+type ResolveWorktreeTargetOptions = {
+  activeServers?: ViteServerProcess[]
+  cwd?: string
+  interactive: boolean
+  targetArg?: string
+}
+
 const LINKED_WORKTREE_SEGMENT = `${sep}worktrees${sep}`
 const LEGACY_WORKTREE_SEGMENTS = [
   `${sep}.worktrees${sep}`,
@@ -408,7 +415,7 @@ const resolveExplicitWorktreeRoot = (
   throw new Error(`Unable to find a worktree root for "${targetArg}".`)
 }
 
-const getManagedWorktreeChoices = (
+export const listManagedWorktreeChoices = (
   currentWorktreeRoot: string,
   activeServers: ViteServerProcess[],
 ): ManagedWorktreeChoice[] =>
@@ -426,13 +433,12 @@ const getManagedWorktreeChoices = (
     }
   })
 
-export const resolveWorktreeDevTarget = async ({
+export const resolveWorktreeTarget = async ({
   activeServers = listViteProcesses(),
   cwd = process.cwd(),
   interactive,
-  promptForChoice,
   targetArg,
-}: ResolveWorktreeDevTargetOptions): Promise<string | null> => {
+}: ResolveWorktreeTargetOptions): Promise<string | null> => {
   const currentWorktreeRoot = findWorktreeRoot(cwd)
 
   if (targetArg) {
@@ -445,22 +451,45 @@ export const resolveWorktreeDevTarget = async ({
     return currentWorktreeRoot
   }
 
-  const choices = getManagedWorktreeChoices(currentWorktreeRoot, activeServers)
+  const choices = listManagedWorktreeChoices(currentWorktreeRoot, activeServers)
 
   if (choices.length === 0) {
     return currentWorktreeRoot
   }
 
-  if (!interactive) {
-    throw new Error(
-      'Managed worktrees exist in ./.worktrees. Use an interactive terminal, pass a worktree name/path, or run the command inside the worktree.',
-    )
+  if (interactive) {
+    return null
+  }
+
+  throw new Error(
+    'Managed worktrees exist in ./.worktrees. Use an interactive terminal, pass a worktree name/path, or run the command inside the worktree.',
+  )
+}
+
+export const resolveWorktreeDevTarget = async ({
+  activeServers = listViteProcesses(),
+  cwd = process.cwd(),
+  interactive,
+  promptForChoice,
+  targetArg,
+}: ResolveWorktreeDevTargetOptions): Promise<string | null> => {
+  const resolvedTarget = await resolveWorktreeTarget({
+    activeServers,
+    cwd,
+    interactive,
+    targetArg,
+  })
+
+  if (resolvedTarget !== null) {
+    return resolvedTarget
   }
 
   if (!promptForChoice) {
     throw new Error('A prompt handler is required to choose a worktree.')
   }
 
+  const currentWorktreeRoot = findWorktreeRoot(cwd)
+  const choices = listManagedWorktreeChoices(currentWorktreeRoot, activeServers)
   const selectedChoice = await promptForChoice(choices)
   return selectedChoice?.path ?? null
 }

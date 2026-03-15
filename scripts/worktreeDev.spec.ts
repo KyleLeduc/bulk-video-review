@@ -7,8 +7,10 @@ import { describe, expect, test, vi } from 'vitest'
 import {
   ROOT_DEV_PORT,
   getStopTargetPids,
+  listManagedWorktreeChoices,
   listManagedWorktreeRoots,
   parseManagedWorktreeSelection,
+  resolveWorktreeTarget,
   resolveWorktreeDevTarget,
   getWorkspaceRoot,
   getWorktreeKey,
@@ -371,6 +373,53 @@ describe('worktree dev helpers', () => {
           interactive: false,
         }),
       ).rejects.toThrow(/interactive terminal/i)
+    } finally {
+      fixture.cleanup()
+    }
+  })
+
+  test('returns managed worktree choices annotated with runtime status', () => {
+    const fixture = createManagedWorktreeFixture(['alpha', 'beta'])
+
+    try {
+      expect(
+        listManagedWorktreeChoices(fixture.repoRoot, [
+          {
+            pid: 41,
+            cwd: fixture.worktrees[0].worktreeRoot,
+            cmd: 'node vite',
+            ports: [5260],
+          },
+        ]),
+      ).toMatchObject([
+        {
+          alreadyRunning: true,
+          name: 'alpha',
+          path: fixture.worktrees[0].worktreeRoot,
+          port: 5260,
+        },
+        {
+          alreadyRunning: false,
+          name: 'beta',
+          path: fixture.worktrees[1].worktreeRoot,
+          port: expect.any(Number),
+        },
+      ])
+    } finally {
+      fixture.cleanup()
+    }
+  })
+
+  test('resolves to null at the workspace root when interactive selection is needed', async () => {
+    const fixture = createManagedWorktreeFixture(['alpha'])
+
+    try {
+      await expect(
+        resolveWorktreeTarget({
+          cwd: fixture.repoRoot,
+          interactive: true,
+        }),
+      ).resolves.toBeNull()
     } finally {
       fixture.cleanup()
     }

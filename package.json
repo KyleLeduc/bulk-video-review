@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "worktree": "node --import tsx ./scripts/worktree.ts",
     "dev:worktree": "node --import tsx ./scripts/devWorktree.ts",
     "dev:status": "node --import tsx ./scripts/devStatus.ts",
     "dev:stop": "node --import tsx ./scripts/devStop.ts",
@@ -55,6 +56,7 @@
     "npm-run-all": "^4.1.5",
     "open": "^10.1.0",
     "prettier": "^3.3.2",
+    "prompts": "^2.4.2",
     "sass": "^1.77.6",
     "start-server-and-test": "^2.0.4",
     "tsx": "^4.19.2",

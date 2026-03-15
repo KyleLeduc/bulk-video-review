@@ -15,6 +15,7 @@ import { describe, expect, test } from 'vitest'
 import {
   bootstrapWorktree,
   buildWorktreeAddArgs,
+  buildWorktreeRemoveArgs,
   getDefaultWorktreePath,
 } from './worktreeBootstrap'
 
@@ -155,5 +156,13 @@ describe('worktree add helpers', () => {
         worktreePath: '/tmp/thumb-queue',
       }),
     ).toEqual(['worktree', 'add', '/tmp/thumb-queue', 'feature/thumb-queue'])
+  })
+
+  test('builds git worktree remove args for an existing worktree path', () => {
+    expect(buildWorktreeRemoveArgs('/tmp/thumb-queue')).toEqual([
+      'worktree',
+      'remove',
+      '/tmp/thumb-queue',
+    ])
   })
 })

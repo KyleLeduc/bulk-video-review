@@ -129,6 +129,12 @@ export const buildWorktreeAddArgs = ({
     ? ['worktree', 'add', worktreePath, branchName]
     : ['worktree', 'add', '-b', branchName, worktreePath]
 
+export const buildWorktreeRemoveArgs = (worktreePath: string): string[] => [
+  'worktree',
+  'remove',
+  worktreePath,
+]
+
 const resolveWorktreePath = (
   workspaceRoot: string,
   pathArg?: string,
@@ -215,6 +221,24 @@ export const bootstrapCurrentOrSpecifiedWorktree = (
 
   return {
     bootstrap: bootstrapWorktree(worktreePath, workspaceRoot),
+    worktreePath,
+    workspaceRoot,
+  }
+}
+
+export const removeWorktree = (
+  pathArg: string,
+  cwd = process.cwd(),
+): {
+  worktreePath: string
+  workspaceRoot: string
+} => {
+  const workspaceRoot = getWorkspaceRoot(findWorktreeRoot(cwd))
+  const worktreePath = resolveWorktreePath(workspaceRoot, pathArg)
+
+  gitExec(workspaceRoot, buildWorktreeRemoveArgs(worktreePath))
+
+  return {
     worktreePath,
     workspaceRoot,
   }
