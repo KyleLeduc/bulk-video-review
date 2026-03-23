@@ -297,6 +297,48 @@ describe('useVideoStore', () => {
     }
   })
 
+  test('clears retained import file handles once a displayed session finishes ingesting', async () => {
+    const { global } = createPresentationTestContext({
+      useCases: {
+        addVideosUseCase: {
+          execute: vi.fn(async function* () {
+            yield {
+              type: 'video' as const,
+              video: buildParsedVideo({ id: 'id-1', thumbUrls: ['thumb-1'] }),
+            }
+            yield {
+              type: 'progress' as const,
+              progress: {
+                total: 1,
+                scanned: 1,
+                existingCount: 0,
+                newCount: 1,
+                knownErrorCount: 0,
+                createdCount: 1,
+                failedCount: 0,
+                completedCount: 1,
+              },
+            }
+          }),
+        },
+      },
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+
+    const wrapper = mount(StoreHarness, {
+      global,
+    })
+
+    const store = (wrapper.vm as any).store as ReturnType<typeof useVideoStore>
+    const file = new File(['video-bytes'], 'sample.mp4', { type: 'video/mp4' })
+
+    await store.addVideosFromFiles(createMockFileList(file))
+
+    expect(store.displayedIngestionSession?.items).toEqual([])
+  })
+
   test('tracks ingestion timing separately from thumbnail warmup', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-08T00:00:00.000Z'))
@@ -393,7 +435,7 @@ describe('useVideoStore', () => {
           },
           updateThumbUseCase: {
             execute: vi.fn(
-              (video) =>
+              () =>
                 new Promise((resolve) => {
                   resolveThumbnailJob = resolve
                 }),
@@ -488,6 +530,57 @@ describe('useVideoStore', () => {
     expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
   })
 
+  test('preserves newer pinned state when a delayed thumbnail update resolves', async () => {
+    let resolveThumbnailJob: ((video: ParsedVideo) => void) | undefined
+
+    const { global } = createPresentationTestContext({
+      useCases: {
+        updateThumbUseCase: {
+          execute: vi.fn(
+            () =>
+              new Promise((resolve) => {
+                resolveThumbnailJob = resolve
+              }),
+          ),
+        },
+      },
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+
+    const wrapper = mount(StoreHarness, {
+      global,
+    })
+
+    const store = (wrapper.vm as any).store as ReturnType<typeof useVideoStore>
+    const original = buildParsedVideo({
+      id: 'id-1',
+      pinned: false,
+      thumbUrls: [],
+    })
+    store.addVideos([original])
+
+    const updatePromise = store.updateVideoThumbnails('id-1')
+    store.togglePinVideo('id-1')
+
+    resolveThumbnailJob?.({
+      ...original,
+      pinned: false,
+      thumbUrls: ['thumb-1', 'thumb-2'],
+    })
+
+    await updatePromise
+
+    expect(store.sortByVotes[0]).toEqual(
+      expect.objectContaining({
+        id: 'id-1',
+        pinned: true,
+        thumbUrls: ['thumb-1', 'thumb-2'],
+      }),
+    )
+  })
+
   test('queues a second import ahead of pending thumbnail drain and resumes thumbnails after the queued import runs', async () => {
     vi.useFakeTimers()
 
@@ -547,7 +640,7 @@ describe('useVideoStore', () => {
           },
           updateThumbUseCase: {
             execute: vi.fn(
-              (video) =>
+              () =>
                 new Promise((resolve) => {
                   resolveThumbnailJob = resolve
                 }),
@@ -563,7 +656,9 @@ describe('useVideoStore', () => {
         global,
       })
 
-      const store = (wrapper.vm as any).store as ReturnType<typeof useVideoStore>
+      const store = (wrapper.vm as any).store as ReturnType<
+        typeof useVideoStore
+      >
       store.setThumbnailConcurrencyOverride(1)
 
       const firstBatch = createMockFileList(

@@ -280,7 +280,8 @@ export const useVideoStore = defineStore('videos', () => {
     Boolean(
       activeIngestionSessionId.value !== null ||
         (ingestionProgress.value &&
-          ingestionProgress.value.completedCount < ingestionProgress.value.total),
+          ingestionProgress.value.completedCount <
+            ingestionProgress.value.total),
     ),
   )
 
@@ -374,7 +375,10 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   const startNextQueuedIngestion = () => {
-    if (activeIngestionSessionId.value !== null || activeThumbnailJobs.value > 0) {
+    if (
+      activeIngestionSessionId.value !== null ||
+      activeThumbnailJobs.value > 0
+    ) {
       return
     }
 
@@ -402,9 +406,11 @@ export const useVideoStore = defineStore('videos', () => {
     syncDisplayedSession(session.id)
 
     const deferredThumbnailQueue: ParsedVideo[] = []
+    const items = session.items
+    session.items = []
 
     try {
-      for await (const item of addVideosUseCase.execute(session.items)) {
+      for await (const item of addVideosUseCase.execute(items)) {
         if (item.type === 'video') {
           addVideos([item.video])
           deferredThumbnailQueue.push(item.video)
@@ -482,13 +488,17 @@ export const useVideoStore = defineStore('videos', () => {
       void updateThumbUseCase
         .execute(video)
         .then((updated) => {
-          if (!videoMap.has(nextVideoId)) {
+          const currentVideo = toRaw(videoMap.get(nextVideoId))
+          if (!currentVideo) {
             clearThumbnailTracking(nextVideoId)
             return
           }
 
           if (hasReadyThumbnails(updated)) {
-            videoMap.set(nextVideoId, updated)
+            videoMap.set(
+              nextVideoId,
+              mergeThumbnailUpdateIntoCurrentVideo(currentVideo, updated),
+            )
             thumbnailJobState.set(nextVideoId, 'ready')
             return
           }
@@ -571,7 +581,10 @@ export const useVideoStore = defineStore('videos', () => {
     return promise
   }
 
-  const queueBackgroundThumbnailJob = (video: ParsedVideo, sessionId: string) => {
+  const queueBackgroundThumbnailJob = (
+    video: ParsedVideo,
+    sessionId: string,
+  ) => {
     if (hasReadyThumbnails(video)) {
       return
     }
@@ -579,6 +592,16 @@ export const useVideoStore = defineStore('videos', () => {
     trackIngestionThumbnailVideo(sessionId, video.id)
     void queueThumbnailJob(video.id)
   }
+
+  const mergeThumbnailUpdateIntoCurrentVideo = (
+    currentVideo: ParsedVideo,
+    updatedVideo: ParsedVideo,
+  ): ParsedVideo => ({
+    ...currentVideo,
+    ...updatedVideo,
+    url: currentVideo.url,
+    pinned: currentVideo.pinned,
+  })
 
   function addVideos(videos: ParsedVideo[]) {
     videos.forEach((video) => {
