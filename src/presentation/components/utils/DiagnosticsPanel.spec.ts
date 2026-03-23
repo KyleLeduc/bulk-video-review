@@ -15,7 +15,9 @@ describe('DiagnosticsPanel', () => {
 
     try {
       let addCallCount = 0
-      let resolveThumbnailJob: ((video: ReturnType<typeof buildParsedVideo>) => void) | undefined
+      let resolveThumbnailJob:
+        | ((video: ReturnType<typeof buildParsedVideo>) => void)
+        | undefined
 
       const { global } = createPresentationTestContext({
         useCases: {
@@ -65,7 +67,7 @@ describe('DiagnosticsPanel', () => {
           },
           updateThumbUseCase: {
             execute: vi.fn(
-              (video) =>
+              () =>
                 new Promise((resolve) => {
                   resolveThumbnailJob = resolve
                 }),

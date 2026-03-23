@@ -48,7 +48,6 @@ describe('VideoCard', () => {
       })
 
       const store = useVideoStore()
-      const requestWarmupSpy = vi.spyOn(store, 'requestThumbnailWarmup')
       store.addVideos([video])
 
       await wrapper.get('img.thumb').trigger('mouseenter')

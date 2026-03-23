@@ -95,7 +95,9 @@ describe('FileInput', () => {
 
     await vi.advanceTimersByTimeAsync(249)
 
-    expect(wrapper.find('[data-testid="upload-picker-menu"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="upload-picker-menu"]').exists()).toBe(
+      true,
+    )
 
     await vi.advanceTimersByTimeAsync(1)
 

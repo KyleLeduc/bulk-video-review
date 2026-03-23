@@ -469,8 +469,12 @@ describe('LinearVideoIngestionUseCase', () => {
   })
 
   test('counts partition failures as completed work even when no processing loop runs', async () => {
-    const brokenA = new File(['broken-a'], 'broken-a.mp4', { type: 'video/mp4' })
-    const brokenB = new File(['broken-b'], 'broken-b.mp4', { type: 'video/mp4' })
+    const brokenA = new File(['broken-a'], 'broken-a.mp4', {
+      type: 'video/mp4',
+    })
+    const brokenB = new File(['broken-b'], 'broken-b.mp4', {
+      type: 'video/mp4',
+    })
     const items: VideoImportItem[] = [{ file: brokenA }, { file: brokenB }]
     const failureTracker = buildFailureTracker()
 

@@ -75,15 +75,24 @@
     <div class="ingestion-toast__legend" aria-label="Ingestion status colors">
       <template v-if="isShowingThumbnailProgress">
         <span class="legend-item">
-          <span class="legend-swatch legend-swatch--generated" aria-hidden="true" />
+          <span
+            class="legend-swatch legend-swatch--generated"
+            aria-hidden="true"
+          />
           Generated
         </span>
         <span class="legend-item">
-          <span class="legend-swatch legend-swatch--pending" aria-hidden="true" />
+          <span
+            class="legend-swatch legend-swatch--pending"
+            aria-hidden="true"
+          />
           Pending
         </span>
         <span class="legend-item">
-          <span class="legend-swatch legend-swatch--failed" aria-hidden="true" />
+          <span
+            class="legend-swatch legend-swatch--failed"
+            aria-hidden="true"
+          />
           Failed
         </span>
       </template>
@@ -210,7 +219,10 @@ watch(ingestionProgress, (progress, previous) => {
     isLingering.value = false
     clearDismissTimer()
 
-    if (progress.completedCount >= progress.total && !shouldShowProgressToast.value) {
+    if (
+      progress.completedCount >= progress.total &&
+      !shouldShowProgressToast.value
+    ) {
       startDismissCountdown()
     }
   }

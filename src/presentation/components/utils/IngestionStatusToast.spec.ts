@@ -358,7 +358,9 @@ describe('IngestionStatusToast', () => {
 
     expect(wrapper.text()).toContain('Thumbnail progress')
     expect(wrapper.text()).toContain('Generated 0 / 1')
-    expect(wrapper.get('.ingestion-toast__legend').text()).toContain('Generated')
+    expect(wrapper.get('.ingestion-toast__legend').text()).toContain(
+      'Generated',
+    )
     expect(wrapper.get('.ingestion-toast__legend').text()).toContain('Pending')
     expect(wrapper.get('.ingestion-toast__legend').text()).toContain('Failed')
     expect(wrapper.get('.ingestion-toast__stats').text()).toContain('Pending 1')
@@ -377,7 +379,9 @@ describe('IngestionStatusToast', () => {
 
     try {
       let addCallCount = 0
-      let resolveThumbnailJob: ((video: ReturnType<typeof buildParsedVideo>) => void) | undefined
+      let resolveThumbnailJob:
+        | ((video: ReturnType<typeof buildParsedVideo>) => void)
+        | undefined
 
       const { global } = createPresentationTestContext({
         useCases: {
@@ -431,7 +435,7 @@ describe('IngestionStatusToast', () => {
           },
           updateThumbUseCase: {
             execute: vi.fn(
-              (video) =>
+              () =>
                 new Promise((resolve) => {
                   resolveThumbnailJob = resolve
                 }),
