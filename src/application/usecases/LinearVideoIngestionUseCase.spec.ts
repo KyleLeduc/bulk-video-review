@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from 'vitest'
+import type { ParsedVideo } from '@domain/entities'
 import type { IVideoAggregateRepository } from '@domain/repositories'
 import type {
   IVideoIngestionFailureTracker,
@@ -66,6 +67,11 @@ const collect = async <T>(iterable: AsyncIterable<T>): Promise<T[]> => {
   return results
 }
 
+const collectVideos = (items: Array<any>): ParsedVideo[] =>
+  items
+    .filter((item) => item?.type === 'video')
+    .map((item) => item.video as ParsedVideo)
+
 describe('LinearVideoIngestionUseCase', () => {
   test('yields previously scanned videos before parsing unseen items', async () => {
     const newFile = new File(['video-bytes'], 'new.mp4', { type: 'video/mp4' })
@@ -108,7 +114,8 @@ describe('LinearVideoIngestionUseCase', () => {
       failureTracker,
     )
 
-    const results = await collect(useCase.execute(items))
+    const events = await collect(useCase.execute(items))
+    const results = collectVideos(events)
 
     expect(results).toHaveLength(2)
     expect(results.map((video) => video.id)).toEqual(['id-cached', 'id-new'])
@@ -176,7 +183,8 @@ describe('LinearVideoIngestionUseCase', () => {
       failureTracker,
     )
 
-    const results = await collect(useCase.execute(items))
+    const events = await collect(useCase.execute(items))
+    const results = collectVideos(events)
 
     expect(results.map((video) => video.id)).toEqual(['id-fresh', 'id-retry'])
     expect(failureTracker.clearFailure).toHaveBeenCalledWith('id-retry')
@@ -206,7 +214,8 @@ describe('LinearVideoIngestionUseCase', () => {
       failureTracker,
     )
 
-    const results = await collect(useCase.execute(items))
+    const events = await collect(useCase.execute(items))
+    const results = collectVideos(events)
 
     expect(deps.metadataExtractor.generateId).toHaveBeenCalledWith(file)
     expect(deps.metadataExtractor.extract).not.toHaveBeenCalled()
@@ -255,7 +264,8 @@ describe('LinearVideoIngestionUseCase', () => {
       failureTracker,
     )
 
-    const results = await collect(useCase.execute(items))
+    const events = await collect(useCase.execute(items))
+    const results = collectVideos(events)
 
     expect(deps.metadataExtractor.generateId).toHaveBeenCalledWith(file)
     expect(deps.metadataExtractor.extract).toHaveBeenCalledWith(file, {
@@ -305,7 +315,8 @@ describe('LinearVideoIngestionUseCase', () => {
       failureTracker,
     )
 
-    const results = await collect(useCase.execute(items))
+    const events = await collect(useCase.execute(items))
+    const results = collectVideos(events)
 
     expect(results).toHaveLength(0)
     expect(deps.aggregateRepository.postVideo).not.toHaveBeenCalled()
@@ -355,12 +366,193 @@ describe('LinearVideoIngestionUseCase', () => {
       failureTracker,
     )
 
-    const results = await collect(useCase.execute(items))
+    const events = await collect(useCase.execute(items))
+    const results = collectVideos(events)
 
     expect(results).toHaveLength(1)
     expect(results[0]).toEqual(expect.objectContaining({ id: 'id-ok' }))
     expect(failureTracker.recordFailure).toHaveBeenCalledWith('id-broken')
     expect(failureTracker.clearFailure).toHaveBeenCalledWith('id-ok')
     expect(deps.logger.error).toHaveBeenCalled()
+  })
+
+  test('emits progress snapshots while classifying and processing ingestion items', async () => {
+    const cached = new File(['cached'], 'cached.mp4', { type: 'video/mp4' })
+    const fresh = new File(['fresh'], 'fresh.mp4', { type: 'video/mp4' })
+    const retry = new File(['retry'], 'retry.mp4', { type: 'video/mp4' })
+    const items: VideoImportItem[] = [
+      { file: cached },
+      { file: fresh },
+      { file: retry },
+    ]
+    const failureTracker = buildFailureTracker({
+      hasFailure: vi
+        .fn()
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true),
+    })
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi
+          .fn()
+          .mockResolvedValueOnce('id-cached')
+          .mockResolvedValueOnce('id-fresh')
+          .mockResolvedValueOnce('id-retry'),
+        extract: vi
+          .fn()
+          .mockResolvedValueOnce({
+            videoEntity: buildVideoEntity({
+              id: 'id-fresh',
+              title: 'fresh.mp4',
+              thumb: 'thumb-fresh',
+              duration: 12,
+            }),
+            url: '',
+          })
+          .mockResolvedValueOnce(null),
+      },
+      aggregateRepository: {
+        ...makeDeps().aggregateRepository,
+        getVideo: vi
+          .fn()
+          .mockResolvedValueOnce(buildVideoAggregate({ id: 'id-cached' }))
+          .mockResolvedValueOnce(undefined)
+          .mockResolvedValueOnce(undefined),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+      failureTracker,
+    )
+
+    const events = await collect(useCase.execute(items) as AsyncIterable<any>)
+    const progressEvents = events.filter((event) => event?.type === 'progress')
+
+    expect(progressEvents.length).toBeGreaterThan(0)
+    expect(progressEvents[0]).toEqual(
+      expect.objectContaining({
+        type: 'progress',
+        progress: expect.objectContaining({
+          total: 3,
+          existingCount: 1,
+          newCount: 1,
+          knownErrorCount: 1,
+        }),
+      }),
+    )
+    expect(progressEvents.at(-1)).toEqual(
+      expect.objectContaining({
+        progress: expect.objectContaining({
+          completedCount: 3,
+          createdCount: 1,
+          failedCount: 1,
+        }),
+      }),
+    )
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: 'video',
+        video: expect.objectContaining({ id: 'id-cached' }),
+      }),
+    )
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: 'video',
+        video: expect.objectContaining({ id: 'id-fresh' }),
+      }),
+    )
+  })
+
+  test('counts partition failures as completed work even when no processing loop runs', async () => {
+    const brokenA = new File(['broken-a'], 'broken-a.mp4', {
+      type: 'video/mp4',
+    })
+    const brokenB = new File(['broken-b'], 'broken-b.mp4', {
+      type: 'video/mp4',
+    })
+    const items: VideoImportItem[] = [{ file: brokenA }, { file: brokenB }]
+    const failureTracker = buildFailureTracker()
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi
+          .fn()
+          .mockRejectedValueOnce(new Error('bad-a'))
+          .mockRejectedValueOnce(new Error('bad-b')),
+        extract: vi.fn(async () => null),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+      failureTracker,
+    )
+
+    const events = await collect(useCase.execute(items))
+    const progressEvents = events.filter((event) => event?.type === 'progress')
+
+    expect(progressEvents).toHaveLength(1)
+    expect(progressEvents[0]).toEqual(
+      expect.objectContaining({
+        type: 'progress',
+        progress: expect.objectContaining({
+          total: 2,
+          failedCount: 2,
+          completedCount: 2,
+        }),
+      }),
+    )
+  })
+
+  test('includes partition failures in the initial completed count when only cached items remain', async () => {
+    const cached = new File(['cached'], 'cached.mp4', { type: 'video/mp4' })
+    const broken = new File(['broken'], 'broken.mp4', { type: 'video/mp4' })
+    const items: VideoImportItem[] = [{ file: cached }, { file: broken }]
+    const failureTracker = buildFailureTracker()
+
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi
+          .fn()
+          .mockResolvedValueOnce('id-cached')
+          .mockRejectedValueOnce(new Error('bad-b')),
+        extract: vi.fn(async () => null),
+      },
+      aggregateRepository: {
+        ...makeDeps().aggregateRepository,
+        getVideo: vi.fn(async () => buildVideoAggregate({ id: 'id-cached' })),
+      },
+    })
+
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+      failureTracker,
+    )
+
+    const events = await collect(useCase.execute(items))
+    const progressEvents = events.filter((event) => event?.type === 'progress')
+
+    expect(progressEvents[0]).toEqual(
+      expect.objectContaining({
+        type: 'progress',
+        progress: expect.objectContaining({
+          total: 2,
+          existingCount: 1,
+          failedCount: 1,
+          completedCount: 2,
+        }),
+      }),
+    )
   })
 })

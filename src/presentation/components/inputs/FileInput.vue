@@ -31,7 +31,9 @@
           d="M3.75 7.5v-.75a2 2 0 0 1 2-2h4.1a2 2 0 0 1 1.42.59l1.4 1.41H18.25a2 2 0 0 1 2 2v.75"
         />
       </svg>
-      <span class="file-button__label">Add videos</span>
+      <span class="file-button__label">
+        {{ triggerLabel }}
+      </span>
       <svg
         class="file-button__chevron"
         viewBox="0 0 24 24"
@@ -129,7 +131,8 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { getBrowserPlayableVideoAccept } from '@/shared/video/browserPlayableVideoTypes'
 import { useVideoStore } from '@presentation/stores'
 
@@ -137,6 +140,8 @@ const HOVER_MENU_DELAY_MS = 1000
 const HOVER_MENU_CLOSE_DELAY_MS = 250
 
 const videoStore = useVideoStore()
+const { isIngesting, queuedIngestionCount, isThumbnailDrainPaused } =
+  storeToRefs(videoStore)
 const accept = getBrowserPlayableVideoAccept()
 const pickerRoot = ref<HTMLElement | null>(null)
 const folderInput = ref<HTMLInputElement | null>(null)
@@ -144,6 +149,19 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const isOpen = ref(false)
 let openMenuTimer: ReturnType<typeof setTimeout> | null = null
 let closeMenuTimer: ReturnType<typeof setTimeout> | null = null
+
+const triggerLabel = computed(() => {
+  if (queuedIngestionCount.value > 0) {
+    const suffix = queuedIngestionCount.value === 1 ? '' : 's'
+    return `${queuedIngestionCount.value} import queued${suffix}`
+  }
+
+  if (isIngesting.value || isThumbnailDrainPaused.value) {
+    return 'Queue videos'
+  }
+
+  return 'Add videos'
+})
 
 const clearOpenMenuTimer = () => {
   if (openMenuTimer == null) {

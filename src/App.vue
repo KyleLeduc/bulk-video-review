@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import DiagnosticsPanel from '@presentation/components/utils/DiagnosticsPanel.vue'
+import IngestionStatusToast from '@presentation/components/utils/IngestionStatusToast.vue'
 import FilterPanel from '@presentation/components/layout/FilterPanel.vue'
 import NavBar from '@presentation/views/NavBar.vue'
 import VideoGallery from '@presentation/views/VideoGallery.vue'
@@ -21,6 +22,7 @@ const { isFilterPanelOpen } = storeToRefs(appStateStore)
     </section>
 
     <DiagnosticsPanel />
+    <IngestionStatusToast />
   </div>
 </template>
 

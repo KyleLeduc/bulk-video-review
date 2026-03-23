@@ -37,9 +37,14 @@ export class UpdateVideoThumbnailsUseCase {
       }
     }
 
-    const { url, pinned, ...aggregate } = video
+    const currentAggregate = await this.aggregateRepository.getVideo(video.id)
+    if (!currentAggregate) {
+      return video
+    }
+
+    const { url, pinned } = video
     const dto = await this.aggregateRepository.updateVideo({
-      ...aggregate,
+      ...currentAggregate,
       thumbUrls: thumbs,
     })
 

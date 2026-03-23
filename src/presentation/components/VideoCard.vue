@@ -1,92 +1,96 @@
 <template>
-  <div class="card">
+  <div class="card" :class="cardClasses">
     <div
-      class="mediaFrame"
-      data-testid="video-card-media-frame"
-      :style="landscapeFrameStyle"
-    >
-      <img
-        class="thumb mediaContent"
-        ref="thumbElement"
-        v-if="!state.showVideo"
-        :src="video.thumb"
-        @mouseenter="startThumbRotation"
-        @mouseleave="stopThumbRotation"
-        alt=""
-        srcset=""
-      />
-      <VideoEmbed
-        v-else
-        ref="videoElement"
-        class="mediaContent"
-        :video="props.video"
-        :options="embedInitOptions"
-      />
-    </div>
+      v-if="showThumbnailActivityRing"
+      class="thumbnail-activity-ring"
+      :class="thumbnailActivityRingClasses"
+      :style="{ '--ring-progress': String(thumbnailActivityProgress) }"
+    />
 
-    <div class="cardNav">
-      <div class="pin" @click="handlePinVideo">📌</div>
-      <div v-if="isVidLoaded" class="buttonGroup">
-        <span @click="handleMute">
-          <div v-if="videoElement?.state.isMuted">🔇</div>
-          <div v-else>🔈</div>
-        </span>
-
-        <span @click="updateLoop">
-          <div v-if="!loopState.loopStartTime && !loopState.loopEndTime">
-            🔁
-          </div>
-          <div v-else-if="loopState.loopStartTime && !loopState.loopEndTime">
-            ➰
-          </div>
-          <div v-else>➿</div>
-        </span>
+    <div class="cardSurface">
+      <div class="cardMedia" data-testid="video-card-media-frame">
+        <img
+          class="thumb"
+          ref="thumbElement"
+          v-if="!state.showVideo"
+          :src="video.thumb"
+          @mouseenter="startThumbRotation"
+          @mouseleave="stopThumbRotation"
+          alt=""
+          srcset=""
+        />
+        <VideoEmbed
+          v-else
+          ref="videoElement"
+          :video="props.video"
+          :options="embedInitOptions"
+        />
       </div>
 
-      <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(-30)">
-        ⏪⏪
-      </div>
-      <div v-if="isVidLoaded" @click="handleSkip(-15)">⏪</div>
-      <div class="tabs">
-        <div>{{ props.video.votes }} 🗳️</div>
-        <div v-if="!isVidLoaded" class="tab" @click="loadVideo">Thumbs</div>
-        <div v-else class="tab video" @click="loadVideo">Video</div>
-        <div>⏱️ {{ Math.floor(props.video.duration / 60) }}</div>
-      </div>
-      <div v-if="isVidLoaded" @click="handleSkip(30)">⏩</div>
-      <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(60)">
-        ⏩⏩
-      </div>
-      <div class="infoTrigger">
-        <span
-          class="info-icon"
-          tabindex="0"
-          role="button"
-          aria-label="Show video file details"
-        >
-          ℹ️
-        </span>
-        <div class="info-tooltip" role="tooltip">
-          <dl class="info-list">
-            <div
-              v-for="item in videoMetaEntries"
-              :key="item.key"
-              class="info-row"
-            >
-              <dt>{{ item.key }}</dt>
-              <dd>{{ item.value }}</dd>
+      <div class="cardNav">
+        <div class="pin" @click="handlePinVideo">📌</div>
+        <div v-if="isVidLoaded" class="buttonGroup">
+          <span @click="handleMute">
+            <div v-if="videoElement?.state.isMuted">🔇</div>
+            <div v-else>🔈</div>
+          </span>
+
+          <span @click="updateLoop">
+            <div v-if="!loopState.loopStartTime && !loopState.loopEndTime">
+              🔁
             </div>
-          </dl>
+            <div v-else-if="loopState.loopStartTime && !loopState.loopEndTime">
+              ➰
+            </div>
+            <div v-else>➿</div>
+          </span>
         </div>
+
+        <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(-30)">
+          ⏪⏪
+        </div>
+        <div v-if="isVidLoaded" @click="handleSkip(-15)">⏪</div>
+        <div class="tabs">
+          <div>{{ props.video.votes }} 🗳️</div>
+          <div v-if="!isVidLoaded" class="tab" @click="loadVideo">Thumbs</div>
+          <div v-else class="tab video" @click="loadVideo">Video</div>
+          <div>⏱️ {{ Math.floor(props.video.duration / 60) }}</div>
+        </div>
+        <div v-if="isVidLoaded" @click="handleSkip(30)">⏩</div>
+        <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(60)">
+          ⏩⏩
+        </div>
+        <div class="infoTrigger">
+          <span
+            class="info-icon"
+            tabindex="0"
+            role="button"
+            aria-label="Show video file details"
+          >
+            ℹ️
+          </span>
+          <div class="info-tooltip" role="tooltip">
+            <dl class="info-list">
+              <div
+                v-for="item in videoMetaEntries"
+                :key="item.key"
+                class="info-row"
+              >
+                <dt>{{ item.key }}</dt>
+                <dd>{{ item.value }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+        <div class="close" @click="handleRemoveVideo">❌</div>
       </div>
-      <div class="close" @click="handleRemoveVideo">❌</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ParsedVideo } from '@domain/entities'
-import { computed, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
 import { useVideoStore } from '@presentation/stores'
 
@@ -101,20 +105,80 @@ const emit = defineEmits<{
 
 interface State {
   showVideo: boolean
-  rotateThumbs: boolean
   thumbIndex: number
 }
 
 const state = reactive<State>({
   showVideo: false,
-  rotateThumbs: false,
   thumbIndex: 0,
 })
 
 const thumbElement = ref<HTMLImageElement | null>(null)
 const intervalId = ref<number | null>(null)
-const landscapeFrameStyle = {
-  aspectRatio: '16 / 9',
+const hoverWarmupTimeoutId = ref<number | null>(null)
+const hoverWarmupProgressIntervalId = ref<number | null>(null)
+const hoverWarmupProgress = ref(0)
+const HOVER_WARMUP_DELAY_MS = 750
+const thumbnailJobState = computed(() =>
+  videoStore.getThumbnailJobState(props.video.id),
+)
+const isThumbnailJobActive = computed(
+  () =>
+    thumbnailJobState.value === 'queued' ||
+    thumbnailJobState.value === 'processing',
+)
+const isHoverArming = computed(
+  () =>
+    !isThumbnailJobActive.value &&
+    hoverWarmupProgress.value > 0 &&
+    hoverWarmupProgress.value < 1,
+)
+const thumbnailActivityProgress = computed(() =>
+  isThumbnailJobActive.value ? 1 : hoverWarmupProgress.value,
+)
+const showThumbnailActivityRing = computed(
+  () => thumbnailActivityProgress.value > 0,
+)
+const thumbnailActivityRingClasses = computed(() => ({
+  'thumbnail-activity-ring--hover': isHoverArming.value,
+  'thumbnail-activity-ring--active': isThumbnailJobActive.value,
+}))
+const cardClasses = computed(() => ({
+  'card--hover-arming': isHoverArming.value,
+  'card--thumbnail-active': isThumbnailJobActive.value,
+}))
+
+const clearHoverWarmupProgressAnimation = (resetProgress = true) => {
+  if (hoverWarmupProgressIntervalId.value !== null) {
+    clearInterval(hoverWarmupProgressIntervalId.value)
+    hoverWarmupProgressIntervalId.value = null
+  }
+
+  if (resetProgress) {
+    hoverWarmupProgress.value = 0
+  }
+}
+
+const beginHoverWarmupProgressAnimation = () => {
+  if (
+    hoverWarmupProgressIntervalId.value !== null ||
+    isThumbnailJobActive.value ||
+    props.video.thumbUrls.length > 1
+  ) {
+    return
+  }
+
+  const startedAt = Date.now()
+  hoverWarmupProgress.value = 0.04
+
+  hoverWarmupProgressIntervalId.value = window.setInterval(() => {
+    const elapsed = Date.now() - startedAt
+    hoverWarmupProgress.value = Math.min(elapsed / HOVER_WARMUP_DELAY_MS, 1)
+
+    if (hoverWarmupProgress.value >= 1) {
+      clearHoverWarmupProgressAnimation(false)
+    }
+  }, 16)
 }
 
 const updateThumbSrc = () => {
@@ -125,14 +189,37 @@ const updateThumbSrc = () => {
 }
 
 const startThumbRotation = async () => {
-  if (intervalId.value === null) {
-    videoStore.updateVideoThumbnails(props.video.id)
+  if (
+    hoverWarmupTimeoutId.value === null &&
+    props.video.thumbUrls.length <= 1 &&
+    !isThumbnailJobActive.value
+  ) {
+    beginHoverWarmupProgressAnimation()
 
+    hoverWarmupTimeoutId.value = window.setTimeout(() => {
+      clearHoverWarmupProgressAnimation(false)
+      hoverWarmupProgress.value = 1
+      videoStore.requestThumbnailWarmup(props.video.id)
+      hoverWarmupTimeoutId.value = null
+    }, HOVER_WARMUP_DELAY_MS)
+  }
+
+  if (intervalId.value === null) {
     intervalId.value = window.setInterval(updateThumbSrc, 500)
   }
 }
 
 const stopThumbRotation = () => {
+  if (hoverWarmupTimeoutId.value !== null) {
+    clearTimeout(hoverWarmupTimeoutId.value)
+    hoverWarmupTimeoutId.value = null
+  }
+
+  clearHoverWarmupProgressAnimation(!isThumbnailJobActive.value)
+  if (isThumbnailJobActive.value) {
+    hoverWarmupProgress.value = 1
+  }
+
   if (intervalId.value !== null) {
     clearInterval(intervalId.value)
     intervalId.value = null
@@ -140,6 +227,22 @@ const stopThumbRotation = () => {
 
   thumbElement.value && (thumbElement.value.src = props.video.thumb)
 }
+
+onBeforeUnmount(() => {
+  stopThumbRotation()
+})
+
+watch(isThumbnailJobActive, (isActive) => {
+  if (isActive) {
+    clearHoverWarmupProgressAnimation(false)
+    hoverWarmupProgress.value = 1
+    return
+  }
+
+  if (hoverWarmupTimeoutId.value === null) {
+    hoverWarmupProgress.value = 0
+  }
+})
 
 const embedInitOptions = {
   playing: false,
@@ -254,27 +357,87 @@ function formatDurationWithSeconds(duration: number): string {
 
 <style lang="scss" scoped>
 .card {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.cardSurface {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   border: 1px solid #f0f0f0;
   overflow: hidden;
   position: relative;
+  background: #000;
   width: 100%;
+  min-width: 0;
 }
 
-.mediaFrame {
+.cardMedia {
+  position: relative;
   width: 100%;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #111;
+  background: #05070a;
 }
 
-.mediaContent {
+.thumb,
+.cardMedia :deep(video) {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.thumb {
+  object-fit: cover;
+}
+
+.cardMedia :deep(video) {
   object-fit: contain;
-  background: #111;
+  background: #000;
+}
+
+.thumbnail-activity-ring {
+  --ring-progress: 0;
+  --ring-fill-color: #67d7ff;
+  --ring-track-color: rgba(103, 215, 255, 0.16);
+  --ring-glow-color: rgba(103, 215, 255, 0.3);
+  position: absolute;
+  inset: -4px;
+  border-radius: 4px;
+  pointer-events: none;
+  padding: 4px;
+  z-index: 3;
+  background: conic-gradient(
+    from -90deg,
+    var(--ring-fill-color) 0deg calc(var(--ring-progress) * 360deg),
+    var(--ring-track-color) calc(var(--ring-progress) * 360deg) 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 10px var(--ring-glow-color));
+  transition:
+    background 120ms linear,
+    filter 120ms linear;
+}
+
+.thumbnail-activity-ring--hover {
+  --ring-fill-color: #67d7ff;
+  --ring-track-color: rgba(103, 215, 255, 0.12);
+  --ring-glow-color: rgba(103, 215, 255, 0.28);
+}
+
+.thumbnail-activity-ring--active {
+  --ring-fill-color: #ffb347;
+  --ring-track-color: rgba(255, 179, 71, 0.16);
+  --ring-glow-color: rgba(255, 179, 71, 0.38);
 }
 
 .cardNav {

@@ -16,8 +16,14 @@ export class VideoAggregateMapper {
   }
 
   static toVideoEntity(aggregate: VideoAggregate): VideoEntity {
-    const { votes, ...video } = aggregate
-    return video
+    return {
+      id: aggregate.id,
+      title: aggregate.title,
+      thumb: aggregate.thumb,
+      duration: aggregate.duration,
+      thumbUrls: aggregate.thumbUrls,
+      tags: aggregate.tags,
+    }
   }
 
   static toMetadataEntity(aggregate: VideoAggregate): MetadataEntity {
