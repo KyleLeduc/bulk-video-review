@@ -6,15 +6,20 @@
   "forwardPorts": [
     5173
   ],
+  "shutdownAction": "stopContainer",
+  "containerEnv": {
+    "DOCKER_HOST": "unix:///run/user/1001/docker.sock"
+  },
   // "runArgs": [
   //   "--env-file",
   //   "${localWorkspaceFolder}/.env"
   // ],
   "mounts": [
     "source=bulk-video-review-node-modules,target=/workspaces/bulk-video-review/node_modules,type=volume",
-    "source=${localWorkspaceFolder}/.config/.codex,target=/root/.codex,type=bind",
-    "source=${localWorkspaceFolder}/.config/.gh,target=/root/.config/gh,type=bind",
-    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind"
+    "source=/home/dev1/projects/.config/.codex,target=/root/.codex,type=bind",
+    "source=/home/dev1/projects/.config/.gh,target=/root/.config/gh,type=bind",
+    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind",
+    "source=/run/user/1001/docker.sock,target=/run/user/1001/docker.sock,type=bind"
   ],
   "postCreateCommand": "npm install && npm install -g @openai/codex && codex --help",
   "customizations": {
@@ -49,6 +54,12 @@
     "ghcr.io/devcontainers/features/github-cli:1": {
       "installDirectlyFromGitHubRelease": true,
       "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "installDockerBuildx": true,
+      "installDockerComposeSwitch": true,
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
     },
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.12"
