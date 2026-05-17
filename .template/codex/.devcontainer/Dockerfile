@@ -9,7 +9,9 @@ ARG STRUCTURIZR_CLI_VERSION=2025.11.09
 # - plantuml: keep PlantUML export options available for future use
 # - iptables: retained from the working devcontainer because some nested dev flows rely on it
 RUN apt-get update \
-  && apt-get install -y git iptables curl unzip ca-certificates graphviz plantuml \
+  && apt-get install -y git iptables curl unzip ca-certificates graphviz plantuml tzdata \
+  && ln -snf /usr/share/zoneinfo/America/Denver /etc/localtime \
+  && echo America/Denver > /etc/timezone \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Structurizr CLI into a versioned directory so upgrades stay explicit.

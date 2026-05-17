@@ -3,7 +3,9 @@ FROM node:22-slim
 ARG STRUCTURIZR_CLI_VERSION=2025.11.09
 
 RUN apt-get update \
-  && apt-get install -y git iptables curl unzip ca-certificates graphviz plantuml \
+  && apt-get install -y git iptables curl unzip ca-certificates graphviz plantuml tzdata \
+  && ln -snf /usr/share/zoneinfo/America/Denver /etc/localtime \
+  && echo America/Denver > /etc/timezone \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Structurizr CLI (2025 series)

@@ -8,6 +8,7 @@
   ],
   "shutdownAction": "stopContainer",
   "containerEnv": {
+    "TZ": "America/Denver",
     "DOCKER_HOST": "unix:///run/user/1001/docker.sock"
   },
   // "runArgs": [

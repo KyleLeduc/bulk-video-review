@@ -8,6 +8,9 @@
   "forwardPorts": [
     5173
   ],
+  "containerEnv": {
+    "TZ": "America/Denver"
+  },
   "mounts": [
     // Keep dependencies inside a named Docker volume so rebuilds do not thrash host files.
     "source=${localWorkspaceFolderBasename}-node-modules,target=/workspaces/${localWorkspaceFolderBasename}/node_modules,type=volume",
