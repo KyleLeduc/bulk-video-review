@@ -7,14 +7,16 @@
     5173
   ],
   "shutdownAction": "stopContainer",
+  "runArgs": [
+    // "--env-file",
+    // "${localWorkspaceFolder}/.env",
+    "--name",
+    "dev-${localWorkspaceFolderBasename}"
+  ],
   "containerEnv": {
     "TZ": "America/Denver",
     "DOCKER_HOST": "unix:///run/user/1001/docker.sock"
   },
-  // "runArgs": [
-  //   "--env-file",
-  //   "${localWorkspaceFolder}/.env"
-  // ],
   "mounts": [
     "source=bulk-video-review-node-modules,target=/workspaces/bulk-video-review/node_modules,type=volume",
     "source=/home/dev1/projects/.config/.codex,target=/root/.codex,type=bind",

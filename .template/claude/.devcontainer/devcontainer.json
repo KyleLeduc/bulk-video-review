@@ -4,6 +4,10 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "runArgs": [
+    "--name",
+    "dev-${localWorkspaceFolderBasename}"
+  ],
   // Forward the common Vite port; change or add ports for your own app.
   "forwardPorts": [
     5173
