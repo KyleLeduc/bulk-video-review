@@ -1,0 +1,30 @@
+---
+schema_version: 1
+app_id: bulk-video-review
+repository: KyleLeduc/bulk-video-review
+ci:
+  workflow: .github/workflows/ci.yml
+  required_checks:
+    - npm run lint
+    - npm run type-check
+    - npm run test:unit
+    - npm run build
+    - docker compose --file docker-compose.production.yml config --quiet
+image:
+  dockerfile: Dockerfile.production
+  context: .
+  revision_label: org.opencontainers.image.revision
+  platforms:
+    default: linux/amd64
+    selectable: []
+runtime:
+  compose_file: docker-compose.production.yml
+  container_port: 3000
+  health:
+    live: /health/live
+    ready: /health/ready
+  stateful: false
+  persistent_data: []
+  migrations:
+    enabled: false
+    rollback_policy: not-applicable

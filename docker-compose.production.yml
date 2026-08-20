@@ -1,0 +1,30 @@
+name: bulk-video-review
+
+services:
+  app:
+    image: ${BVR_IMAGE:?set BVR_IMAGE to an immutable registry digest}
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:18081:3000'
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 4s
+      retries: 6
+    networks:
+      - static
+
+networks:
+  static:
+    internal: true

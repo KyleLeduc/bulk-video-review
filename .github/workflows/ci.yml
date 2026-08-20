@@ -1,0 +1,178 @@
+name: Bulk Video Review CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: Exact commit SHA or trusted branch to build
+        required: true
+        type: string
+      publish:
+        description: Publish the immutable image after successful checks
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bulk-video-review-${{ github.event_name }}-${{ github.event_name == 'workflow_dispatch' && inputs.git_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-and-image:
+    name: Test, validate, build, and scan
+    # Never run code from an external fork on the private self-hosted runner.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64, homelab-build, bulk-video-review]
+    timeout-minutes: 45
+    env:
+      IMAGE_REPOSITORY: registry.home.arpa/bulk-video-review/app
+      TARGET_PLATFORM: linux/amd64
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.git_ref || github.sha }}
+
+      - name: Resolve immutable build inputs
+        id: build
+        env:
+          REQUESTED_PUBLISH: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+
+          source_sha="$(git rev-parse HEAD)"
+          if [[ ! "$source_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Resolved source is not a full commit SHA: $source_sha" >&2
+            exit 1
+          fi
+
+          publish=false
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            publish=true
+          elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$REQUESTED_PUBLISH" == "true" ]]; then
+            publish=true
+          fi
+
+          oci_archive="/tmp/bulk-video-review-${source_sha}-amd64.oci.tar"
+          oci_layout="/tmp/bulk-video-review-${source_sha}-amd64.oci"
+          smoke_image="bulk-video-review-smoke:${source_sha}"
+          smoke_container="bvr-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+          {
+            printf 'SOURCE_SHA=%s\n' "$source_sha"
+            printf 'OCI_ARCHIVE=%s\n' "$oci_archive"
+            printf 'OCI_LAYOUT=%s\n' "$oci_layout"
+            printf 'SMOKE_IMAGE=%s\n' "$smoke_image"
+            printf 'SMOKE_CONTAINER=%s\n' "$smoke_container"
+          } >> "$GITHUB_ENV"
+          printf 'publish=%s\n' "$publish" >> "$GITHUB_OUTPUT"
+
+      - name: Install from lockfile and run application checks
+        run: >-
+          docker run --rm
+          --user "$(id -u):$(id -g)"
+          --env HOME=/tmp/home
+          --volume "$PWD:/workspace"
+          --workdir /workspace
+          node:22-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436
+          bash -lc "npm ci --ignore-scripts && npm run lint && npm run type-check && npm run test:unit && npm run build"
+
+      - name: Validate production Compose contract
+        env:
+          BVR_IMAGE: registry.home.arpa/bulk-video-review/app@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        run: docker compose --file docker-compose.production.yml config --quiet
+
+      - name: Restore the exact committed source before building
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          clean: true
+          persist-credentials: false
+          ref: ${{ env.SOURCE_SHA }}
+
+      - name: Prepare job-scoped image paths
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          rm -f -- "$OCI_ARCHIVE"
+          rm -rf -- "$OCI_LAYOUT"
+
+      - name: Build the AMD64 OCI archive
+        run: |
+          set -euo pipefail
+          exec 9>/tmp/bulk-video-review-buildkit.lock
+          flock --exclusive 9
+          docker buildx build \
+            --builder default \
+            --platform "$TARGET_PLATFORM" \
+            --file Dockerfile.production \
+            --build-arg "VCS_REF=${SOURCE_SHA}" \
+            --tag "$IMAGE_REPOSITORY:$SOURCE_SHA" \
+            --output "type=oci,dest=$OCI_ARCHIVE" \
+            .
+
+      - name: Unpack OCI layout for Trivy
+        run: |
+          set -euo pipefail
+          mkdir -m 0700 -- "$OCI_LAYOUT"
+          tar --extract --file "$OCI_ARCHIVE" --directory "$OCI_LAYOUT"
+          test -f "$OCI_LAYOUT/oci-layout"
+          test -f "$OCI_LAYOUT/index.json"
+
+      - name: Scan the image
+        run: >-
+          trivy image
+          --input "$OCI_LAYOUT"
+          --platform "$TARGET_PLATFORM"
+          --exit-code 1
+          --severity HIGH,CRITICAL
+          --ignore-unfixed
+
+      - name: Smoke the production runtime
+        run: |
+          set -euo pipefail
+          skopeo copy "oci-archive:$OCI_ARCHIVE" "docker-daemon:$SMOKE_IMAGE"
+          test "$(docker image inspect "$SMOKE_IMAGE" --format '{{.Config.User}}')" = "10001:10001"
+          test "$(docker image inspect "$SMOKE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$SOURCE_SHA"
+          docker run --detach \
+            --name "$SMOKE_CONTAINER" \
+            --network none \
+            --read-only \
+            --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            "$SMOKE_IMAGE"
+          docker exec "$SMOKE_CONTAINER" node -e \
+            "const paths=['/','/health/live','/health/ready']; (async()=>{for(let attempt=0;attempt<30;attempt++){try{for(const path of paths){const response=await fetch('http://127.0.0.1:3000'+path);if(!response.ok)throw new Error(path)}process.exit(0)}catch(error){await new Promise(resolve=>setTimeout(resolve,100))}}process.exit(1)})()"
+
+      - name: Push immutable commit image
+        if: steps.build.outputs.publish == 'true'
+        run: >-
+          skopeo copy
+          "oci-archive:$OCI_ARCHIVE"
+          "docker://$IMAGE_REPOSITORY:$SOURCE_SHA"
+
+      - name: Remove job-scoped image data
+        if: always()
+        run: |
+          docker rm --force "$SMOKE_CONTAINER" 2>/dev/null || true
+          docker image rm --force "$SMOKE_IMAGE" 2>/dev/null || true
+          rm -f -- "$OCI_ARCHIVE"
+          rm -rf -- "$OCI_LAYOUT"
+
+      - name: Report and prune only stale runner build data
+        if: always()
+        run: |
+          set -euo pipefail
+          exec 9>/tmp/bulk-video-review-buildkit.lock
+          flock --exclusive 9
+          docker system df
+          docker buildx du --builder default
+          docker buildx prune --builder default --force --filter until=336h
+          docker image prune --force --filter until=720h

@@ -1,0 +1,13 @@
+.git
+.github/skills
+.config
+.venv
+.worktrees
+coverage
+cypress/screenshots
+cypress/videos
+dist
+logs
+node_modules
+.env
+.env.*

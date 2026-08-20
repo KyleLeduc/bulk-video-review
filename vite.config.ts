@@ -9,7 +9,7 @@ export default defineConfig({
     vue(),
     tsconfigPaths({ loose: true, configNames: ['tsconfig.app.json'] }),
   ],
-  base: process.env.NODE_ENV === 'production' ? '/bulk-video-review/' : '/',
+  base: '/',
   server: {
     host: '127.0.0.1',
   },

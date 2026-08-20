@@ -21,6 +21,8 @@ coverage
 .vscode/*
 !.vscode/extensions.json
 .github/*
+!.github/workflows/
+!.github/workflows/ci.yml
 .idea
 *.suo
 *.ntvs*

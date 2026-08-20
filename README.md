@@ -122,8 +122,10 @@ npm run lint
 
 ## Deploying
 
-Deploys to Github Pages
+Production is an immutable AMD64 image published to the private homelab
+registry by `.github/workflows/ci.yml`. The reviewed runtime contract lives in
+`.homelab/deployment.yml`; deployment to `http://bvr.home.arpa` is performed by
+the owner-gated `homelab-platform` release workflow.
 
-```sh
-npm run deploy
-```
+GitHub Pages is no longer a deployment target. Browser data remains local to
+the `bvr.home.arpa` origin in IndexedDB and is not stored in the container.
