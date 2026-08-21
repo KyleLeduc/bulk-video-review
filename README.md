@@ -124,8 +124,10 @@ npm run lint
 
 Production is an immutable AMD64 image published to the private homelab
 registry by `.github/workflows/ci.yml`. The reviewed runtime contract lives in
-`.homelab/deployment.yml`; deployment to `http://bvr.home.arpa` is performed by
+`.homelab/deployment.yml`; deployment to `http://bvr.preprod.home.arpa` is performed by
 the owner-gated `homelab-platform` release workflow.
 
 GitHub Pages is no longer a deployment target. Browser data remains local to
-the `bvr.home.arpa` origin in IndexedDB and is not stored in the container.
+the `bvr.preprod.home.arpa` origin in IndexedDB and is not stored in the container.
+The hostname migration intentionally starts with empty browser-local state; data
+from the former `bvr.home.arpa` origin is not migrated.

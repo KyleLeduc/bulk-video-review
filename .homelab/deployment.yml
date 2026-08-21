@@ -28,3 +28,7 @@ runtime:
   migrations:
     enabled: false
     rollback_policy: not-applicable
+ingress:
+  gateway: preprod
+  fqdn: bvr.preprod.home.arpa
+  scheme: http
