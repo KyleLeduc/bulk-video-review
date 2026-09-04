@@ -4,10 +4,18 @@
     class="nav-shell"
     :class="{ 'nav-shell--hidden': isHidden }"
     :style="{ '--nav-height': `${navHeight}px` }"
+    @focusin="isHidden = false"
   >
     <div class="nav-left">
       <NavTitle />
-      <button class="ghost" @click="appStateStore.toggleFilterPanel()">
+      <button
+        id="filter-panel-navigation-toggle"
+        type="button"
+        class="ghost"
+        aria-controls="video-filter-panel"
+        :aria-expanded="isFilterPanelOpen"
+        @click="appStateStore.toggleFilterPanel()"
+      >
         {{ isFilterPanelOpen ? 'Hide filters' : 'Show filters' }}
       </button>
     </div>

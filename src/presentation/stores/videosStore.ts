@@ -2,7 +2,6 @@ import type { ParsedVideo } from '@domain/entities'
 import { defineStore } from 'pinia'
 import { computed, inject, reactive, ref, toRaw } from 'vue'
 import type {
-  FilterVideosUseCase,
   VideoIngestionProgress,
   UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
@@ -13,7 +12,6 @@ import { isBrowserPlayableVideoFile } from '@/shared/video/browserPlayableVideoT
 import type { VideoImportItem } from '@domain/valueObjects'
 import {
   ADD_VIDEOS_USE_CASE_KEY,
-  FILTER_VIDEOS_USE_CASE_KEY,
   LOGGER_KEY,
   UPDATE_THUMB_USE_CASE_KEY,
   UPDATE_VOTES_USE_CASE_KEY,
@@ -66,11 +64,6 @@ export const useVideoStore = defineStore('videos', () => {
     'AddVideosUseCase',
   )
 
-  const filterVideosUseCase = resolveDependency<FilterVideosUseCase>(
-    inject(FILTER_VIDEOS_USE_CASE_KEY),
-    'FilterVideosUseCase',
-  )
-
   const updateThumbUseCase = resolveDependency<UpdateVideoThumbnailsUseCase>(
     inject(UPDATE_THUMB_USE_CASE_KEY),
     'UpdateVideoThumbnailsUseCase',
@@ -88,9 +81,6 @@ export const useVideoStore = defineStore('videos', () => {
   )
 
   const videoMap = reactive(new Map<string, ParsedVideo>())
-  const minDuration = ref(0)
-  const maxDuration = ref(0)
-  const searchQuery = ref('')
   const ingestionSessions = reactive(new Map<string, IngestionSession>())
   const queuedIngestionRequests = reactive<QueuedIngestionRequest[]>([])
   const activeIngestionSessionId = ref<string | null>(null)
@@ -155,32 +145,9 @@ export const useVideoStore = defineStore('videos', () => {
     return sessionId
   }
 
-  const sortByVotes = computed<ParsedVideo[]>(() =>
-    Array.from(videoMap.values()).sort(
-      (a, b) => Number(b.votes) - Number(a.votes),
-    ),
+  const allVideos = computed<ReadonlyArray<ParsedVideo>>(() =>
+    Object.freeze(Array.from(videoMap.values())),
   )
-
-  const sortByPinned = computed<ParsedVideo[]>(() =>
-    [...sortByVotes.value].sort((a, b) => Number(b.pinned) - Number(a.pinned)),
-  )
-
-  const filteredVideos = computed<ParsedVideo[]>(() => {
-    const minDurationFilter =
-      minDuration.value > 0 ? minDuration.value * 60 : undefined
-    const maxDurationFilter =
-      maxDuration.value > 0 ? maxDuration.value * 60 : undefined
-    const normalizedSearchQuery = searchQuery.value.trim() || undefined
-
-    return filterVideosUseCase.execute({
-      videos: sortByPinned.value,
-      options: {
-        minDurationSeconds: minDurationFilter,
-        maxDurationSeconds: maxDurationFilter,
-        searchQuery: normalizedSearchQuery,
-      },
-    })
-  })
 
   const autoThumbnailConcurrency = computed(() => {
     if (
@@ -633,21 +600,14 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   function removeAllUnpinned() {
-    const pinnedVideos = Array.from(videoMap.entries()).filter(
-      ([, video]) => video.pinned,
+    const unpinnedVideos = Array.from(videoMap.values()).filter(
+      (video) => !video.pinned,
     )
 
-    Array.from(videoMap.values())
-      .filter((video) => !video.pinned)
-      .forEach((video) => {
-        releaseVideoResources(video.id)
-        clearThumbnailTracking(video.id)
-      })
-
-    videoMap.clear()
-
-    pinnedVideos.forEach(([id, video]) => {
-      videoMap.set(id, video)
+    unpinnedVideos.forEach((video) => {
+      releaseVideoResources(video.id)
+      clearThumbnailTracking(video.id)
+      videoMap.delete(video.id)
     })
   }
 
@@ -698,18 +658,6 @@ export const useVideoStore = defineStore('videos', () => {
     void queueThumbnailJob(id, true)
   }
 
-  function setMinDuration(value: number) {
-    minDuration.value = value >= 0 ? value : 0
-  }
-
-  function setMaxDuration(value: number) {
-    maxDuration.value = value >= 0 ? value : 0
-  }
-
-  function setSearchQuery(value: string) {
-    searchQuery.value = value
-  }
-
   function setThumbnailConcurrencyOverride(value: number | null) {
     if (value == null) {
       thumbnailConcurrencyOverride.value = null
@@ -730,9 +678,6 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   return {
-    minDuration,
-    maxDuration,
-    searchQuery,
     ingestionProgress,
     ingestionStartedAtMs,
     ingestionCompletedAtMs,
@@ -747,16 +692,11 @@ export const useVideoStore = defineStore('videos', () => {
     thumbnailQueueSummary,
     thumbnailGenerationProgress,
     shouldShowProgressToast,
-    filteredVideos,
-    sortByPinned,
-    sortByVotes,
+    allVideos,
     addVideos,
     addVideosFromFiles,
     removeVideo,
     removeAllUnpinned,
-    setMinDuration,
-    setMaxDuration,
-    setSearchQuery,
     setThumbnailConcurrencyOverride,
     getThumbnailJobState,
     togglePinVideo,

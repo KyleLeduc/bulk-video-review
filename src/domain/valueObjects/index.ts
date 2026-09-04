@@ -1,7 +1,9 @@
 export { ParsedVideoData } from './ParsedVideoData'
 export type { VideoImportItem } from './VideoImportRequest'
 export type {
+  PinnedVideoMode,
+  PreviewAvailability,
   VideoFilterOptions,
-  VideoCustomFilter,
   VideoFilterRequest,
+  VideoSortOption,
 } from './VideoFilterOptions'

@@ -29,6 +29,89 @@ describe('useVideoStore', () => {
     vi.restoreAllMocks()
   })
 
+  test('exposes all videos in collection insertion order as public actions mutate them', async () => {
+    const { global } = createPresentationTestContext({
+      useCases: {
+        updateVotesUseCase: {
+          execute: vi.fn(async () => 200),
+        },
+      },
+    })
+    const wrapper = mount(StoreHarness, { global })
+    const store = (wrapper.vm as any).store as ReturnType<typeof useVideoStore>
+    const first = buildParsedVideo({ id: 'first', votes: 1 })
+    const second = buildParsedVideo({ id: 'second', votes: 100 })
+    const third = buildParsedVideo({ id: 'third', votes: 50 })
+
+    store.addVideos([first, second, third])
+
+    expect(store.allVideos.map(({ id }) => id)).toEqual([
+      'first',
+      'second',
+      'third',
+    ])
+
+    store.togglePinVideo('third')
+    await store.updateVotes('first', 199)
+
+    expect(
+      store.allVideos.map(({ id, pinned, votes }) => ({ id, pinned, votes })),
+    ).toEqual([
+      { id: 'first', pinned: false, votes: 200 },
+      { id: 'second', pinned: false, votes: 100 },
+      { id: 'third', pinned: true, votes: 50 },
+    ])
+
+    store.removeVideo('second')
+
+    expect(store.allVideos.map(({ id }) => id)).toEqual(['first', 'third'])
+  })
+
+  test('protects cached collection snapshots while store actions keep video entries reactive', async () => {
+    const { global } = createPresentationTestContext({
+      useCases: {
+        updateVotesUseCase: {
+          execute: vi.fn(async () => 9),
+        },
+      },
+    })
+    const wrapper = mount(StoreHarness, { global })
+    const store = (wrapper.vm as any).store as ReturnType<typeof useVideoStore>
+    store.addVideos([
+      buildParsedVideo({ id: 'first', title: 'Zulu', votes: 1 }),
+      buildParsedVideo({ id: 'second', title: 'Alpha', votes: 2 }),
+    ])
+    const snapshot = store.allVideos
+    const mutableSnapshot = snapshot as ParsedVideo[]
+    const mutationAttempts = [
+      () => mutableSnapshot.pop(),
+      () => mutableSnapshot.splice(0, 1),
+      () => mutableSnapshot.sort((a, b) => a.title.localeCompare(b.title)),
+    ]
+
+    for (const mutate of mutationAttempts) {
+      expect(mutate).toThrow(TypeError)
+      expect(snapshot.map(({ id }) => id)).toEqual(['first', 'second'])
+    }
+
+    expect(Object.isFrozen(snapshot)).toBe(true)
+    expect(store.allVideos).toBe(snapshot)
+
+    store.togglePinVideo('first')
+    await store.updateVotes('first', 8)
+
+    expect(store.allVideos).toBe(snapshot)
+    expect(snapshot[0]).toEqual(
+      expect.objectContaining({ id: 'first', pinned: true, votes: 9 }),
+    )
+
+    store.removeVideo('second')
+
+    expect(store.allVideos).not.toBe(snapshot)
+    expect(store.allVideos.map(({ id }) => id)).toEqual(['first'])
+    expect(Object.isFrozen(store.allVideos)).toBe(true)
+  })
+
   test('ignores re-uploaded videos without replacing session state', async () => {
     let callCount = 0
     const { global, mocks } = createPresentationTestContext({
@@ -60,12 +143,16 @@ describe('useVideoStore', () => {
     const files = createMockFileList(file)
 
     await store.addVideosFromFiles(files)
-    expect(store.sortByVotes).toHaveLength(1)
-    expect(store.sortByVotes[0]?.url).toBe('blob:first')
+    expect(store.allVideos).toHaveLength(1)
+    expect(store.allVideos.find(({ id }) => id === 'id-1')?.url).toBe(
+      'blob:first',
+    )
 
     await store.addVideosFromFiles(files)
-    expect(store.sortByVotes).toHaveLength(1)
-    expect(store.sortByVotes[0]?.url).toBe('blob:first')
+    expect(store.allVideos).toHaveLength(1)
+    expect(store.allVideos.find(({ id }) => id === 'id-1')?.url).toBe(
+      'blob:first',
+    )
     expect(mocks.sessionRegistry.unregisterFile).not.toHaveBeenCalled()
   })
 
@@ -95,10 +182,10 @@ describe('useVideoStore', () => {
     const files = createMockFileList(file)
 
     await store.addVideosFromFiles(files)
-    expect(store.sortByVotes).toHaveLength(1)
+    expect(store.allVideos).toHaveLength(1)
 
     store.removeVideo('id-1')
-    expect(store.sortByVotes).toHaveLength(0)
+    expect(store.allVideos).toHaveLength(0)
     expect(mocks.sessionRegistry.unregisterFile).toHaveBeenCalledWith('id-1')
   })
 
@@ -164,7 +251,7 @@ describe('useVideoStore', () => {
     const files = createMockFileList(file)
 
     await store.addVideosFromFiles(files)
-    expect(store.sortByVotes).toHaveLength(1)
+    expect(store.allVideos).toHaveLength(1)
 
     const updatePromise = store.updateVideoThumbnails('id-1')
     store.removeVideo('id-1')
@@ -178,7 +265,7 @@ describe('useVideoStore', () => {
 
     await updatePromise
 
-    expect(store.sortByVotes).toHaveLength(0)
+    expect(store.allVideos).toHaveLength(0)
   })
 
   test('queues missing thumbnails in the background after ingestion', async () => {
@@ -227,7 +314,9 @@ describe('useVideoStore', () => {
       await vi.advanceTimersByTimeAsync(200)
 
       expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
-      expect(store.sortByVotes[0]?.thumbUrls).toEqual(['thumb-1', 'thumb-2'])
+      expect(
+        store.allVideos.find(({ id }) => id === 'id-1')?.thumbUrls,
+      ).toEqual(['thumb-1', 'thumb-2'])
     } finally {
       vi.useRealTimers()
     }
@@ -282,7 +371,7 @@ describe('useVideoStore', () => {
       const addPromise = store.addVideosFromFiles(files)
       await vi.advanceTimersByTimeAsync(0)
 
-      expect(store.sortByVotes).toHaveLength(1)
+      expect(store.allVideos).toHaveLength(1)
 
       await vi.advanceTimersByTimeAsync(200)
       expect(mocks.useCases.updateThumbUseCase.execute).not.toHaveBeenCalled()
@@ -572,7 +661,7 @@ describe('useVideoStore', () => {
 
     await updatePromise
 
-    expect(store.sortByVotes[0]).toEqual(
+    expect(store.allVideos.find(({ id }) => id === 'id-1')).toEqual(
       expect.objectContaining({
         id: 'id-1',
         pinned: true,

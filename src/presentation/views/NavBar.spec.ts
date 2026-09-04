@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { useAppStateStore } from '@presentation/stores'
 import { createPresentationTestContext } from '@test-utils/index'
 import NavBar from './NavBar.vue'
 
@@ -13,6 +14,29 @@ const setScrollY = (value: number) => {
 }
 
 describe('NavBar', () => {
+  test('exposes the filter panel relationship and expanded state on its toggle', async () => {
+    const context = createPresentationTestContext({
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+    const wrapper = mount(NavBar, {
+      global: context.global,
+      shallow: true,
+    })
+    const appStateStore = useAppStateStore(context.pinia)
+    const toggle = wrapper.get('#filter-panel-navigation-toggle')
+
+    expect(toggle.attributes('type')).toBe('button')
+    expect(toggle.attributes('aria-controls')).toBe('video-filter-panel')
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+
+    await toggle.trigger('click')
+
+    expect(appStateStore.isFilterPanelOpen).toBe(false)
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+  })
+
   test('renders an explicit sticky shell element for the top navigation', () => {
     const { global } = createPresentationTestContext({
       sessionRegistry: {
