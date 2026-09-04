@@ -10,6 +10,46 @@ import {
 import IngestionStatusToast from './IngestionStatusToast.vue'
 
 describe('IngestionStatusToast', () => {
+  test('names each foreground phase and shows the bounded job state', async () => {
+    const { global } = createPresentationTestContext({
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+    const wrapper = mount(IngestionStatusToast, { global })
+    const store = useVideoStore()
+    const phaseLabels = [
+      ['identifying', 'Identifying videos'],
+      ['classifying', 'Classifying videos'],
+      ['ingesting-fresh', 'Ingesting new videos'],
+      ['ingesting-retries', 'Retrying prior failures'],
+    ] as const
+
+    for (const [phase, label] of phaseLabels) {
+      store.ingestionProgress = {
+        total: 5,
+        scanned: 2,
+        existingCount: 0,
+        newCount: 3,
+        knownErrorCount: 1,
+        createdCount: 1,
+        failedCount: 0,
+        completedCount: 1,
+        phase,
+        effectiveConcurrency: 2,
+        activeItemCount: 2,
+        pendingItemCount: 2,
+      }
+      await nextTick()
+
+      expect(wrapper.text()).toContain('Foreground ingestion')
+      expect(wrapper.text()).toContain(label)
+      expect(wrapper.text()).toContain('Active jobs 2')
+      expect(wrapper.text()).toContain('Pending jobs 2')
+      expect(wrapper.text()).toContain('Job limit 2')
+    }
+  })
+
   test('renders a legend for the existing, new, and error meter colors', async () => {
     const { global } = createPresentationTestContext({
       sessionRegistry: {
@@ -39,6 +79,51 @@ describe('IngestionStatusToast', () => {
     expect(legend.text()).toContain('Existing')
     expect(legend.text()).toContain('New')
     expect(legend.text()).toContain('Error')
+  })
+
+  test('accounts for skipped and duplicate outcomes in the completed foreground meter', async () => {
+    const { global } = createPresentationTestContext({
+      sessionRegistry: {
+        acquireObjectUrl: vi.fn(() => ''),
+      },
+    })
+    const wrapper = mount(IngestionStatusToast, { global })
+    const store = useVideoStore()
+
+    store.ingestionProgress = {
+      total: 4,
+      scanned: 4,
+      existingCount: 0,
+      newCount: 2,
+      knownErrorCount: 0,
+      createdCount: 1,
+      failedCount: 1,
+      skippedCount: 1,
+      duplicateCount: 1,
+      completedCount: 4,
+      phase: 'complete',
+    }
+    await nextTick()
+
+    expect(wrapper.get('.segment--existing').attributes('style')).toContain(
+      'width: 25%',
+    )
+    expect(wrapper.get('.segment--new').attributes('style')).toContain(
+      'width: 25%',
+    )
+    expect(wrapper.get('.segment--error').attributes('style')).toContain(
+      'width: 50%',
+    )
+    expect(wrapper.get('.ingestion-toast__stats').text()).toContain('Skipped 1')
+    expect(wrapper.get('.ingestion-toast__stats').text()).toContain(
+      'Duplicates 1',
+    )
+    expect(wrapper.get('.ingestion-toast__legend').text()).toContain(
+      'Existing + duplicates',
+    )
+    expect(wrapper.get('.ingestion-toast__legend').text()).toContain(
+      'Error + skipped',
+    )
   })
 
   test('renders the queue summary and close button in a dedicated actions row', async () => {
@@ -196,11 +281,11 @@ describe('IngestionStatusToast', () => {
       }
 
       await nextTick()
-      expect(wrapper.text()).toContain('Completed in 1.2s')
+      expect(wrapper.text()).toContain('Foreground completed in 1.2s')
 
       await vi.advanceTimersByTimeAsync(1000)
       await nextTick()
-      expect(wrapper.text()).toContain('Completed in 1.2s')
+      expect(wrapper.text()).toContain('Foreground completed in 1.2s')
     } finally {
       vi.useRealTimers()
     }
@@ -356,7 +441,8 @@ describe('IngestionStatusToast', () => {
 
     await nextTick()
 
-    expect(wrapper.text()).toContain('Thumbnail progress')
+    expect(wrapper.text()).toContain('Background previews')
+    expect(wrapper.text()).toContain('Foreground completed in')
     expect(wrapper.text()).toContain('Generated 0 / 1')
     expect(wrapper.get('.ingestion-toast__legend').text()).toContain(
       'Generated',

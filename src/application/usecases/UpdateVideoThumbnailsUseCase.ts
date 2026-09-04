@@ -3,9 +3,13 @@ import type {
   IVideoThumbnailGenerator,
   IEventPublisher,
   IVideoSessionRegistry,
+  VideoPreviewGenerationOptions,
   VideoThumbnailUpdatedEvent,
 } from '@app/ports'
-import type { IVideoAggregateRepository } from '@domain/repositories'
+import type {
+  IVideoAggregateRepository,
+  IVideoPreviewRepository,
+} from '@domain/repositories'
 
 export class UpdateVideoThumbnailsUseCase {
   constructor(
@@ -13,10 +17,15 @@ export class UpdateVideoThumbnailsUseCase {
     private readonly aggregateRepository: IVideoAggregateRepository,
     private readonly sessionRegistry: IVideoSessionRegistry,
     private readonly eventPublisher: IEventPublisher,
+    private readonly previewRepository: IVideoPreviewRepository,
   ) {}
 
-  async execute(video: ParsedVideo): Promise<ParsedVideo> {
-    if (video.thumbUrls.length > 1) {
+  async execute(
+    video: ParsedVideo,
+    options?: VideoPreviewGenerationOptions,
+  ): Promise<ParsedVideo> {
+    options?.signal?.throwIfAborted()
+    if (video.previewFrames.length > 1) {
       return video
     }
 
@@ -27,27 +36,49 @@ export class UpdateVideoThumbnailsUseCase {
     }
 
     const acquiredFromRegistry = sourceUrl !== video.url
-    let thumbs: string[] = []
+    let previewFrames = []
 
     try {
-      thumbs = await this.thumbnailGenerator.generateThumbnails(sourceUrl)
+      previewFrames = await this.thumbnailGenerator.generateThumbnails(
+        sourceUrl,
+        options,
+      )
     } finally {
       if (acquiredFromRegistry) {
         this.sessionRegistry.releaseObjectUrl(video.id)
       }
     }
 
+    options?.signal?.throwIfAborted()
+    if (previewFrames.length < 2) {
+      return video
+    }
+
     const currentAggregate = await this.aggregateRepository.getVideo(video.id)
+    options?.signal?.throwIfAborted()
     if (!currentAggregate) {
       return video
     }
 
+    options?.onProgress?.({
+      stage: 'persisting',
+      completedFrames: previewFrames.length,
+      totalFrames: previewFrames.length,
+    })
+
+    options?.signal?.throwIfAborted()
+    await this.previewRepository.replaceFrames(video.id, previewFrames)
+    // A committed frame set is safe to retain after cancellation, but must not
+    // clear legacy data or publish completion for a cancelled job.
+    options?.signal?.throwIfAborted()
+
     const { url, pinned } = video
     const dto = await this.aggregateRepository.updateVideo({
       ...currentAggregate,
-      thumbUrls: thumbs,
+      thumbUrls: [],
     })
 
+    options?.signal?.throwIfAborted()
     if (!dto) {
       return video
     }
@@ -59,7 +90,7 @@ export class UpdateVideoThumbnailsUseCase {
       timestamp: new Date(),
       data: {
         videoId: video.id,
-        thumbnailCount: thumbs.length,
+        thumbnailCount: previewFrames.length,
       },
     }
 
@@ -69,6 +100,7 @@ export class UpdateVideoThumbnailsUseCase {
       ...dto,
       url,
       pinned,
+      previewFrames,
     }
   }
 }
@@ -78,6 +110,7 @@ export interface UpdateVideoThumbnailsUseCaseDeps {
   aggregateRepository: IVideoAggregateRepository
   sessionRegistry: IVideoSessionRegistry
   eventPublisher: IEventPublisher
+  previewRepository: IVideoPreviewRepository
 }
 
 export function createUpdateVideoThumbnailsUseCase({
@@ -85,11 +118,13 @@ export function createUpdateVideoThumbnailsUseCase({
   aggregateRepository,
   sessionRegistry,
   eventPublisher,
+  previewRepository,
 }: UpdateVideoThumbnailsUseCaseDeps): UpdateVideoThumbnailsUseCase {
   return new UpdateVideoThumbnailsUseCase(
     thumbnailGenerator,
     aggregateRepository,
     sessionRegistry,
     eventPublisher,
+    previewRepository,
   )
 }

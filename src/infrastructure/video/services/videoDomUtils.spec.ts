@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { generateThumbnails, seekToTime } from './videoDomUtils'
+import {
+  capturePreviewFrame,
+  captureThumbnail,
+  generateThumbnails,
+  seekToTime,
+} from './videoDomUtils'
 
 type SeekHandler = (time: number, signalSeeked: () => void) => void
 
@@ -76,9 +81,11 @@ describe('generateThumbnails', () => {
       .mockReturnValue({
         drawImage: vi.fn(),
       } as unknown as CanvasRenderingContext2D)
-    const toDataUrlSpy = vi
-      .spyOn(HTMLCanvasElement.prototype, 'toDataURL')
-      .mockReturnValue('data:image/jpeg;base64,thumb')
+    const toBlobSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+      .mockImplementation((callback) =>
+        callback(new Blob(['thumb'], { type: 'image/jpeg' })),
+      )
 
     const video = buildVideoElement({
       duration: 120,
@@ -101,7 +108,169 @@ describe('generateThumbnails', () => {
 
     warnSpy.mockRestore()
     getContextSpy.mockRestore()
-    toDataUrlSpy.mockRestore()
+    toBlobSpy.mockRestore()
     vi.useRealTimers()
+  })
+})
+
+describe('bounded preview capture', () => {
+  it('encodes a source-resolution frame as an async bounded Blob', async () => {
+    const video = document.createElement('video')
+    Object.defineProperties(video, {
+      videoWidth: { configurable: true, value: 3840 },
+      videoHeight: { configurable: true, value: 2160 },
+    })
+
+    let capturedWidth = 0
+    let capturedHeight = 0
+    const drawImage = vi.fn()
+    const getContextSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockImplementation(function (this: HTMLCanvasElement) {
+        capturedWidth = this.width
+        capturedHeight = this.height
+        return { drawImage } as unknown as CanvasRenderingContext2D
+      })
+    const toDataUrlSpy = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL')
+    const previewBlob = new Blob(['preview'], { type: 'image/jpeg' })
+    const toBlobSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+      .mockImplementation((callback) =>
+        queueMicrotask(() => callback(previewBlob)),
+      )
+
+    const frame = await capturePreviewFrame(video, 42)
+
+    expect(capturedWidth).toBe(480)
+    expect(capturedHeight).toBe(270)
+    expect(drawImage).toHaveBeenCalledWith(video, 0, 0, 480, 270)
+    expect(toBlobSpy).toHaveBeenCalledWith(
+      expect.any(Function),
+      'image/jpeg',
+      0.72,
+    )
+    expect(toDataUrlSpy).not.toHaveBeenCalled()
+    expect(frame).toEqual({
+      timestampSeconds: 42,
+      blob: previewBlob,
+      width: 480,
+      height: 270,
+    })
+
+    getContextSpy.mockRestore()
+    toDataUrlSpy.mockRestore()
+    toBlobSpy.mockRestore()
+  })
+
+  it('uses the same bounded async encode for the persisted cover', async () => {
+    const video = document.createElement('video')
+    Object.defineProperties(video, {
+      duration: { configurable: true, value: 120 },
+      currentTime: { configurable: true, value: 12, writable: true },
+      seeking: { configurable: true, value: false },
+      videoWidth: { configurable: true, value: 1920 },
+      videoHeight: { configurable: true, value: 1080 },
+    })
+    const getContextSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue({
+        drawImage: vi.fn(),
+      } as unknown as CanvasRenderingContext2D)
+    const toDataUrlSpy = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL')
+    const toBlobSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+      .mockImplementation((callback) =>
+        callback(new Blob(['cover'], { type: 'image/jpeg' })),
+      )
+
+    const cover = await captureThumbnail(video, 12)
+
+    expect(cover).toMatch(/^data:image\/jpeg;base64,/)
+    expect(toBlobSpy).toHaveBeenCalled()
+    expect(toDataUrlSpy).not.toHaveBeenCalled()
+
+    getContextSpy.mockRestore()
+    toDataUrlSpy.mockRestore()
+    toBlobSpy.mockRestore()
+  })
+
+  it('rejects capture with AbortError before allocating a canvas', async () => {
+    const controller = new AbortController()
+    controller.abort()
+    const createElementSpy = vi.spyOn(document, 'createElement')
+
+    await expect(
+      capturePreviewFrame(document.createElement('video'), 10, {
+        signal: controller.signal,
+      }),
+    ).rejects.toMatchObject({ name: 'AbortError' })
+
+    expect(createElementSpy).toHaveBeenCalledTimes(1)
+    createElementSpy.mockRestore()
+  })
+
+  it('rejects capture when aborted while canvas encoding is still pending', async () => {
+    const controller = new AbortController()
+    const video = document.createElement('video')
+    const getContextSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue({
+        drawImage: vi.fn(),
+      } as unknown as CanvasRenderingContext2D)
+    const toBlobSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+      .mockImplementation(() => {})
+
+    const capturePromise = capturePreviewFrame(video, 10, {
+      signal: controller.signal,
+    })
+    const abortExpectation = expect(capturePromise).rejects.toMatchObject({
+      name: 'AbortError',
+    })
+
+    controller.abort()
+    await abortExpectation
+
+    getContextSpy.mockRestore()
+    toBlobSpy.mockRestore()
+  })
+
+  it('times out when canvas encoding never completes', async () => {
+    vi.useFakeTimers()
+    const video = document.createElement('video')
+    const getContextSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue({
+        drawImage: vi.fn(),
+      } as unknown as CanvasRenderingContext2D)
+    const toBlobSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+      .mockImplementation(() => {})
+
+    const capturePromise = capturePreviewFrame(video, 10)
+    const timeoutExpectation =
+      expect(capturePromise).rejects.toThrow(/encoding timed out/i)
+
+    await vi.runAllTimersAsync()
+    await timeoutExpectation
+
+    getContextSpy.mockRestore()
+    toBlobSpy.mockRestore()
+    vi.useRealTimers()
+  })
+})
+
+describe('abortable seeking', () => {
+  it('preserves AbortError instead of retrying an intentionally cancelled seek', async () => {
+    const controller = new AbortController()
+    controller.abort()
+    const video = buildVideoElement({ duration: 120, onSeek: () => {} })
+
+    await expect(
+      seekToTime(video, 30, {
+        signal: controller.signal,
+        timeoutsMs: [1],
+      }),
+    ).rejects.toMatchObject({ name: 'AbortError' })
   })
 })

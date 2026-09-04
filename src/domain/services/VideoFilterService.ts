@@ -58,9 +58,9 @@ const matchesCriteria = (
     case 'all':
       return true
     case 'ready':
-      return video.thumbUrls.length > 1
+      return video.previewFrames.length > 1 || video.thumbUrls.length > 1
     case 'missing':
-      return video.thumbUrls.length <= 1
+      return video.previewFrames.length <= 1 && video.thumbUrls.length <= 1
     default: {
       const unsupportedPreviewAvailability: never = previewAvailability
       throw new Error(

@@ -61,11 +61,11 @@ export class VideoAggregateRepository implements IVideoAggregateRepository {
     aggregate: VideoAggregate,
   ): Promise<VideoAggregate | undefined> {
     const videoEntity = VideoAggregateMapper.toVideoEntity(aggregate)
-    const metadataEntity = VideoAggregateMapper.toMetadataEntity(aggregate)
-
+    // Content updates must not write votes from a potentially stale snapshot.
+    // Vote changes have their own updateVotes operation.
     const [video, metadata] = await Promise.all([
       this.videoRepository.postVideo(videoEntity),
-      this.metadataRepository.upsertMetadata(metadataEntity),
+      this.metadataRepository.getMetadata(aggregate.id),
     ])
 
     if (!video || !metadata) {

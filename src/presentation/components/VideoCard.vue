@@ -11,9 +11,8 @@
       <div class="cardMedia" data-testid="video-card-media-frame">
         <img
           class="thumb"
-          ref="thumbElement"
           v-if="!state.showVideo"
-          :src="video.thumb"
+          :src="currentThumbUrl"
           @mouseenter="startThumbRotation"
           @mouseleave="stopThumbRotation"
           alt=""
@@ -24,42 +23,108 @@
           ref="videoElement"
           :video="props.video"
           :options="embedInitOptions"
+          :preview-frames="displayPreviewFrames"
         />
       </div>
 
       <div class="cardNav">
         <div class="pin" @click="handlePinVideo">📌</div>
-        <div v-if="isVidLoaded" class="buttonGroup">
-          <span @click="handleMute">
-            <div v-if="videoElement?.state.isMuted">🔇</div>
-            <div v-else>🔈</div>
-          </span>
+        <button
+          class="tab"
+          :class="{ video: state.showVideo }"
+          data-testid="video-view-toggle"
+          type="button"
+          :aria-label="state.showVideo ? 'Show thumbnails' : 'Play video'"
+          @click="loadVideo"
+        >
+          {{ state.showVideo ? 'Thumbs' : 'Video' }}
+        </button>
 
-          <span @click="updateLoop">
-            <div v-if="!loopState.loopStartTime && !loopState.loopEndTime">
+        <div v-if="state.showVideo" class="buttonGroup">
+          <button
+            class="card-control"
+            data-testid="video-card-mute"
+            type="button"
+            :aria-label="
+              videoElement?.state?.isMuted ? 'Unmute video' : 'Mute video'
+            "
+            @click="handleMute"
+          >
+            <span aria-hidden="true">{{
+              videoElement?.state?.isMuted ? '🔇' : '🔈'
+            }}</span>
+          </button>
+
+          <button
+            class="card-control"
+            data-testid="video-card-loop"
+            type="button"
+            :aria-label="loopControlLabel"
+            @click="updateLoop"
+          >
+            <span
+              v-if="
+                loopState.loopStartTime === undefined &&
+                loopState.loopEndTime === undefined
+              "
+              aria-hidden="true"
+            >
               🔁
-            </div>
-            <div v-else-if="loopState.loopStartTime && !loopState.loopEndTime">
+            </span>
+            <span
+              v-else-if="loopState.loopEndTime === undefined"
+              aria-hidden="true"
+            >
               ➰
-            </div>
-            <div v-else>➿</div>
-          </span>
+            </span>
+            <span v-else aria-hidden="true">➿</span>
+          </button>
         </div>
 
-        <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(-30)">
+        <button
+          v-if="state.showVideo"
+          class="card-control big-skip"
+          data-testid="video-card-skip-back-30"
+          type="button"
+          aria-label="Skip back 30 seconds"
+          @click="handleSkip(-30)"
+        >
           ⏪⏪
-        </div>
-        <div v-if="isVidLoaded" @click="handleSkip(-15)">⏪</div>
+        </button>
+        <button
+          v-if="state.showVideo"
+          class="card-control"
+          data-testid="video-card-skip-back-15"
+          type="button"
+          aria-label="Skip back 15 seconds"
+          @click="handleSkip(-15)"
+        >
+          ⏪
+        </button>
         <div class="tabs">
           <div>{{ props.video.votes }} 🗳️</div>
-          <div v-if="!isVidLoaded" class="tab" @click="loadVideo">Thumbs</div>
-          <div v-else class="tab video" @click="loadVideo">Video</div>
           <div>⏱️ {{ Math.floor(props.video.duration / 60) }}</div>
         </div>
-        <div v-if="isVidLoaded" @click="handleSkip(30)">⏩</div>
-        <div class="big-skip" v-if="isVidLoaded" @click="handleSkip(60)">
+        <button
+          v-if="state.showVideo"
+          class="card-control"
+          data-testid="video-card-skip-forward-30"
+          type="button"
+          aria-label="Skip forward 30 seconds"
+          @click="handleSkip(30)"
+        >
+          ⏩
+        </button>
+        <button
+          v-if="state.showVideo"
+          class="card-control big-skip"
+          data-testid="video-card-skip-forward-60"
+          type="button"
+          aria-label="Skip forward 60 seconds"
+          @click="handleSkip(60)"
+        >
           ⏩⏩
-        </div>
+        </button>
         <div class="infoTrigger">
           <span
             class="info-icon"
@@ -113,7 +178,86 @@ const state = reactive<State>({
   thumbIndex: 0,
 })
 
-const thumbElement = ref<HTMLImageElement | null>(null)
+type DisplayPreviewFrame = {
+  timestampSeconds: number
+  url: string
+  width: number
+  height: number
+}
+
+const displayPreviewFrames = ref<DisplayPreviewFrame[]>([])
+const previewObjectUrls = new Map<Blob, string>()
+const isRotatingThumbnails = ref(false)
+const isThumbnailHovered = ref(false)
+const prefersReducedMotion =
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+
+const syncDisplayPreviewFrames = () => {
+  const frames = [...props.video.previewFrames].sort(
+    (left, right) => left.timestampSeconds - right.timestampSeconds,
+  )
+  const currentBlobs = new Set(frames.map((frame) => frame.blob))
+
+  previewObjectUrls.forEach((url, blob) => {
+    if (!currentBlobs.has(blob)) {
+      URL.revokeObjectURL(url)
+      previewObjectUrls.delete(blob)
+    }
+  })
+
+  displayPreviewFrames.value =
+    frames.length > 0
+      ? frames.map((frame) => {
+          let url = previewObjectUrls.get(frame.blob)
+          if (!url) {
+            url = URL.createObjectURL(frame.blob)
+            previewObjectUrls.set(frame.blob, url)
+          }
+
+          return {
+            timestampSeconds: frame.timestampSeconds,
+            url,
+            width: frame.width,
+            height: frame.height,
+          }
+        })
+      : props.video.thumbUrls.map((url, index, legacyFrames) => ({
+          timestampSeconds:
+            Number.isFinite(props.video.duration) && props.video.duration > 0
+              ? (props.video.duration * (index + 1)) / (legacyFrames.length + 1)
+              : index,
+          url,
+          width: 480,
+          height: 270,
+        }))
+
+  if (state.thumbIndex >= displayPreviewFrames.value.length) {
+    state.thumbIndex = 0
+  }
+
+  isRotatingThumbnails.value =
+    isThumbnailHovered.value &&
+    !prefersReducedMotion &&
+    displayPreviewFrames.value.length > 0
+}
+
+const currentThumbUrl = computed(() =>
+  isRotatingThumbnails.value && displayPreviewFrames.value.length > 0
+    ? displayPreviewFrames.value[state.thumbIndex]?.url || props.video.thumb
+    : props.video.thumb,
+)
+
+watch(
+  [
+    () => props.video.previewFrames,
+    () => props.video.thumbUrls,
+    () => props.video.duration,
+  ],
+  syncDisplayPreviewFrames,
+  { immediate: true },
+)
+
 const intervalId = ref<number | null>(null)
 const hoverWarmupTimeoutId = ref<number | null>(null)
 const hoverWarmupProgressIntervalId = ref<number | null>(null)
@@ -146,6 +290,7 @@ const thumbnailActivityRingClasses = computed(() => ({
 const cardClasses = computed(() => ({
   'card--hover-arming': isHoverArming.value,
   'card--thumbnail-active': isThumbnailJobActive.value,
+  'card--video-open': state.showVideo,
 }))
 
 const clearHoverWarmupProgressAnimation = (resetProgress = true) => {
@@ -163,7 +308,7 @@ const beginHoverWarmupProgressAnimation = () => {
   if (
     hoverWarmupProgressIntervalId.value !== null ||
     isThumbnailJobActive.value ||
-    props.video.thumbUrls.length > 1
+    displayPreviewFrames.value.length > 1
   ) {
     return
   }
@@ -182,16 +327,21 @@ const beginHoverWarmupProgressAnimation = () => {
 }
 
 const updateThumbSrc = () => {
-  if (thumbElement.value && props.video.thumbUrls.length > 0) {
-    state.thumbIndex = (state.thumbIndex + 1) % props.video.thumbUrls.length
-    thumbElement.value.src = props.video.thumbUrls[state.thumbIndex]
+  if (displayPreviewFrames.value.length > 0) {
+    state.thumbIndex =
+      (state.thumbIndex + 1) % displayPreviewFrames.value.length
   }
 }
 
-const startThumbRotation = async () => {
+const startThumbRotation = () => {
+  isThumbnailHovered.value = true
+  state.thumbIndex = 0
+  isRotatingThumbnails.value =
+    !prefersReducedMotion && displayPreviewFrames.value.length > 0
+
   if (
     hoverWarmupTimeoutId.value === null &&
-    props.video.thumbUrls.length <= 1 &&
+    displayPreviewFrames.value.length <= 1 &&
     !isThumbnailJobActive.value
   ) {
     beginHoverWarmupProgressAnimation()
@@ -204,12 +354,16 @@ const startThumbRotation = async () => {
     }, HOVER_WARMUP_DELAY_MS)
   }
 
-  if (intervalId.value === null) {
+  if (!prefersReducedMotion && intervalId.value === null) {
     intervalId.value = window.setInterval(updateThumbSrc, 500)
   }
 }
 
 const stopThumbRotation = () => {
+  isThumbnailHovered.value = false
+  isRotatingThumbnails.value = false
+  state.thumbIndex = 0
+
   if (hoverWarmupTimeoutId.value !== null) {
     clearTimeout(hoverWarmupTimeoutId.value)
     hoverWarmupTimeoutId.value = null
@@ -224,12 +378,13 @@ const stopThumbRotation = () => {
     clearInterval(intervalId.value)
     intervalId.value = null
   }
-
-  thumbElement.value && (thumbElement.value.src = props.video.thumb)
 }
 
 onBeforeUnmount(() => {
   stopThumbRotation()
+  previewObjectUrls.forEach((url) => URL.revokeObjectURL(url))
+  previewObjectUrls.clear()
+  displayPreviewFrames.value = []
 })
 
 watch(isThumbnailJobActive, (isActive) => {
@@ -250,10 +405,6 @@ const embedInitOptions = {
   volume: 0.5,
 }
 
-const isVidLoaded = computed(() => {
-  return videoElement.value !== null
-})
-
 const handleMute = () =>
   videoElement.value && videoElement.value.controls.toggleMute()
 
@@ -261,6 +412,7 @@ const handleSkip = (duration: number) =>
   videoElement.value && videoElement.value.controls.skip(duration)
 
 function handlePinVideo() {
+  stopThumbRotation()
   videoStore.updateVotes(props.video.id, 2)
 
   embedInitOptions.playing = false
@@ -277,6 +429,7 @@ function handleRemoveVideo() {
 }
 
 function loadVideo() {
+  stopThumbRotation()
   embedInitOptions.playing = true
 
   state.showVideo = !state.showVideo
@@ -295,14 +448,26 @@ function updateLoop() {
 
 const loopState = computed(() => {
   const loopingState = videoElement.value?.loopingState
-
   return {
     loopStartTime: loopingState?.startTime,
+
     loopEndTime: loopingState?.endTime,
     isLooping:
       loopingState?.startTime !== undefined &&
       loopingState?.endTime !== undefined,
   }
+})
+
+const loopControlLabel = computed(() => {
+  if (loopState.value.loopStartTime === undefined) {
+    return 'Set loop start'
+  }
+
+  if (loopState.value.loopEndTime === undefined) {
+    return 'Set loop end'
+  }
+
+  return 'Clear loop points'
 })
 
 const videoMetaEntries = computed(() => {
@@ -318,9 +483,10 @@ const videoMetaEntries = computed(() => {
     value: formatDurationWithSeconds(props.video.duration),
   })
 
-  const thumbs = Array.isArray(props.video.thumbUrls)
-    ? props.video.thumbUrls.length
-    : 0
+  const thumbs =
+    props.video.previewFrames.length > 0
+      ? props.video.previewFrames.length
+      : props.video.thumbUrls.length
   values.push({
     key: 'thumbnail count',
     value: thumbs ? `${thumbs} thumbnail(s)` : 'No additional thumbnails',
@@ -382,18 +548,20 @@ function formatDurationWithSeconds(duration: number): string {
   background: #05070a;
 }
 
-.thumb,
-.cardMedia :deep(video) {
-  display: block;
+.cardMedia :deep(.video-player-shell) {
   width: 100%;
   height: 100%;
 }
 
 .thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
 .cardMedia :deep(video) {
+  width: 100%;
   object-fit: contain;
   background: #000;
 }
@@ -442,6 +610,7 @@ function formatDurationWithSeconds(duration: number): string {
 
 .cardNav {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid brown;
@@ -450,6 +619,8 @@ function formatDurationWithSeconds(duration: number): string {
   left: 0;
   right: 0;
   opacity: 0;
+  pointer-events: none;
+  z-index: 4;
   background-color: rgba(255, 255, 255, 0.9);
   transition:
     top 0.3s ease,
@@ -463,6 +634,14 @@ function formatDurationWithSeconds(duration: number): string {
     display: flex;
     align-items: center;
   }
+}
+
+.card-control {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
 }
 
 .infoTrigger {
@@ -541,7 +720,8 @@ function formatDurationWithSeconds(duration: number): string {
 }
 
 .card:hover .cardNav,
-.card:focus-within .cardNav {
+.card:focus-within .cardNav,
+.card--video-open .cardNav {
   top: 0;
   opacity: 1;
   pointer-events: auto;
@@ -555,7 +735,8 @@ function formatDurationWithSeconds(duration: number): string {
 }
 
 .card:hover .cardNav,
-.card:focus-within .cardNav {
+.card:focus-within .cardNav,
+.card--video-open .cardNav {
   transition-delay: 0s; // Remove delay for showing
 }
 
@@ -582,6 +763,8 @@ function formatDurationWithSeconds(duration: number): string {
 }
 
 .tab {
+  appearance: none;
+  font-family: inherit;
   background-color: black;
   border: 1px solid brown;
   border-width: 2px 3px;

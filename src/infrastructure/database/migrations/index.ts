@@ -1,6 +1,7 @@
 import { handleParsedVideoMigration } from './v1'
 import { handleAddVideoMetadataStore } from './v2'
 import { handleAddVideoIngestionFailuresStore } from './v3'
+import { handleAddVideoPreviewFramesStore } from './v4'
 
 export const handleMigrations = (
   request: IDBOpenDBRequest,
@@ -22,5 +23,9 @@ export const handleMigrations = (
 
   if (oldVersion < 3) {
     handleAddVideoIngestionFailuresStore(request)
+  }
+
+  if (oldVersion < 4) {
+    handleAddVideoPreviewFramesStore(request)
   }
 }

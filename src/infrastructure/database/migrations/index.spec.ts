@@ -3,6 +3,7 @@ import { handleMigrations } from './index'
 import { handleParsedVideoMigration } from './v1'
 import { handleAddVideoMetadataStore } from './v2'
 import { handleAddVideoIngestionFailuresStore } from './v3'
+import { handleAddVideoPreviewFramesStore } from './v4'
 
 vi.mock('./v1', () => ({
   handleParsedVideoMigration: vi.fn(),
@@ -14,6 +15,10 @@ vi.mock('./v2', () => ({
 
 vi.mock('./v3', () => ({
   handleAddVideoIngestionFailuresStore: vi.fn(),
+}))
+
+vi.mock('./v4', () => ({
+  handleAddVideoPreviewFramesStore: vi.fn(),
 }))
 
 const createRequest = () =>
@@ -39,5 +44,17 @@ describe('handleMigrations', () => {
     expect(handleParsedVideoMigration).not.toHaveBeenCalled()
     expect(handleAddVideoMetadataStore).not.toHaveBeenCalled()
     expect(handleAddVideoIngestionFailuresStore).toHaveBeenCalledWith(request)
+    expect(handleAddVideoPreviewFramesStore).toHaveBeenCalledWith(request)
+  })
+
+  test('runs only the v4 migration when upgrading from database version 3', () => {
+    const request = createRequest()
+
+    handleMigrations(request, 3)
+
+    expect(handleParsedVideoMigration).not.toHaveBeenCalled()
+    expect(handleAddVideoMetadataStore).not.toHaveBeenCalled()
+    expect(handleAddVideoIngestionFailuresStore).not.toHaveBeenCalled()
+    expect(handleAddVideoPreviewFramesStore).toHaveBeenCalledWith(request)
   })
 })

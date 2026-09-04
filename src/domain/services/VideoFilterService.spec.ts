@@ -9,6 +9,7 @@ const buildVideo = (overrides: Partial<ParsedVideo> = {}): ParsedVideo => ({
   thumb: '',
   duration: 120,
   thumbUrls: [],
+  previewFrames: [],
   tags: [],
   votes: 0,
   url: '',
@@ -19,6 +20,37 @@ const buildVideo = (overrides: Partial<ParsedVideo> = {}): ParsedVideo => ({
 const ids = (videos: ParsedVideo[]) => videos.map(({ id }) => id)
 
 describe('applyFilters', () => {
+  test('recognizes persisted Blob previews and legacy URLs without treating a single cover as ready', () => {
+    const frame = {
+      timestampSeconds: 1,
+      blob: new Blob(['frame']),
+      width: 480,
+      height: 270,
+    }
+    const videos = [
+      buildVideo({
+        id: 'blob-ready',
+        previewFrames: [frame, { ...frame, timestampSeconds: 2 }],
+      }),
+      buildVideo({ id: 'legacy-ready', thumbUrls: ['one', 'two'] }),
+      buildVideo({
+        id: 'cover-only',
+        previewFrames: [frame],
+        thumbUrls: ['cover'],
+      }),
+      buildVideo({ id: 'missing' }),
+    ]
+
+    expect(
+      ids(applyFilters({ videos, options: { previewAvailability: 'ready' } })),
+    ).toEqual(['blob-ready', 'legacy-ready'])
+    expect(
+      ids(
+        applyFilters({ videos, options: { previewAvailability: 'missing' } }),
+      ),
+    ).toEqual(['cover-only', 'missing'])
+  })
+
   test('defaults to keep-visible and sorts each group by votes descending', () => {
     const videos = [
       buildVideo({

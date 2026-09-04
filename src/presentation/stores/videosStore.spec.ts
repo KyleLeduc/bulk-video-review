@@ -210,9 +210,10 @@ describe('useVideoStore', () => {
 
     await store.addVideosFromFiles(createMockFileList(playable, unsupported))
 
-    expect(mocks.useCases.addVideosUseCase.execute).toHaveBeenCalledWith([
-      { file: playable },
-    ])
+    expect(mocks.useCases.addVideosUseCase.execute).toHaveBeenCalledWith(
+      [{ file: playable }],
+      { concurrency: 2 },
+    )
   })
 
   test('does not re-add a removed video when thumbnail generation finishes later', async () => {
@@ -618,6 +619,59 @@ describe('useVideoStore', () => {
 
     expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
   })
+
+  test.each(['vote-first', 'preview-first'] as const)(
+    'preserves votes and previews when asynchronous updates finish %s',
+    async (order) => {
+      let finishPreview!: (video: ParsedVideo) => void
+      let finishVote!: (votes: number) => void
+      const { global } = createPresentationTestContext({
+        useCases: {
+          updateThumbUseCase: {
+            execute: vi.fn(
+              () =>
+                new Promise((resolve) => {
+                  finishPreview = resolve
+                }),
+            ),
+          },
+          updateVotesUseCase: {
+            execute: vi.fn(
+              () =>
+                new Promise((resolve) => {
+                  finishVote = resolve
+                }),
+            ),
+          },
+        },
+      })
+      const wrapper = mount(StoreHarness, { global })
+      const store = (wrapper.vm as any).store as ReturnType<
+        typeof useVideoStore
+      >
+      const original = buildParsedVideo({ id: 'id-1', votes: 2, thumbUrls: [] })
+      store.addVideos([original])
+      const preview = store.updateVideoThumbnails('id-1')
+      const vote = store.updateVotes('id-1', 1)
+      const previewResult = { ...original, thumbUrls: ['one', 'two'] }
+
+      if (order === 'vote-first') {
+        finishVote(3)
+        await vote
+      }
+      finishPreview(previewResult)
+      await preview
+      if (order === 'preview-first') {
+        finishVote(3)
+        await vote
+      }
+
+      expect(store.allVideos[0]).toEqual(
+        expect.objectContaining({ votes: 3, thumbUrls: ['one', 'two'] }),
+      )
+      wrapper.unmount()
+    },
+  )
 
   test('preserves newer pinned state when a delayed thumbnail update resolves', async () => {
     let resolveThumbnailJob: ((video: ParsedVideo) => void) | undefined

@@ -126,6 +126,7 @@ export class AddVideosFromFilesUseCase {
             ...aggregate,
             url: '',
             pinned: false,
+            previewFrames: [],
           })
           this.logger.debug('[add-videos] partition:item:cached', {
             itemIndex: index + 1,
@@ -268,6 +269,7 @@ export class AddVideosFromFilesUseCase {
       ...aggregate,
       url: '',
       pinned: false,
+      previewFrames: [],
     }
   }
 

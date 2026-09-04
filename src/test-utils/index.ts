@@ -106,6 +106,7 @@ export const buildParsedVideo = (
   ...buildVideoAggregate(),
   url: '',
   pinned: false,
+  previewFrames: [],
   ...overrides,
 })
 

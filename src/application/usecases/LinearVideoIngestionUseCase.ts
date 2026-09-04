@@ -1,6 +1,9 @@
 import type { ParsedVideo } from '@domain/entities'
 import type { VideoImportItem } from '@domain/valueObjects'
-import type { IVideoAggregateRepository } from '@domain/repositories'
+import type {
+  IVideoAggregateRepository,
+  IVideoPreviewRepository,
+} from '@domain/repositories'
 import type {
   IVideoIngestionFailureTracker,
   ILogger,
@@ -9,6 +12,7 @@ import type {
 } from '@app/ports'
 import type {
   VideoIngestionEvent,
+  VideoIngestionOptions,
   VideoIngestionProgress,
   VideoIngestionUseCase,
 } from './VideoIngestionUseCase'
@@ -16,12 +20,50 @@ import type {
 type PendingVideoItem = {
   id: string
   item: VideoImportItem
+  index: number
 }
 
 type ProcessResult =
   | { status: 'created'; video: ParsedVideo }
   | { status: 'skipped' }
   | { status: 'failed' }
+
+type IdentificationResult =
+  | { status: 'identified'; pending: PendingVideoItem }
+  | { status: 'failed' }
+
+type ClassificationResult =
+  | { status: 'cached'; video: ParsedVideo }
+  | { status: 'fresh'; pending: PendingVideoItem }
+  | { status: 'deferred'; pending: PendingVideoItem }
+  | { status: 'failed' }
+
+type PoolOutcome<TResult> =
+  | { status: 'fulfilled'; value: TResult }
+  | { status: 'rejected'; reason: unknown }
+
+type PoolCompletion<TResult> = {
+  inputIndex: number
+  outcome: PoolOutcome<TResult>
+  activeItemCount: number
+  pendingItemCount: number
+  peakActiveItemCount: number
+  peakPendingItemCount: number
+}
+
+const DEFAULT_INGESTION_CONCURRENCY = 2
+const MAX_INGESTION_CONCURRENCY = 4
+
+const normalizeConcurrency = (requested?: number): number => {
+  if (!Number.isFinite(requested)) {
+    return DEFAULT_INGESTION_CONCURRENCY
+  }
+
+  return Math.min(
+    Math.max(Math.trunc(requested ?? DEFAULT_INGESTION_CONCURRENCY), 1),
+    MAX_INGESTION_CONCURRENCY,
+  )
+}
 
 export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
   constructor(
@@ -30,129 +72,488 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     private readonly sessionRegistry: IVideoSessionRegistry,
     private readonly logger: ILogger,
     private readonly failureTracker: IVideoIngestionFailureTracker,
+    private readonly previewRepository?: IVideoPreviewRepository,
   ) {}
 
   async *execute(
     items: VideoImportItem[],
+    options?: VideoIngestionOptions,
   ): AsyncGenerator<VideoIngestionEvent> {
+    const startedAt = performance.now()
+    const elapsedMs = () => Number((performance.now() - startedAt).toFixed(2))
+    const effectiveConcurrency = normalizeConcurrency(options?.concurrency)
+    const initialActiveItemCount = Math.min(items.length, effectiveConcurrency)
+    const initialPendingItemCount = Math.max(
+      items.length - initialActiveItemCount,
+      0,
+    )
+    const progress: VideoIngestionProgress = {
+      total: items.length,
+      scanned: 0,
+      existingCount: 0,
+      newCount: 0,
+      knownErrorCount: 0,
+      createdCount: 0,
+      failedCount: 0,
+      completedCount: 0,
+      phase: 'identifying',
+      effectiveConcurrency,
+      activeItemCount: initialActiveItemCount,
+      pendingItemCount: initialPendingItemCount,
+      phaseCompletedCount: 0,
+      phaseTotal: items.length,
+      peakActiveItemCount: initialActiveItemCount,
+      peakPendingItemCount: initialPendingItemCount,
+      inputBytes: items.reduce((total, item) => total + item.file.size, 0),
+      elapsedMs: 0,
+      skippedCount: 0,
+      duplicateCount: 0,
+    }
+
     this.logger.info('[linear-ingestion] execute:start', {
       totalItems: items.length,
+      effectiveConcurrency,
     })
 
-    const { cachedVideos, freshItems, deferredItems, partitionFailures } =
-      await this.partitionItems(items)
+    yield { type: 'progress', progress: { ...progress } }
+
+    const identificationStartedAt = performance.now()
+    const identifiedItems: PendingVideoItem[] = []
+    let identificationCompletedCount = 0
+
+    for await (const completion of this.runBounded(
+      items,
+      effectiveConcurrency,
+      (item, index) => this.identifyItem(item, index, items.length),
+    )) {
+      identificationCompletedCount += 1
+
+      if (completion.outcome.status === 'fulfilled') {
+        const result = completion.outcome.value
+        if (result.status === 'identified') {
+          identifiedItems.push(result.pending)
+        } else {
+          progress.failedCount += 1
+          progress.completedCount += 1
+        }
+      } else {
+        progress.failedCount += 1
+        progress.completedCount += 1
+        const failedItem = items[completion.inputIndex]
+        this.logger.error('[linear-ingestion] identify:pool-task:failed', {
+          ...(failedItem
+            ? this.createContext(
+                failedItem.file,
+                completion.inputIndex + 1,
+                items.length,
+              )
+            : {}),
+          error: completion.outcome.reason,
+        })
+      }
+
+      progress.phaseCompletedCount = identificationCompletedCount
+      progress.activeItemCount = completion.activeItemCount
+      progress.pendingItemCount = completion.pendingItemCount
+      progress.peakActiveItemCount = Math.max(
+        progress.peakActiveItemCount ?? 0,
+        completion.peakActiveItemCount,
+      )
+      progress.peakPendingItemCount = Math.max(
+        progress.peakPendingItemCount ?? 0,
+        completion.peakPendingItemCount,
+      )
+      progress.elapsedMs = elapsedMs()
+      yield { type: 'progress', progress: { ...progress } }
+    }
+
+    identifiedItems.sort((left, right) => left.index - right.index)
+    const uniqueItems: PendingVideoItem[] = []
+    const seenIds = new Set<string>()
+    for (const pending of identifiedItems) {
+      if (seenIds.has(pending.id)) {
+        progress.duplicateCount = (progress.duplicateCount ?? 0) + 1
+        progress.completedCount += 1
+        continue
+      }
+
+      seenIds.add(pending.id)
+      uniqueItems.push(pending)
+    }
+
+    progress.identificationElapsedMs = Number(
+      (performance.now() - identificationStartedAt).toFixed(2),
+    )
+    progress.scanned = progress.failedCount + (progress.duplicateCount ?? 0)
+    progress.phase = 'classifying'
+    progress.phaseCompletedCount = 0
+    progress.phaseTotal = uniqueItems.length
+    progress.activeItemCount = Math.min(
+      uniqueItems.length,
+      effectiveConcurrency,
+    )
+    progress.pendingItemCount = Math.max(
+      uniqueItems.length - progress.activeItemCount,
+      0,
+    )
+    progress.peakActiveItemCount = Math.max(
+      progress.peakActiveItemCount ?? 0,
+      progress.activeItemCount,
+    )
+    progress.peakPendingItemCount = Math.max(
+      progress.peakPendingItemCount ?? 0,
+      progress.pendingItemCount,
+    )
+    progress.elapsedMs = elapsedMs()
+    yield { type: 'progress', progress: { ...progress } }
+
+    const classificationStartedAt = performance.now()
+    const freshItems: PendingVideoItem[] = []
+    const deferredItems: PendingVideoItem[] = []
+    let classificationCompletedCount = 0
+
+    for await (const completion of this.runBounded(
+      uniqueItems,
+      effectiveConcurrency,
+      (pending) => this.classifyItem(pending, items.length),
+    )) {
+      classificationCompletedCount += 1
+      progress.scanned += 1
+      let cachedVideo: ParsedVideo | undefined
+
+      if (completion.outcome.status === 'fulfilled') {
+        const result = completion.outcome.value
+        switch (result.status) {
+          case 'cached':
+            progress.existingCount += 1
+            progress.completedCount += 1
+            cachedVideo = result.video
+            break
+          case 'fresh':
+            progress.newCount += 1
+            freshItems.push(result.pending)
+            break
+          case 'deferred':
+            progress.knownErrorCount += 1
+            deferredItems.push(result.pending)
+            break
+          case 'failed':
+            progress.failedCount += 1
+            progress.completedCount += 1
+            break
+        }
+      } else {
+        progress.failedCount += 1
+        progress.completedCount += 1
+        const failedItem = uniqueItems[completion.inputIndex]
+        this.logger.error('[linear-ingestion] classify:pool-task:failed', {
+          ...(failedItem
+            ? this.createContext(
+                failedItem.item.file,
+                failedItem.index + 1,
+                items.length,
+              )
+            : {}),
+          error: completion.outcome.reason,
+        })
+      }
+
+      progress.phaseCompletedCount = classificationCompletedCount
+      progress.activeItemCount = completion.activeItemCount
+      progress.pendingItemCount = completion.pendingItemCount
+      progress.peakActiveItemCount = Math.max(
+        progress.peakActiveItemCount ?? 0,
+        completion.peakActiveItemCount,
+      )
+      progress.peakPendingItemCount = Math.max(
+        progress.peakPendingItemCount ?? 0,
+        completion.peakPendingItemCount,
+      )
+      progress.elapsedMs = elapsedMs()
+
+      if (cachedVideo) {
+        yield { type: 'video', video: cachedVideo }
+      }
+      yield { type: 'progress', progress: { ...progress } }
+    }
+
+    freshItems.sort((left, right) => left.index - right.index)
+    deferredItems.sort((left, right) => left.index - right.index)
+    progress.classificationElapsedMs = Number(
+      (performance.now() - classificationStartedAt).toFixed(2),
+    )
+    progress.activeItemCount = 0
+    progress.pendingItemCount = freshItems.length + deferredItems.length
+    progress.peakPendingItemCount = Math.max(
+      progress.peakPendingItemCount ?? 0,
+      progress.pendingItemCount,
+    )
+    progress.elapsedMs = elapsedMs()
+    yield { type: 'progress', progress: { ...progress } }
 
     let createdCount = 0
     let skippedCount = 0
-    let failedCount = partitionFailures
+    let processingStartedAt: number | null = null
+    const processingElapsedMs = () =>
+      processingStartedAt == null
+        ? 0
+        : Number((performance.now() - processingStartedAt).toFixed(2))
+    const lanes = [
+      { phase: 'ingesting-fresh' as const, items: freshItems },
+      { phase: 'ingesting-retries' as const, items: deferredItems },
+    ]
 
-    const progress: VideoIngestionProgress = {
-      total: items.length,
-      scanned: items.length,
-      existingCount: cachedVideos.length,
-      newCount: freshItems.length,
-      knownErrorCount: deferredItems.length,
-      createdCount,
-      failedCount,
-      completedCount: cachedVideos.length + partitionFailures,
-    }
-
-    yield {
-      type: 'progress',
-      progress: { ...progress },
-    }
-
-    for (const video of cachedVideos) {
-      yield {
-        type: 'video',
-        video,
+    for (const [laneIndex, lane] of lanes.entries()) {
+      if (lane.items.length === 0) {
+        continue
       }
-    }
 
-    for (const item of [...freshItems, ...deferredItems]) {
-      const result = await this.processItem(item)
+      const futurePendingCount = lanes
+        .slice(laneIndex + 1)
+        .reduce((total, futureLane) => total + futureLane.items.length, 0)
+      let phaseCompletedCount = 0
+      progress.phase = lane.phase
+      progress.phaseCompletedCount = 0
+      progress.phaseTotal = lane.items.length
+      progress.activeItemCount = Math.min(
+        lane.items.length,
+        effectiveConcurrency,
+      )
+      progress.pendingItemCount =
+        lane.items.length - progress.activeItemCount + futurePendingCount
+      progress.peakActiveItemCount = Math.max(
+        progress.peakActiveItemCount ?? 0,
+        progress.activeItemCount,
+      )
+      progress.peakPendingItemCount = Math.max(
+        progress.peakPendingItemCount ?? 0,
+        progress.pendingItemCount,
+      )
+      progress.elapsedMs = elapsedMs()
+      yield { type: 'progress', progress: { ...progress } }
 
-      switch (result.status) {
-        case 'created':
-          createdCount += 1
-          progress.createdCount = createdCount
-          yield {
-            type: 'video',
-            video: result.video,
+      processingStartedAt ??= performance.now()
+      for await (const completion of this.runBounded(
+        lane.items,
+        effectiveConcurrency,
+        (pending) => this.processItem(pending, items.length),
+      )) {
+        phaseCompletedCount += 1
+        let createdVideo: ParsedVideo | undefined
+
+        if (completion.outcome.status === 'fulfilled') {
+          const result = completion.outcome.value
+          switch (result.status) {
+            case 'created':
+              createdCount += 1
+              createdVideo = result.video
+              break
+            case 'skipped':
+              skippedCount += 1
+              break
+            case 'failed':
+              progress.failedCount += 1
+              break
           }
-          break
-        case 'skipped':
-          skippedCount += 1
-          break
-        case 'failed':
-          failedCount += 1
-          break
-      }
+        } else {
+          progress.failedCount += 1
+          const failedItem = lane.items[completion.inputIndex]
+          this.logger.error('[linear-ingestion] process:pool-task:failed', {
+            ...(failedItem
+              ? this.createContext(
+                  failedItem.item.file,
+                  failedItem.index + 1,
+                  items.length,
+                )
+              : {}),
+            error: completion.outcome.reason,
+          })
+        }
 
-      progress.failedCount = skippedCount + failedCount
-      progress.completedCount =
-        cachedVideos.length + createdCount + skippedCount + failedCount
+        progress.createdCount = createdCount
+        progress.skippedCount = skippedCount
+        progress.completedCount =
+          progress.existingCount +
+          createdCount +
+          skippedCount +
+          progress.failedCount +
+          (progress.duplicateCount ?? 0)
+        progress.phaseCompletedCount = phaseCompletedCount
+        progress.activeItemCount = completion.activeItemCount
+        progress.pendingItemCount =
+          completion.pendingItemCount + futurePendingCount
+        progress.peakActiveItemCount = Math.max(
+          progress.peakActiveItemCount ?? 0,
+          completion.peakActiveItemCount,
+        )
+        progress.peakPendingItemCount = Math.max(
+          progress.peakPendingItemCount ?? 0,
+          completion.peakPendingItemCount + futurePendingCount,
+        )
+        progress.processingElapsedMs = processingElapsedMs()
+        progress.elapsedMs = elapsedMs()
 
-      yield {
-        type: 'progress',
-        progress: { ...progress },
+        if (createdVideo) {
+          yield { type: 'video', video: createdVideo }
+        }
+        yield { type: 'progress', progress: { ...progress } }
       }
     }
+
+    progress.phase = 'complete'
+    progress.activeItemCount = 0
+    progress.pendingItemCount = 0
+    progress.phaseCompletedCount = items.length
+    progress.phaseTotal = items.length
+    progress.completedCount =
+      progress.existingCount +
+      createdCount +
+      skippedCount +
+      progress.failedCount +
+      (progress.duplicateCount ?? 0)
+    progress.processingElapsedMs = processingElapsedMs()
+    progress.elapsedMs = elapsedMs()
+    yield { type: 'progress', progress: { ...progress } }
 
     this.logger.info('[linear-ingestion] execute:complete', {
       totalItems: items.length,
-      cachedCount: cachedVideos.length,
+      cachedCount: progress.existingCount,
       createdCount,
       skippedCount,
-      failedCount,
+      failedCount: progress.failedCount,
+      duplicateCount: progress.duplicateCount,
       deferredRetryCount: deferredItems.length,
+      effectiveConcurrency,
+      identificationElapsedMs: progress.identificationElapsedMs,
+      classificationElapsedMs: progress.classificationElapsedMs,
+      processingElapsedMs: progress.processingElapsedMs,
+      elapsedMs: progress.elapsedMs,
     })
   }
 
-  private async partitionItems(items: VideoImportItem[]) {
-    const cachedVideos: ParsedVideo[] = []
-    const freshItems: PendingVideoItem[] = []
-    const deferredItems: PendingVideoItem[] = []
-    let partitionFailures = 0
+  private async identifyItem(
+    item: VideoImportItem,
+    index: number,
+    total: number,
+  ): Promise<IdentificationResult> {
+    const context = this.createContext(item.file, index + 1, total)
 
-    for (const [index, item] of items.entries()) {
-      const context = this.createContext(item.file, index + 1, items.length)
-
-      try {
-        const id = await this.metadataExtractor.generateId(item.file)
-        const existing = await this.aggregateRepository.getVideo(id)
-
-        if (existing) {
-          this.sessionRegistry.registerFile(id, item.file)
-          cachedVideos.push(this.mapToParsed(existing))
-          continue
-        }
-
-        const pendingItem = { id, item }
-        const hasFailure = await this.hasRecordedFailure(id)
-
-        if (hasFailure) {
-          deferredItems.push(pendingItem)
-          continue
-        }
-
-        freshItems.push(pendingItem)
-      } catch (error) {
-        partitionFailures += 1
-        this.logger.error('[linear-ingestion] partition:item:failed', {
-          ...context,
-          error,
-        })
-      }
+    try {
+      const id = await this.metadataExtractor.generateId(item.file)
+      return { status: 'identified', pending: { id, item, index } }
+    } catch (error) {
+      this.logger.error('[linear-ingestion] identify:item:failed', {
+        ...context,
+        error,
+      })
+      return { status: 'failed' }
     }
-
-    return { cachedVideos, freshItems, deferredItems, partitionFailures }
   }
 
-  private async processItem(pending: PendingVideoItem): Promise<ProcessResult> {
-    const { item, id } = pending
+  private async classifyItem(
+    pending: PendingVideoItem,
+    total: number,
+  ): Promise<ClassificationResult> {
+    const { id, item, index } = pending
+    const context = this.createContext(item.file, index + 1, total)
+
+    try {
+      const existing = await this.aggregateRepository.getVideo(id)
+      if (existing) {
+        const parsedVideo = this.mapToParsed(existing)
+        try {
+          parsedVideo.previewFrames =
+            (await this.previewRepository?.getFrames(id)) ?? []
+        } catch (error) {
+          this.logger.warn('[linear-ingestion] cached-preview:hydrate:failed', {
+            ...context,
+            id,
+            error,
+          })
+        }
+
+        this.sessionRegistry.registerFile(id, item.file)
+        return { status: 'cached', video: parsedVideo }
+      }
+
+      if (await this.hasRecordedFailure(id)) {
+        return { status: 'deferred', pending }
+      }
+
+      return { status: 'fresh', pending }
+    } catch (error) {
+      this.logger.error('[linear-ingestion] classify:item:failed', {
+        ...context,
+        id,
+        error,
+      })
+      return { status: 'failed' }
+    }
+  }
+
+  private async *runBounded<TItem, TResult>(
+    items: readonly TItem[],
+    concurrency: number,
+    task: (item: TItem, index: number) => Promise<TResult>,
+  ): AsyncGenerator<PoolCompletion<TResult>> {
+    type SettledTask = Pick<PoolCompletion<TResult>, 'inputIndex' | 'outcome'>
+
+    let nextInputIndex = 0
+    let peakActiveItemCount = 0
+    let peakPendingItemCount = 0
+    const activeTasks = new Map<number, Promise<SettledTask>>()
+
+    const startAvailableTasks = () => {
+      while (nextInputIndex < items.length && activeTasks.size < concurrency) {
+        const inputIndex = nextInputIndex
+        const item = items[inputIndex] as TItem
+        nextInputIndex += 1
+
+        const settledTask: Promise<SettledTask> = Promise.resolve()
+          .then(() => task(item, inputIndex))
+          .then(
+            (value) => ({
+              inputIndex,
+              outcome: { status: 'fulfilled' as const, value },
+            }),
+            (reason: unknown) => ({
+              inputIndex,
+              outcome: { status: 'rejected' as const, reason },
+            }),
+          )
+        activeTasks.set(inputIndex, settledTask)
+      }
+
+      peakActiveItemCount = Math.max(peakActiveItemCount, activeTasks.size)
+      peakPendingItemCount = Math.max(
+        peakPendingItemCount,
+        items.length - nextInputIndex,
+      )
+    }
+
+    startAvailableTasks()
+    while (activeTasks.size > 0) {
+      const completion = await Promise.race(activeTasks.values())
+      activeTasks.delete(completion.inputIndex)
+      startAvailableTasks()
+
+      yield {
+        ...completion,
+        activeItemCount: activeTasks.size,
+        pendingItemCount: items.length - nextInputIndex,
+        peakActiveItemCount,
+        peakPendingItemCount,
+      }
+    }
+  }
+
+  private async processItem(
+    pending: PendingVideoItem,
+    total: number,
+  ): Promise<ProcessResult> {
+    const { item, id, index } = pending
     const context = {
-      ...this.createContext(item.file, 0, 0),
+      ...this.createContext(item.file, index + 1, total),
       id,
     }
 
@@ -234,6 +635,7 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
       ...aggregate,
       url: '',
       pinned: false,
+      previewFrames: [],
     }
   }
 
@@ -254,6 +656,7 @@ export interface LinearVideoIngestionUseCaseDeps {
   sessionRegistry: IVideoSessionRegistry
   logger: ILogger
   failureTracker: IVideoIngestionFailureTracker
+  previewRepository: IVideoPreviewRepository
 }
 
 export function createLinearVideoIngestionUseCase({
@@ -262,6 +665,7 @@ export function createLinearVideoIngestionUseCase({
   sessionRegistry,
   logger,
   failureTracker,
+  previewRepository,
 }: LinearVideoIngestionUseCaseDeps): LinearVideoIngestionUseCase {
   return new LinearVideoIngestionUseCase(
     metadataExtractor,
@@ -269,5 +673,6 @@ export function createLinearVideoIngestionUseCase({
     sessionRegistry,
     logger,
     failureTracker,
+    previewRepository,
   )
 }

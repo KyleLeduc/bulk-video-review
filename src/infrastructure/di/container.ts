@@ -2,6 +2,7 @@ import { DatabaseConnection } from '@infra/database/DatabaseConnection'
 import {
   MetadataRepository,
   VideoAggregateRepository,
+  VideoPreviewRepository,
   VideoRepository,
 } from '@infra/repository'
 import {
@@ -28,6 +29,7 @@ import {
 const databaseConnection = DatabaseConnection.getInstance()
 const metadataRepository = new MetadataRepository(databaseConnection)
 const videoRepository = new VideoRepository(databaseConnection)
+const videoPreviewRepository = new VideoPreviewRepository(databaseConnection)
 const videoIngestionFailureTracker = new VideoIngestionFailureTracker(
   databaseConnection,
 )
@@ -60,6 +62,7 @@ export const addVideosUseCase = createLinearVideoIngestionUseCase({
   sessionRegistry: videoSessionRegistry,
   logger,
   failureTracker: videoIngestionFailureTracker,
+  previewRepository: videoPreviewRepository,
 })
 
 export const updateThumbUseCase = createUpdateVideoThumbnailsUseCase({
@@ -67,6 +70,7 @@ export const updateThumbUseCase = createUpdateVideoThumbnailsUseCase({
   aggregateRepository: videoAggregateRepository,
   sessionRegistry: videoSessionRegistry,
   eventPublisher,
+  previewRepository: videoPreviewRepository,
 })
 
 export const updateVotesUseCase = createUpdateVideoVotesUseCase({
@@ -76,6 +80,7 @@ export const updateVotesUseCase = createUpdateVideoVotesUseCase({
 
 export const wipeVideoDataUseCase = createWipeVideoDataUseCase({
   repository: videoAggregateRepository,
+  previewRepository: videoPreviewRepository,
 })
 
 export const filterVideosUseCase = createFilterVideosUseCase()

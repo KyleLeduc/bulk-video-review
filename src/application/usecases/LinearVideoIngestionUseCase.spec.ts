@@ -433,8 +433,11 @@ describe('LinearVideoIngestionUseCase', () => {
     const events = await collect(useCase.execute(items) as AsyncIterable<any>)
     const progressEvents = events.filter((event) => event?.type === 'progress')
 
-    expect(progressEvents.length).toBeGreaterThan(0)
-    expect(progressEvents[0]).toEqual(
+    const classifiedProgress = progressEvents.find(
+      (event) =>
+        event.progress.scanned === 3 && event.progress.existingCount === 1,
+    )
+    expect(classifiedProgress).toEqual(
       expect.objectContaining({
         type: 'progress',
         progress: expect.objectContaining({
@@ -450,7 +453,8 @@ describe('LinearVideoIngestionUseCase', () => {
         progress: expect.objectContaining({
           completedCount: 3,
           createdCount: 1,
-          failedCount: 1,
+          failedCount: 0,
+          skippedCount: 1,
         }),
       }),
     )
@@ -499,8 +503,7 @@ describe('LinearVideoIngestionUseCase', () => {
     const events = await collect(useCase.execute(items))
     const progressEvents = events.filter((event) => event?.type === 'progress')
 
-    expect(progressEvents).toHaveLength(1)
-    expect(progressEvents[0]).toEqual(
+    expect(progressEvents.at(-1)).toEqual(
       expect.objectContaining({
         type: 'progress',
         progress: expect.objectContaining({
@@ -543,7 +546,7 @@ describe('LinearVideoIngestionUseCase', () => {
     const events = await collect(useCase.execute(items))
     const progressEvents = events.filter((event) => event?.type === 'progress')
 
-    expect(progressEvents[0]).toEqual(
+    expect(progressEvents.at(-1)).toEqual(
       expect.objectContaining({
         type: 'progress',
         progress: expect.objectContaining({
@@ -554,5 +557,51 @@ describe('LinearVideoIngestionUseCase', () => {
         }),
       }),
     )
+  })
+  test('reports the bounded intake budget before awaiting item work', async () => {
+    const files = [
+      new File(['one'], 'one.mp4', { type: 'video/mp4' }),
+      new File(['two-two'], 'two.mp4', { type: 'video/mp4' }),
+      new File(['three'], 'three.mp4', { type: 'video/mp4' }),
+    ]
+    const deps = makeDeps({
+      metadataExtractor: {
+        generateId: vi.fn(async (file) => `id-${file.name}`),
+        extract: vi.fn(async () => null),
+      },
+    })
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+      buildFailureTracker(),
+    )
+
+    const iterator = useCase.execute(
+      files.map((file) => ({ file })),
+      { concurrency: 99 },
+    )
+    const firstEvent = await iterator.next()
+
+    expect(firstEvent.value).toEqual({
+      type: 'progress',
+      progress: expect.objectContaining({
+        phase: 'identifying',
+        effectiveConcurrency: 4,
+        activeItemCount: 3,
+        pendingItemCount: 0,
+        phaseCompletedCount: 0,
+        phaseTotal: 3,
+        peakActiveItemCount: 3,
+        peakPendingItemCount: 0,
+        inputBytes: files.reduce((total, file) => total + file.size, 0),
+        skippedCount: 0,
+        duplicateCount: 0,
+        elapsedMs: expect.any(Number),
+      }),
+    })
+
+    await iterator.return(undefined)
   })
 })

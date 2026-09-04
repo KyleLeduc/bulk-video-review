@@ -54,7 +54,7 @@
         <span
           class="segment segment--existing"
           :style="{
-            width: `${segmentWidth(ingestionProgress.existingCount, ingestionProgress.total)}%`,
+            width: `${segmentWidth(ingestionProgress.existingCount + (ingestionProgress.duplicateCount ?? 0), ingestionProgress.total)}%`,
           }"
         />
         <span
@@ -66,7 +66,7 @@
         <span
           class="segment segment--error"
           :style="{
-            width: `${segmentWidth(ingestionProgress.failedCount, ingestionProgress.total)}%`,
+            width: `${segmentWidth(ingestionProgress.failedCount + (ingestionProgress.skippedCount ?? 0), ingestionProgress.total)}%`,
           }"
         />
       </template>
@@ -102,7 +102,7 @@
             class="legend-swatch legend-swatch--existing"
             aria-hidden="true"
           />
-          Existing
+          Existing + duplicates
         </span>
         <span class="legend-item">
           <span class="legend-swatch legend-swatch--new" aria-hidden="true" />
@@ -110,7 +110,7 @@
         </span>
         <span class="legend-item">
           <span class="legend-swatch legend-swatch--error" aria-hidden="true" />
-          Error
+          Error + skipped
         </span>
       </template>
     </div>
@@ -125,12 +125,21 @@
         <span>Failed {{ thumbnailGenerationProgress.failedCount }}</span>
       </template>
       <template v-else>
+        <span> Active jobs {{ ingestionProgress.activeItemCount ?? 0 }} </span>
+        <span>
+          Pending jobs {{ ingestionProgress.pendingItemCount ?? 0 }}
+        </span>
+        <span>
+          Job limit {{ ingestionProgress.effectiveConcurrency ?? 1 }}
+        </span>
         <span>Existing {{ ingestionProgress.existingCount }}</span>
         <span
           >New {{ ingestionProgress.createdCount }} /
           {{ ingestionProgress.newCount }}</span
         >
         <span>Error {{ ingestionProgress.failedCount }}</span>
+        <span>Skipped {{ ingestionProgress.skippedCount ?? 0 }}</span>
+        <span>Duplicates {{ ingestionProgress.duplicateCount ?? 0 }}</span>
         <span v-if="ingestionProgress.knownErrorCount > 0">
           Retry queue {{ ingestionProgress.knownErrorCount }}
         </span>
@@ -269,8 +278,23 @@ const isShowingThumbnailProgress = computed(
 )
 
 const toastEyebrow = computed(() =>
-  isShowingThumbnailProgress.value ? 'Thumbnail progress' : 'Ingestion status',
+  isShowingThumbnailProgress.value
+    ? 'Background previews'
+    : 'Foreground ingestion',
 )
+
+const foregroundPhaseLabel = computed(() => {
+  const labels = {
+    identifying: 'Identifying videos',
+    classifying: 'Classifying videos',
+    'ingesting-fresh': 'Ingesting new videos',
+    'ingesting-retries': 'Retrying prior failures',
+    complete: 'Complete',
+  } as const
+  const phase = ingestionProgress.value?.phase
+
+  return phase ? labels[phase] : 'Processing videos'
+})
 
 const queueSummaryLabel = computed(() => {
   if (queuedIngestionCount.value <= 0) {
@@ -300,7 +324,7 @@ const progressHeadline = computed(() => {
     return `Generated ${thumbnailGenerationProgress.value.generatedCount} / ${thumbnailGenerationProgress.value.total}`
   }
 
-  return `${ingestionProgress.value.completedCount} / ${ingestionProgress.value.total}`
+  return `${foregroundPhaseLabel.value} · ${ingestionProgress.value.completedCount} / ${ingestionProgress.value.total}`
 })
 
 const formatElapsedSeconds = (elapsedMs: number) =>
@@ -328,7 +352,7 @@ const ingestionElapsedLabel = computed(() => {
     return `Elapsed ${formatElapsedSeconds(elapsedMs)}`
   }
 
-  return `Completed in ${formatElapsedSeconds(elapsedMs)}`
+  return `Foreground completed in ${formatElapsedSeconds(elapsedMs)}`
 })
 
 const segmentWidth = (count: number, total: number) => {
