@@ -3,6 +3,21 @@ export interface Configuration {
   foreground: number
   previews: number
 }
+export interface CustomSelection {
+  kind: 'custom'
+  id: string
+  files: number[]
+}
+export function createCustomSelection(files: File[]): CustomSelection
+export function validateCustomFiles(
+  files: File[],
+  selection: CustomSelection,
+): File[]
+export function validateCustomReport(
+  report: unknown,
+  configuration: TrialConfiguration,
+  selection: CustomSelection,
+): string[]
 export function validPreviewTimestamps(
   timestamps: number[],
   duration: number,
@@ -42,7 +57,7 @@ export function validatePipelineSuite(
       duplicates: number
     }
   },
-  options?: { allowDevelopmentBuild?: boolean },
+  options?: { allowDevelopmentBuild?: boolean; allowCustomFiles?: boolean },
 ): string[]
 export function validateTerminalReport(
   report: unknown,

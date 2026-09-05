@@ -30,6 +30,207 @@ export function enumerateTrialPairs(configurations, repetitions) {
 }
 
 /** Selection identity only: never reads media bytes or claims hash verification. */
+export function createCustomSelection(files) {
+  const ordered = Array.from(files)
+  const selection = {
+    kind: 'custom',
+    id: crypto.randomUUID(),
+    files: ordered.map((file) => file.size),
+  }
+  validateCustomFiles(ordered, selection)
+  return selection
+}
+
+function validateCustomSelection(selection) {
+  if (
+    selection?.kind !== 'custom' ||
+    !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(
+      selection.id,
+    ) ||
+    !Array.isArray(selection.files) ||
+    selection.files.length < 1 ||
+    selection.files.length > 100 ||
+    !selection.files.every((size) => Number.isSafeInteger(size) && size >= 0) ||
+    !Number.isSafeInteger(
+      selection.files.reduce((sum, size) => sum + size, 0),
+    ) ||
+    Object.keys(selection).some(
+      (key) => !['kind', 'id', 'files', 'verification'].includes(key),
+    ) ||
+    (selection.verification !== undefined &&
+      selection.verification !== 'selection-only')
+  )
+    throw new TypeError(
+      'Select 1–100 custom video files with a valid selection identity',
+    )
+}
+
+export function validateCustomFiles(files, selection) {
+  validateCustomSelection(selection)
+  const ordered = Array.from(files)
+  if (
+    ordered.length !== selection.files.length ||
+    ordered.some(
+      (file, index) =>
+        !(file instanceof File) || file.size !== selection.files[index],
+    )
+  )
+    throw new TypeError('Custom files differ from the selected workload')
+  return ordered
+}
+
+/** Observed custom outcomes, not an independently known fixture-quality assertion. */
+export function validateCustomReport(report, configuration, selection) {
+  const errors = []
+  try {
+    validateCustomSelection(selection)
+    const size = selection.files.length
+    const foreground = report.foreground
+    const counts = foreground.counts
+    const background = report.backgroundPreviews
+    const measurements = report.measurements
+    if (
+      report.status !== 'completed' ||
+      foreground.phase !== 'complete' ||
+      foreground.activeJobs !== 0 ||
+      foreground.pendingJobs !== 0 ||
+      ['queued', 'processing', 'pending'].some(
+        (key) => background.counts[key] !== 0,
+      )
+    )
+      errors.push('Custom pipeline is not terminal')
+    if (
+      ![
+        'total',
+        'scanned',
+        'completed',
+        'created',
+        'existing',
+        'new',
+        'retryQueue',
+        'skipped',
+        'failed',
+        'duplicates',
+      ].every((key) => Number.isInteger(counts[key]) && counts[key] >= 0) ||
+      counts.total !== size ||
+      counts.scanned !== size ||
+      counts.completed !== size ||
+      counts.created +
+        counts.existing +
+        counts.skipped +
+        counts.failed +
+        counts.duplicates !==
+        size ||
+      counts.new + counts.existing + counts.retryQueue + counts.duplicates !==
+        size ||
+      report.input.selectedCount !== size ||
+      report.input.acceptedCount !== size ||
+      report.input.unsupportedCount !== 0 ||
+      report.input.acceptedBytes !==
+        selection.files.reduce((sum, bytes) => sum + bytes, 0)
+    )
+      errors.push('Custom input or outcome counts mismatch')
+    if (counts.failed > 0) errors.push('Custom ingestion reported failures')
+    if (counts.created + counts.existing < 1)
+      errors.push('No custom videos successfully ingested')
+    const timing = report.timing
+    const stamps = [
+      timing.queuedAtMs,
+      timing.foregroundStartedAtMs,
+      timing.foregroundCompletedAtMs,
+      timing.pipelineCompletedAtMs,
+    ]
+    if (
+      !stamps.every(Number.isFinite) ||
+      stamps.some((stamp, index) => index > 0 && stamp < stamps[index - 1]) ||
+      !['queueWaitMs', 'foregroundElapsedMs', 'pipelineElapsedMs'].every(
+        (key) => Number.isFinite(timing[key]) && timing[key] >= 0,
+      ) ||
+      timing.queueWaitMs !== stamps[1] - stamps[0] ||
+      timing.pipelineElapsedMs !== stamps[3] - stamps[0]
+    )
+      errors.push('Invalid custom timing')
+    if (
+      report.schemaVersion !== 1 ||
+      measurements?.version !== 1 ||
+      measurements.backend !== 'dom' ||
+      measurements.workersEnabled !== false
+    )
+      errors.push('Custom measurement identity mismatch')
+    for (const [lane, requested] of [
+      ['foreground', configuration.foreground],
+      ['backgroundPreviews', configuration.previews],
+    ]) {
+      const actual = report[lane]
+      const peak = actual.peakActiveJobs ?? actual.concurrency.peakActiveJobs
+      if (
+        actual.concurrency.mode !== 'manual' ||
+        actual.concurrency.requested !== requested ||
+        actual.concurrency.effective !== requested ||
+        !Number.isInteger(peak) ||
+        peak < 0 ||
+        peak > requested
+      )
+        errors.push('Custom concurrency mismatch')
+    }
+    for (const lane of ['foreground', 'previews']) {
+      for (const [phase, sample] of Object.entries(measurements[lane] ?? {})) {
+        if (
+          ![
+            'metadata',
+            'seek',
+            'capture',
+            'encode',
+            'serialize',
+            'persistence',
+          ].includes(phase) ||
+          !['count', 'completed', 'failed', 'aborted'].every(
+            (key) => Number.isInteger(sample[key]) && sample[key] >= 0,
+          ) ||
+          sample.count < 1 ||
+          sample.count !== sample.completed + sample.failed + sample.aborted ||
+          !Number.isFinite(sample.totalMs) ||
+          !Number.isFinite(sample.maxMs) ||
+          sample.maxMs < 0 ||
+          sample.totalMs < sample.maxMs
+        )
+          errors.push(`Invalid custom phase:${lane}/${phase}`)
+      }
+    }
+    const attempts = measurements.previewAttempts
+    if (
+      !['started', 'completed', 'failed', 'aborted', 'settled'].every(
+        (key) => Number.isInteger(attempts[key]) && attempts[key] >= 0,
+      ) ||
+      attempts.started !== attempts.settled ||
+      attempts.started !==
+        attempts.completed + attempts.failed + attempts.aborted ||
+      attempts.failed !== 0 ||
+      attempts.aborted !== 0 ||
+      background.counts.failed !== 0
+    )
+      errors.push('Custom previews failed or remain unsettled')
+    const generated = configuration.cache === 'cold' ? counts.created : 0
+    if (
+      background.counts.total !== generated ||
+      background.counts.ready !== generated ||
+      attempts.completed !== generated ||
+      background.completedFrames !== generated * 9
+    )
+      errors.push('Custom preview output mismatch')
+    if (
+      configuration.cache === 'cold'
+        ? counts.existing !== 0
+        : counts.created !== 0 ||
+          Object.keys(measurements.previews ?? {}).length !== 0
+    )
+      errors.push('Custom cache state mismatch')
+  } catch {
+    errors.push('Malformed custom evidence')
+  }
+  return errors
+}
+
 export function orderFixtureFiles(files, manifest) {
   const remaining = Array.from(files)
   if (remaining.length !== manifest.files.length)
@@ -80,11 +281,15 @@ export function validPreviewTimestamps(timestamps, duration) {
 export function validatePipelineSuite(
   suite,
   manifest,
-  { allowDevelopmentBuild = false } = {},
+  { allowDevelopmentBuild = false, allowCustomFiles = false } = {},
 ) {
   const errors = []
   try {
-    if (suite?.protocolVersion !== 2 || suite.mode !== 'pipeline-no-gallery-v1')
+    const custom = suite?.mode === 'pipeline-custom-files-v1'
+    if (
+      suite?.protocolVersion !== 2 ||
+      (custom ? !allowCustomFiles : suite.mode !== 'pipeline-no-gallery-v1')
+    )
       return ['Unsupported benchmark envelope']
     if (suite.status !== 'completed' || suite.cleanup !== 'complete')
       errors.push('Suite incomplete')
@@ -95,12 +300,18 @@ export function validatePipelineSuite(
       suite.orphanedPairs.length
     )
       errors.push('Unresolved suite errors or cleanup')
-    if (!manifest?.expected || suite.fixture?.id !== manifest.id)
+    if (custom) validateCustomSelection(suite.fixture)
+    if (!custom && (!manifest?.expected || suite.fixture?.id !== manifest.id))
       return ['Unrecognized fixed fixture']
-    const fixtureExpected = {
-      ...manifest.expected,
-      acceptedBytes: manifest.files.reduce((sum, file) => sum + file.bytes, 0),
-    }
+    const fixtureExpected = custom
+      ? null
+      : {
+          ...manifest.expected,
+          acceptedBytes: manifest.files.reduce(
+            (sum, file) => sum + file.bytes,
+            0,
+          ),
+        }
     const { configurations, repetitions, includeCached } = suite.settings
     if (typeof includeCached !== 'boolean')
       errors.push('Invalid cache selection')
@@ -133,32 +344,45 @@ export function validatePipelineSuite(
     if (suite.rows.length !== expected.length)
       errors.push('Missing or duplicate rows')
     for (const [index, row] of suite.rows.entries()) {
+      const supported = custom
+        ? row.report?.foreground?.counts?.created +
+          row.report?.foreground?.counts?.existing
+        : fixtureExpected.supported
       try {
-        errors.push(
-          ...validateTerminalReport(
-            row.report,
-            row.configuration.cache,
-            fixtureExpected,
-          ),
-          ...validateReport(
-            row.report,
-            row.configuration.cache,
-            fixtureExpected,
-          ),
-          ...validateMeasurements(
-            row.report,
-            row.configuration,
-            fixtureExpected,
-          ),
-        )
+        if (custom)
+          errors.push(
+            ...validateCustomReport(
+              row.report,
+              row.configuration,
+              suite.fixture,
+            ),
+          )
+        else
+          errors.push(
+            ...validateTerminalReport(
+              row.report,
+              row.configuration.cache,
+              fixtureExpected,
+            ),
+            ...validateReport(
+              row.report,
+              row.configuration.cache,
+              fixtureExpected,
+            ),
+            ...validateMeasurements(
+              row.report,
+              row.configuration,
+              fixtureExpected,
+            ),
+          )
         if (row.report.environment?.userAgent !== suite.identity.userAgent)
           errors.push(`Mixed browser:${index}`)
       } catch {
         errors.push(`Malformed report:${index}`)
       }
       if (
-        row.outputs?.videos !== fixtureExpected.supported ||
-        row.outputs?.frames !== fixtureExpected.supported * 9 ||
+        row.outputs?.videos !== supported ||
+        row.outputs?.frames !== supported * 9 ||
         !Array.isArray(row.outputs?.errors) ||
         row.outputs.errors.length ||
         !Array.isArray(row.errors) ||
@@ -187,6 +411,18 @@ export function validatePipelineSuite(
         )
       )
         errors.push(`Mixed build:${index}`)
+      if (custom && index > 0) {
+        const first = suite.rows[0]
+        const counts = row.report?.foreground?.counts
+        const initial = first.report?.foreground?.counts
+        if (
+          row.outputs?.videos !== first.outputs?.videos ||
+          ['skipped', 'failed', 'duplicates'].some(
+            (key) => counts?.[key] !== initial?.[key],
+          )
+        )
+          errors.push(`Custom outcomes changed across trials:${index}`)
+      }
     }
   } catch {
     errors.push('Malformed benchmark evidence')

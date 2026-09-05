@@ -4,6 +4,9 @@ import {
   orderFixtureFiles,
   validatePipelineSuite as validateSuite,
   validPreviewTimestamps,
+  createCustomSelection,
+  validateCustomFiles,
+  validateCustomReport,
 } from './videoBenchmarkProtocol'
 import reference from './referenceFixtures.json'
 const validatePipelineSuite = (suite: unknown) =>
@@ -263,6 +266,72 @@ describe('benchmark protocol', () => {
 
   test('accepts a complete same-identity ordered suite envelope', () => {
     expect(validatePipelineSuite(completeSuite())).toEqual([])
+  })
+
+  test('admits custom files with a redacted stable selection snapshot and rejects mismatches', () => {
+    const files = [
+      new File(['one'], 'private-name.mp4'),
+      new File(['two!'], 'another.mov'),
+    ]
+    const selection = createCustomSelection(files)
+    expect(selection).toMatchObject({ kind: 'custom', files: [3, 4] })
+    expect(JSON.stringify(selection)).not.toContain('private-name')
+    expect(validateCustomFiles(files, selection)).toEqual(files)
+    expect(() => validateCustomFiles([...files].reverse(), selection)).toThrow()
+    expect(() => createCustomSelection([])).toThrow()
+    expect(() => createCustomSelection(Array(101).fill(files[0]))).toThrow()
+    expect(() =>
+      validateCustomFiles(files, { ...selection, id: 'arbitrary' }),
+    ).toThrow()
+  })
+
+  test('validates actual custom outcomes without claiming reference-fixture quality', () => {
+    const fixture = {
+      kind: 'custom' as const,
+      id: '12345678-1234-4123-8123-123456789abc',
+      files: reference.files.map((file) => file.bytes),
+      verification: 'selection-only',
+    }
+    const suite = {
+      ...completeSuite(),
+      mode: 'pipeline-custom-files-v1',
+      fixture,
+    }
+    expect(validateSuite(suite, reference).length).toBeGreaterThan(0)
+    expect(validateSuite(suite, reference, { allowCustomFiles: true })).toEqual(
+      [],
+    )
+    const report = completeReport()
+    expect(
+      validateCustomReport(report, suite.rows[0].configuration, fixture),
+    ).toEqual([])
+    expect(
+      validateCustomReport(
+        { ...report, status: 'running' },
+        suite.rows[0].configuration,
+        fixture,
+      ).length,
+    ).toBeGreaterThan(0)
+    expect(
+      validateCustomReport(
+        { ...report, input: { ...report.input, acceptedBytes: 1 } },
+        suite.rows[0].configuration,
+        fixture,
+      ).length,
+    ).toBeGreaterThan(0)
+    expect(
+      validateCustomReport(
+        {
+          ...report,
+          foreground: {
+            ...report.foreground,
+            counts: { ...report.foreground.counts, failed: 1 },
+          },
+        },
+        suite.rows[0].configuration,
+        fixture,
+      ).length,
+    ).toBeGreaterThan(0)
   })
 
   test('allows explicitly unqualified development summaries without qualifying CLI evidence', () => {
