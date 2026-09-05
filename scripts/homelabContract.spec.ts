@@ -102,7 +102,7 @@ describe('homelab deployment contract', () => {
     expect(compose).toContain('internal: true')
     expect(compose).toContain("fetch('http://127.0.0.1:3000/health/ready')")
     expect(compose).not.toMatch(/^volumes:/m)
-    expect(compose.match(/^    environment:\n(?:      .+\n)+/gm)).toEqual([
+    expect(compose.match(/^ {4}environment:\n(?: {6}.+\n)+/gm)).toEqual([
       '    environment:\n      BVR_BENCHMARK_ENABLED: ${BVR_BENCHMARK_ENABLED:-false}\n',
     ])
   })

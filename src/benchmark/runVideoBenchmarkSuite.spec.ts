@@ -69,8 +69,12 @@ describe('serial benchmark suite', () => {
   test('retains a failed trial and closes its host before deleting its database', async () => {
     const { options, dependencies, log } = setup()
     dependencies.createHost = async () => ({
-      run: async () => { throw new Error('Trial result deadline exceeded') },
-      close: async () => { log.push('close') },
+      run: async () => {
+        throw new Error('Trial result deadline exceeded')
+      },
+      close: async () => {
+        log.push('close')
+      },
     })
     const result = await runVideoBenchmarkSuite(options, dependencies)
     expect(result.status).toBe('failed')
@@ -82,10 +86,10 @@ describe('serial benchmark suite', () => {
   test('marks a hidden-document trial invalid and stops admitting work', async () => {
     const { options, dependencies } = setup()
     const create = dependencies.createHost
-    dependencies.createHost = async options => {
+    dependencies.createHost = async (options) => {
       const host = await create(options)
       const run = host.run
-      host.run = async files => {
+      host.run = async (files) => {
         const result = await run(files)
         result.row.hidden = true
         return result

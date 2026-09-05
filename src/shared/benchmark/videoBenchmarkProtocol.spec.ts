@@ -2,8 +2,103 @@ import { describe, expect, test } from 'vitest'
 import {
   enumerateTrialPairs,
   orderFixtureFiles,
-  validatePipelineSuite,
+  validatePipelineSuite as validateSuite,
 } from './videoBenchmarkProtocol'
+import reference from './referenceFixtures.json'
+const validatePipelineSuite = (suite: unknown) =>
+  validateSuite(suite, reference)
+
+const phase = (count: number, failed = 0) => ({
+  count,
+  completed: count - failed,
+  failed,
+  aborted: 0,
+  totalMs: 1,
+  maxMs: 1,
+})
+const completeReport = () => ({
+  schemaVersion: 1,
+  status: 'completed',
+  input: {
+    selectedCount: 10,
+    acceptedCount: 10,
+    unsupportedCount: 0,
+    acceptedBytes: reference.files.reduce((sum, file) => sum + file.bytes, 0),
+  },
+  timing: {
+    queuedAtMs: 10,
+    foregroundStartedAtMs: 11,
+    foregroundCompletedAtMs: 15,
+    pipelineCompletedAtMs: 20,
+    queueWaitMs: 1,
+    foregroundElapsedMs: 4,
+    pipelineElapsedMs: 10,
+  },
+  foreground: {
+    phase: 'complete',
+    activeJobs: 0,
+    pendingJobs: 0,
+    concurrency: {
+      mode: 'manual',
+      requested: 2,
+      effective: 2,
+      peakActiveJobs: 2,
+    },
+    counts: {
+      total: 10,
+      completed: 10,
+      scanned: 10,
+      duplicates: 1,
+      new: 9,
+      retryQueue: 0,
+      created: 7,
+      existing: 0,
+      failed: 0,
+      skipped: 2,
+    },
+  },
+  backgroundPreviews: {
+    counts: {
+      total: 7,
+      ready: 7,
+      failed: 0,
+      pending: 0,
+      queued: 0,
+      processing: 0,
+    },
+    concurrency: { mode: 'manual', requested: 1, effective: 1 },
+    peakActiveJobs: 1,
+    completedFrames: 63,
+  },
+  measurements: {
+    version: 1,
+    backend: 'dom',
+    workersEnabled: false,
+    foreground: {
+      metadata: phase(9, 2),
+      seek: phase(7),
+      capture: phase(7),
+      encode: phase(7),
+      serialize: phase(7),
+      persistence: phase(34),
+    },
+    previews: {
+      metadata: phase(7),
+      seek: phase(63),
+      capture: phase(63),
+      encode: phase(63),
+      persistence: phase(21),
+    },
+    previewAttempts: {
+      started: 7,
+      settled: 7,
+      completed: 7,
+      failed: 0,
+      aborted: 0,
+    },
+  },
+  environment: { userAgent: 'Chrome/test' },
+})
 
 const configurations = [
   { backend: 'dom', foreground: 1, previews: 1 },
@@ -129,7 +224,7 @@ describe('benchmark protocol', () => {
       repetitions: 1,
       includeCached: false,
     },
-    fixture: { id: 'fixture-v1', verification: 'selection-only' },
+    fixture: { id: reference.id, verification: 'selection-only' },
     identity: {
       build: {
         revision: 'a'.repeat(40),
@@ -145,7 +240,9 @@ describe('benchmark protocol', () => {
         cleanup: 'complete',
         hidden: false,
         wallMs: 10,
-        outputs: { valid: true },
+        outputs: { valid: true, videos: 7, frames: 63, errors: [] },
+        errors: [],
+        report: completeReport(),
         build: {
           revision: 'a'.repeat(40),
           assetsSha256: 'b'.repeat(64),
@@ -182,5 +279,29 @@ describe('benchmark protocol', () => {
     ]
     for (const changed of mutations)
       expect(validatePipelineSuite(changed).length).toBeGreaterThan(0)
+  })
+
+  test('revalidates actual reports and output counts instead of trusting passed flags', () => {
+    const suite = completeSuite()
+    for (const patch of [
+      { report: null },
+      {
+        report: { ...completeReport(), measurements: { backend: 'webcodecs' } },
+      },
+      { outputs: { valid: true, videos: 0, frames: 0, errors: [] } },
+      {
+        report: {
+          ...completeReport(),
+          environment: { userAgent: 'different' },
+        },
+      },
+      { errors: ['Unresolved problem'] },
+    ])
+      expect(
+        validatePipelineSuite({
+          ...suite,
+          rows: [{ ...suite.rows[0], ...patch }],
+        }).length,
+      ).toBeGreaterThan(0)
   })
 })

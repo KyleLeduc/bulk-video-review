@@ -66,13 +66,19 @@ export function orderFixtureFiles(files, manifest) {
 }
 
 /** Returns reasons a saved v2 suite cannot be treated as a complete comparison. */
-export function validatePipelineSuite(suite) {
+export function validatePipelineSuite(suite, manifest) {
   const errors = []
   try {
     if (suite?.protocolVersion !== 2 || suite.mode !== 'pipeline-no-gallery-v1')
       return ['Unsupported benchmark envelope']
     if (suite.status !== 'completed' || suite.cleanup !== 'complete')
       errors.push('Suite incomplete')
+    if (!manifest?.expected || suite.fixture?.id !== manifest.id)
+      return ['Unrecognized fixed fixture']
+    const fixtureExpected = {
+      ...manifest.expected,
+      acceptedBytes: manifest.files.reduce((sum, file) => sum + file.bytes, 0),
+    }
     const { configurations, repetitions, includeCached } = suite.settings
     if (typeof includeCached !== 'boolean')
       errors.push('Invalid cache selection')
@@ -100,6 +106,38 @@ export function validatePipelineSuite(suite) {
     if (suite.rows.length !== expected.length)
       errors.push('Missing or duplicate rows')
     for (const [index, row] of suite.rows.entries()) {
+      try {
+        errors.push(
+          ...validateTerminalReport(
+            row.report,
+            row.configuration.cache,
+            fixtureExpected,
+          ),
+          ...validateReport(
+            row.report,
+            row.configuration.cache,
+            fixtureExpected,
+          ),
+          ...validateMeasurements(
+            row.report,
+            row.configuration,
+            fixtureExpected,
+          ),
+        )
+        if (row.report.environment?.userAgent !== suite.identity.userAgent)
+          errors.push(`Mixed browser:${index}`)
+      } catch {
+        errors.push(`Malformed report:${index}`)
+      }
+      if (
+        row.outputs?.videos !== fixtureExpected.supported ||
+        row.outputs?.frames !== fixtureExpected.supported * 9 ||
+        !Array.isArray(row.outputs?.errors) ||
+        row.outputs.errors.length ||
+        !Array.isArray(row.errors) ||
+        row.errors.length
+      )
+        errors.push(`Invalid outputs:${index}`)
       if (
         !expected[index] ||
         ['backend', 'foreground', 'previews', 'repetition', 'cache'].some(

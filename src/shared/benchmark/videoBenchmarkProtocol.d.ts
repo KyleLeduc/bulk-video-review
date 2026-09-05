@@ -26,7 +26,19 @@ export function orderFixtureFiles(
   files: Iterable<File> | ArrayLike<File>,
   manifest: FixtureSelection,
 ): File[]
-export function validatePipelineSuite(suite: unknown): string[]
+export function validatePipelineSuite(
+  suite: unknown,
+  manifest?: FixtureSelection & {
+    id: string
+    expected: {
+      supported: number
+      accepted: number
+      invalid: number
+      selected: number
+      duplicates: number
+    }
+  },
+): string[]
 export function validateTerminalReport(
   report: unknown,
   cache: string,
