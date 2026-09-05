@@ -76,3 +76,11 @@ test('does not install the obsolete Vue 2 template compiler', () => {
     ),
   ).toEqual([])
 })
+
+test('does not install the unpatched archive extractor', () => {
+  expect(
+    Object.keys(lockfile.packages).filter((path) =>
+      path.endsWith('node_modules/extract-zip'),
+    ),
+  ).toEqual([])
+})
