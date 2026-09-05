@@ -2,6 +2,7 @@ import { matchesTrialMessage, type TrialResult } from './videoBenchmarkHost'
 import {
   enumerateTrialPairs,
   orderFixtureFiles,
+  validateCustomFiles,
 } from '../shared/benchmark/videoBenchmarkProtocol'
 import reference from '../shared/benchmark/referenceFixtures.json'
 
@@ -36,14 +37,17 @@ async function initialize() {
     if (!matchesTrialMessage(event, parent, origin, ids) || closing) return
     if (event.data.type === 'run' && !running) {
       running = (async () => {
-        const { files, configuration, build } = event.data
+        const { files, configuration, build, selection } = event.data
         enumerateTrialPairs([configuration], configuration.repetition)
         if (
           !['cold', 'warm'].includes(configuration.cache) ||
           JSON.stringify(build) !== JSON.stringify(capabilities.build)
         )
           throw new Error('Trial identity mismatch')
-        const ordered = orderFixtureFiles(files, reference)
+        const ordered =
+          selection === undefined
+            ? orderFixtureFiles(files, reference)
+            : validateCustomFiles(files, selection)
         // Qualify capability and message ownership before creating services.
         const [
           { createApp },
@@ -67,6 +71,7 @@ async function initialize() {
           services,
           configuration,
           build,
+          selection,
         })
         app.use(createPinia())
         app.provide(keys.ADD_VIDEOS_USE_CASE_KEY, services.addVideosUseCase)

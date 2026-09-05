@@ -1,15 +1,20 @@
 import type {
   BuildIdentity,
   Configuration,
+  CustomSelection,
 } from '../shared/benchmark/videoBenchmarkProtocol'
 import type { HostOptions, TrialHost, TrialRow } from './videoBenchmarkHost'
 import { createTrialHost, limits } from './videoBenchmarkHost'
-import { enumerateTrialPairs } from '../shared/benchmark/videoBenchmarkProtocol'
+import {
+  enumerateTrialPairs,
+  validateCustomFiles,
+} from '../shared/benchmark/videoBenchmarkProtocol'
 import reference from '../shared/benchmark/referenceFixtures.json'
 import { DatabaseConnection } from '../infrastructure/database/DatabaseConnection'
 
 export interface SuiteOptions {
   files: File[]
+  selection?: CustomSelection
   configurations: Configuration[]
   repetitions: number
   includeCached: boolean
@@ -26,14 +31,16 @@ export interface SuiteDependencies {
 }
 export interface BenchmarkSuite {
   protocolVersion: 2
-  mode: 'pipeline-no-gallery-v1'
+  mode: 'pipeline-no-gallery-v1' | 'pipeline-custom-files-v1'
   status: 'completed' | 'interrupted' | 'failed'
   cleanup: 'complete' | 'failed'
   settings: Pick<
     SuiteOptions,
     'configurations' | 'repetitions' | 'includeCached'
   >
-  fixture: { id: string; verification: 'selection-only' }
+  fixture: ({ id: string } | CustomSelection) & {
+    verification: 'selection-only'
+  }
   identity: { build: BuildIdentity; userAgent: string; cacheScope: string }
   limits: { startupMs: number; trialMs: number; cleanupMs: number }
   rows: TrialRow[]
@@ -65,6 +72,12 @@ export async function runVideoBenchmarkSuite(
       'Cleanup is uncertain; reload this page before starting a new suite',
     )
   if (active) throw new Error('A benchmark is already active')
+  const files = [...options.files]
+  const selection =
+    options.selection === undefined
+      ? undefined
+      : structuredClone(options.selection)
+  if (selection !== undefined) validateCustomFiles(files, selection)
   const settings = {
     configurations: options.configurations.map((value) => ({ ...value })),
     repetitions: options.repetitions,
@@ -80,11 +93,14 @@ export async function runVideoBenchmarkSuite(
       const suiteId = crypto.randomUUID()
       const suite: BenchmarkSuite = {
         protocolVersion: 2,
-        mode: 'pipeline-no-gallery-v1',
+        mode: selection ? 'pipeline-custom-files-v1' : 'pipeline-no-gallery-v1',
         status: 'completed',
         cleanup: 'complete',
         settings,
-        fixture: { id: reference.id, verification: 'selection-only' },
+        fixture: {
+          ...(selection ?? { id: reference.id }),
+          verification: 'selection-only',
+        },
         identity: {
           build: { ...options.build },
           userAgent: navigator.userAgent,
@@ -135,10 +151,11 @@ export async function runVideoBenchmarkSuite(
                 pairId,
                 trialId: crypto.randomUUID(),
                 configuration,
+                selection,
                 build: options.build,
                 mount: options.mount,
               })
-              const result = await host.run(options.files)
+              const result = await host.run(files)
               row = result.row
               row.hidden ||= hidden
               if (row.hidden) {

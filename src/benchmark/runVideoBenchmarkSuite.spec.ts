@@ -10,6 +10,7 @@ const runVideoBenchmarkSuite = async (
   )
 afterEach(() => vi.resetModules())
 import type { HostOptions, TrialResult } from './videoBenchmarkHost'
+import { createCustomSelection } from '../shared/benchmark/videoBenchmarkProtocol'
 
 const deferred = () => {
   let resolve!: () => void
@@ -44,7 +45,7 @@ const setup = () => {
       log.push('create')
       return {
         run: vi.fn(async (files) => {
-          expect(files).toBe(options.files)
+          expect(files).toEqual(options.files)
           log.push('run')
           return {
             row: {
@@ -71,6 +72,21 @@ const setup = () => {
 }
 
 describe('serial benchmark suite', () => {
+  test('passes one immutable custom selection through fresh/cached hosts and keeps distinct evidence', async () => {
+    const { options, dependencies, hosts } = setup()
+    options.files = [new File(['clip'], 'private.mp4')]
+    options.selection = createCustomSelection(options.files)
+    const result = await runVideoBenchmarkSuite(options, dependencies)
+    expect(result.mode).toBe('pipeline-custom-files-v1')
+    expect(result.fixture).toMatchObject({
+      ...options.selection,
+      verification: 'selection-only',
+    })
+    expect(
+      hosts.every((host) => host.selection?.id === options.selection?.id),
+    ).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('private.mp4')
+  })
   test.each(['onImages', 'onRow'] as const)(
     'retains evidence and halts safely if %s fails',
     async (callback) => {

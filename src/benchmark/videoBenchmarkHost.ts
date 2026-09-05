@@ -1,6 +1,7 @@
 import type {
   BuildIdentity,
   TrialConfiguration,
+  CustomSelection,
 } from '../shared/benchmark/videoBenchmarkProtocol'
 
 export interface TrialIds {
@@ -34,6 +35,7 @@ export interface TrialHost {
 }
 export const limits = { startupMs: 15_000, trialMs: 120_000, cleanupMs: 10_000 }
 export interface HostOptions extends TrialIds {
+  selection?: CustomSelection
   configuration: TrialConfiguration
   build: BuildIdentity
   mount: HTMLElement
@@ -159,7 +161,7 @@ export async function createTrialHost(
       if (started || closed) throw new Error('Trial already used')
       started = true
       const result = wait('result', limits.trialMs)
-      send('run', { files, configuration, build })
+      send('run', { files, configuration, build, selection: options.selection })
       return (await result) as TrialResult
     },
     async close() {

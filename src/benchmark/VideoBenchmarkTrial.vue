@@ -10,6 +10,8 @@ import {
   validateReport,
   validateTerminalReport,
   validPreviewTimestamps,
+  validateCustomReport,
+  type CustomSelection,
   type TrialConfiguration,
   type BuildIdentity,
 } from '../shared/benchmark/videoBenchmarkProtocol'
@@ -20,10 +22,11 @@ const props = defineProps<{
   services: ReturnType<typeof createVideoServices>
   configuration: TrialConfiguration
   build: BuildIdentity
+  selection?: CustomSelection
 }>()
 const store = useVideoStore()
 const label = ref('Ready for isolated trial')
-const expected = {
+const referenceExpected = {
   ...reference.expected,
   acceptedBytes: reference.files.reduce((total, file) => total + file.bytes, 0),
 }
@@ -66,13 +69,37 @@ async function run(files: File[]): Promise<TrialResult> {
     const wallMs = performance.now() - start
     label.value = 'Timing complete; checking persisted outputs…'
     const report = store.createDisplayedIngestionRunReport()
+    const expected = props.selection
+      ? {
+          supported:
+            (report?.foreground.counts.created ?? 0) +
+            (report?.foreground.counts.existing ?? 0),
+        }
+      : referenceExpected
     const errors: string[] = []
     try {
-      errors.push(
-        ...validateTerminalReport(report, props.configuration.cache, expected),
-        ...validateReport(report, props.configuration.cache, expected),
-        ...validateMeasurements(report, props.configuration, expected),
-      )
+      if (props.selection)
+        errors.push(
+          ...validateCustomReport(report, props.configuration, props.selection),
+        )
+      else
+        errors.push(
+          ...validateTerminalReport(
+            report,
+            props.configuration.cache,
+            referenceExpected,
+          ),
+          ...validateReport(
+            report,
+            props.configuration.cache,
+            referenceExpected,
+          ),
+          ...validateMeasurements(
+            report,
+            props.configuration,
+            referenceExpected,
+          ),
+        )
     } catch {
       errors.push('Missing or malformed terminal report')
     }
