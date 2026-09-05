@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, shallowRef } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef } from 'vue'
 import {
   orderFixtureFiles,
   summarize,
@@ -33,6 +33,10 @@ const rows = shallowRef<TrialRow[]>([])
 const result = shallowRef<BenchmarkSuite | null>(null)
 const images = ref<string[]>([])
 const failure = ref('')
+const copying = ref(false)
+const copyStatus = ref('')
+const jsonDetails = ref<HTMLDetailsElement>()
+const jsonText = ref<HTMLTextAreaElement>()
 const validSettings = computed(
   () =>
     Number.isInteger(repetitions.value) &&
@@ -123,6 +127,7 @@ function resetSelection() {
   result.value = null
   rows.value = []
   failure.value = ''
+  copyStatus.value = ''
   setImages([])
 }
 
@@ -149,6 +154,7 @@ async function start() {
   result.value = null
   rows.value = []
   failure.value = ''
+  copyStatus.value = ''
   const configurations = (
     foreground.value === 'all' ? [1, 2, 4] : [Number(foreground.value)]
   ).flatMap((fg) =>
@@ -190,6 +196,29 @@ async function start() {
     failure.value = error instanceof Error ? error.message : 'Benchmark failed'
   } finally {
     active.value = false
+  }
+}
+async function copyJson() {
+  if (!result.value || active.value || copying.value) return
+  const source = result.value
+  const text = exported.value
+  copying.value = true
+  copyStatus.value = ''
+  try {
+    await navigator.clipboard.writeText(text)
+    if (result.value === source)
+      copyStatus.value = 'JSON copied. Paste it into your message.'
+  } catch {
+    if (result.value !== source) return
+    if (jsonDetails.value) jsonDetails.value.open = true
+    await nextTick()
+    if (result.value !== source) return
+    jsonText.value?.focus()
+    jsonText.value?.select()
+    copyStatus.value =
+      'Clipboard unavailable or blocked. JSON selected below; press Ctrl+C (Cmd+C on Mac) to copy.'
+  } finally {
+    copying.value = false
   }
 }
 function download() {
@@ -336,9 +365,11 @@ onBeforeUnmount(() => {
         >
       </div>
       <p>
-        Fresh means a new database and host. Cached reuses the pair’s database
-        in a new host. Browser and OS caches are shared. This is not comparable
-        to the old full-gallery baseline.
+        Each repetition starts with a new database and trial frame: fresh app
+        storage, not a browser or OS cache reset. Cached reuses that pair’s
+        database in another new frame. Browser and OS caches remain shared, so
+        later fresh runs can be faster. This is not comparable to the old
+        full-gallery baseline.
       </p>
     </fieldset>
     <div class="controls">
@@ -350,10 +381,19 @@ onBeforeUnmount(() => {
         @click="stopping = true"
       >
         Stop after current trial</button
+      ><button
+        data-test="copy-json"
+        :disabled="!result || active || copying"
+        @click="copyJson"
+      >
+        {{ copying ? 'Copying…' : 'Copy JSON' }}</button
       ><button :disabled="!result || active" @click="download">
         Download JSON
       </button>
     </div>
+    <p v-if="copyStatus" role="status" data-test="copy-status">
+      {{ copyStatus }}
+    </p>
     <p role="status" data-test="suite-status">
       {{ status }} · {{ rows.length }} trials recorded
       <span v-if="stopping && active"
@@ -443,9 +483,10 @@ onBeforeUnmount(() => {
         {{ result.orphanedPairs.join(', ') }}. Stop here; no catalog wipe is
         needed.
       </p>
-      <details>
+      <details ref="jsonDetails">
         <summary>JSON evidence (no media bytes or local file paths)</summary>
         <textarea
+          ref="jsonText"
           data-test="result-json"
           readonly
           :value="exported"

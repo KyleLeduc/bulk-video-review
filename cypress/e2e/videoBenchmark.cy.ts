@@ -180,8 +180,41 @@ describe('Isolated benchmark built-runtime smoke', () => {
             0,
           ),
         )
-      if (custom)
+      if (custom) {
         cy.get('[data-test=custom-outcomes]').should('contain', 'skipped: 1')
+        cy.then(() =>
+          Cypress.automation('remote:debugger:protocol', {
+            command: 'Browser.grantPermissions',
+            params: {
+              origin: new URL(Cypress.config('baseUrl')!).origin,
+              permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'],
+            },
+          }),
+        )
+        cy.get('[data-test=copy-json]').click()
+        cy.get('[data-test=copy-status]').should('contain', 'JSON copied')
+        cy.get<HTMLTextAreaElement>('[data-test=result-json]').then((field) => {
+          const expected = field[0].value
+          cy.window().then(async (win) => {
+            expect(await win.navigator.clipboard.readText()).to.equal(expected)
+          })
+        })
+        // Denied writes must reveal the same export for ordinary keyboard copy.
+        cy.window().then((win) => {
+          cy.stub(win.navigator.clipboard, 'writeText').rejects(
+            new Error('Clipboard denied'),
+          )
+        })
+        cy.get('[data-test=copy-json]').click()
+        cy.get('[data-test=copy-status]').should('contain', 'Ctrl+C')
+        cy.get<HTMLTextAreaElement>('[data-test=result-json]')
+          .should('be.visible')
+          .and('be.focused')
+          .should((field) => {
+            expect(field[0].selectionStart).to.equal(0)
+            expect(field[0].selectionEnd).to.equal(field[0].value.length)
+          })
+      }
       cy.screenshot(
         `${custom ? 'custom' : 'reference'}-benchmark-completed-output`,
         { capture: 'fullPage' },
@@ -189,6 +222,8 @@ describe('Isolated benchmark built-runtime smoke', () => {
       cy.get('[data-test=repetitions]').clear()
       cy.get('[data-test=repetitions]').type('5')
       cy.get('[data-test=start]').click()
+      cy.get('[data-test=copy-json]').should('be.disabled')
+      cy.get('[data-test=copy-status]').should('not.exist')
       cy.get('[data-test=trial-mount] iframe').should('exist')
       cy.get('[data-test=stop]').click()
       cy.get('[data-test=suite-status]', { timeout: 150000 }).should(
