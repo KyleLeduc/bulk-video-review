@@ -3,9 +3,32 @@ import {
   prepareTargets,
   validateExtraction,
   safeFailure,
+  validateMetrics,
 } from './previewExtraction'
 
 describe('custom extraction policy', () => {
+  it('requires finite stage evidence and strips arbitrary metric properties', () => {
+    const metrics = {
+      setupMs: 2,
+      extractionMs: 3,
+      encodeMs: 4,
+      cleanupMs: 1,
+      totalMs: 10,
+      readMs: 2,
+      readMaxMs: 1,
+      workerOverheadMs: null,
+    }
+    expect(validateMetrics({ ...metrics, privatePath: 'secret.mp4' })).toEqual(
+      metrics,
+    )
+    for (const value of [
+      undefined,
+      { ...metrics, setupMs: -1 },
+      { ...metrics, readMs: Infinity },
+      { ...metrics, totalMs: '10' },
+    ])
+      expect(() => validateMetrics(value)).toThrow('output-invalid')
+  })
   it('uses the existing nine integer-second DOM targets without upscaling', () => {
     expect(prepareTargets(5, 320, 180)).toEqual({
       targets: [0, 1, 1, 2, 2, 3, 3, 4, 4],

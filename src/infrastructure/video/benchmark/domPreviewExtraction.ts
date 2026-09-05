@@ -10,6 +10,7 @@ import {
   ExtractionError,
   MAX_OUTPUT_BYTES,
   validateExtraction,
+  emptyMetrics,
   type PreparedExtraction,
   type ExtractionOutput,
 } from './previewExtraction'
@@ -33,6 +34,8 @@ export async function extractWithDom(
   prepared: PreparedExtraction,
   signal: AbortSignal,
 ): Promise<ExtractionOutput> {
+  const started = performance.now()
+  const metrics = emptyMetrics()
   const url = URL.createObjectURL(file)
   let video: HTMLVideoElement | null = null
   try {
@@ -44,12 +47,19 @@ export async function extractWithDom(
     )
     if (JSON.stringify(current) !== JSON.stringify(prepared))
       throw new ExtractionError('invalid-metadata')
+    metrics.setupMs = performance.now() - started
     const frames: Blob[] = []
     for (const target of prepared.targets) {
+      const seekStarted = performance.now()
       await seekToTime(video, target, { signal })
+      metrics.extractionMs += performance.now() - seekStarted
       const frame = await capturePreviewFrame(video, target, {
         signal,
         maxWidth: 480,
+        onTiming: ({ phase, durationMs }) => {
+          if (phase === 'encode') metrics.encodeMs += durationMs
+          else if (phase === 'capture') metrics.extractionMs += durationMs
+        },
       })
       frames.push(frame.blob)
       if (frames.reduce((n, blob) => n + blob.size, 0) > MAX_OUTPUT_BYTES)
@@ -57,6 +67,7 @@ export async function extractWithDom(
     }
     return validateExtraction(
       {
+        metrics,
         frames,
         width: current.width,
         height: current.height,
@@ -66,7 +77,10 @@ export async function extractWithDom(
       prepared,
     )
   } finally {
+    const cleanupStarted = performance.now()
     disposeVideoElement(video)
     URL.revokeObjectURL(url)
+    metrics.cleanupMs = performance.now() - cleanupStarted
+    metrics.totalMs = performance.now() - started
   }
 }

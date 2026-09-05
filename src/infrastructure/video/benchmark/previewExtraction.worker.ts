@@ -6,6 +6,8 @@ import {
   MAX_READ_BYTES,
   safeFailure,
   validateExtraction,
+  emptyMetrics,
+  type ExtractionOutput,
   type PreparedExtraction,
 } from './previewExtraction'
 
@@ -14,6 +16,12 @@ self.onmessage = async (
   event: MessageEvent<{ file: File; prepared: PreparedExtraction }>,
 ) => {
   let input: Input | undefined
+  const started = performance.now()
+  const metrics = emptyMetrics()
+  metrics.readMs = metrics.readMaxMs = 0
+  let reply:
+    | { ok: true; output: ExtractionOutput }
+    | { ok: false; reason: string }
   try {
     if (
       typeof VideoDecoder === 'undefined' ||
@@ -54,7 +62,14 @@ self.onmessage = async (
             throw new ExtractionError('read-limit')
           readBytes += bytes
           readCalls++
-          return new Uint8Array(await file.slice(start, end).arrayBuffer())
+          const readStarted = performance.now()
+          try {
+            return new Uint8Array(await file.slice(start, end).arrayBuffer())
+          } finally {
+            const elapsed = performance.now() - readStarted
+            metrics.readMs! += elapsed
+            metrics.readMaxMs = Math.max(metrics.readMaxMs!, elapsed)
+          }
         },
       }),
     })
@@ -75,21 +90,35 @@ self.onmessage = async (
     })
     const frames: Blob[] = []
     let outputBytes = 0
-    for await (const wrapped of sink.canvasesAtTimestamps(prepared.targets)) {
-      if (!wrapped || !(wrapped.canvas instanceof OffscreenCanvas))
-        throw new ExtractionError('output-invalid')
-      // Await encoding before the pool reuses this canvas.
-      const blob = await wrapped.canvas.convertToBlob({
-        type: 'image/jpeg',
-        quality: 0.72,
-      })
-      outputBytes += blob.size
-      if (outputBytes > MAX_OUTPUT_BYTES)
-        throw new ExtractionError('output-invalid')
-      frames.push(blob)
+    metrics.setupMs = performance.now() - started
+    const iterator = sink.canvasesAtTimestamps(prepared.targets)
+    try {
+      for (;;) {
+        const extractionStarted = performance.now()
+        const next = await iterator.next()
+        metrics.extractionMs += performance.now() - extractionStarted
+        if (next.done) break
+        const wrapped = next.value
+        if (!wrapped || !(wrapped.canvas instanceof OffscreenCanvas))
+          throw new ExtractionError('output-invalid')
+        // Await encoding before the pool reuses this canvas.
+        const encodeStarted = performance.now()
+        const blob = await wrapped.canvas.convertToBlob({
+          type: 'image/jpeg',
+          quality: 0.72,
+        })
+        metrics.encodeMs += performance.now() - encodeStarted
+        outputBytes += blob.size
+        if (outputBytes > MAX_OUTPUT_BYTES)
+          throw new ExtractionError('output-invalid')
+        frames.push(blob)
+      }
+    } finally {
+      await iterator.return()
     }
     const output = validateExtraction(
       {
+        metrics,
         frames,
         width: prepared.width,
         height: prepared.height,
@@ -98,10 +127,18 @@ self.onmessage = async (
       },
       prepared,
     )
-    self.postMessage({ ok: true, output })
+    reply = { ok: true, output }
   } catch (error) {
-    self.postMessage({ ok: false, reason: safeFailure(error) })
+    reply = { ok: false, reason: safeFailure(error) }
   } finally {
-    input?.dispose()
+    const cleanupStarted = performance.now()
+    try {
+      input?.dispose()
+    } catch {
+      reply = { ok: false, reason: 'extraction-failed' }
+    }
+    metrics.cleanupMs = performance.now() - cleanupStarted
+    metrics.totalMs = performance.now() - started
   }
+  self.postMessage(reply!)
 }

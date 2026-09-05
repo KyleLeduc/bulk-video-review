@@ -2,16 +2,56 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import CustomExtractionBenchmark from './CustomExtractionBenchmark.vue'
 import * as runner from './runExtractionBenchmark'
+import { emptyMetrics } from '../infrastructure/video/benchmark/previewExtraction'
 
 afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
+it('keeps the visible table in launch order when concurrent jobs finish out of order', async () => {
+  vi.spyOn(runner, 'runExtractionBenchmark').mockImplementation((options) => {
+    for (const order of [2, 1])
+      options.onRow?.({
+        file: order,
+        repetition: 1,
+        order,
+        backend: 'dom',
+        status: 'passed',
+        reason: null,
+        wallMs: 1,
+        frames: 9,
+        outputBytes: 9,
+        readBytes: null,
+        readCalls: null,
+        startedAtMs: 0,
+        finishedAtMs: 1,
+        metrics: emptyMetrics(),
+      })
+    return new Promise(() => {})
+  })
+  const wrapper = mount(CustomExtractionBenchmark, {
+    props: {
+      build: { revision: null, dirty: null, assetsSha256: null },
+      capable: true,
+    },
+  })
+  const picker = wrapper.get<HTMLInputElement>('[data-test=extraction-files]')
+  Object.defineProperty(picker.element, 'files', {
+    value: [new File(['x'], 'private.mp4')],
+  })
+  await picker.trigger('change')
+  await wrapper.get('[data-test=memory-ack]').setValue(true)
+  await wrapper.get('[data-test=extraction-start]').trigger('click')
+  expect(
+    wrapper.findAll('tbody tr').map((row) => row.findAll('td')[1].text()),
+  ).toEqual(['1', '2'])
+  wrapper.unmount()
+})
 it('requires custom files and memory acknowledgement, and copies redacted results', async () => {
   const build = { revision: null, dirty: null, assetsSha256: null }
   const report: runner.ExtractionReport = {
     errors: [],
-    schemaVersion: 1,
+    schemaVersion: 2,
     mode: 'preview-extraction-custom-v1',
     status: 'completed',
     hidden: false,
@@ -20,11 +60,14 @@ it('requires custom files and memory acknowledgement, and copies redacted result
     settings: {
       repetitions: 1,
       jobs: 1,
+      execution: 'paired',
+      samples: 'after-run',
       candidate: 'mediabunny@1.55.7',
       deadlineMs: 120000,
     },
     preparation: [],
     rows: [],
+    batches: [],
   }
   const run = vi
     .spyOn(runner, 'runExtractionBenchmark')
@@ -45,9 +88,19 @@ it('requires custom files and memory acknowledgement, and copies redacted result
     wrapper.get('[data-test=extraction-start]').attributes('disabled'),
   ).toBeDefined()
   await wrapper.get('[data-test=memory-ack]').setValue(true)
+  await wrapper.get('[data-test=extraction-execution]').setValue('mediabunny')
+  await wrapper.get('[data-test=extraction-jobs]').setValue('2')
   await wrapper.get('[data-test=extraction-start]').trigger('click')
   await flushPromises()
   expect(run.mock.calls[0][0].files).toEqual([file])
+  expect(run.mock.calls[0][0]).toMatchObject({
+    execution: 'mediabunny',
+    jobs: 2,
+  })
+  await wrapper.get('[data-test=extraction-execution]').setValue('paired')
+  expect(
+    wrapper.get('[data-test=extraction-jobs]').attributes('disabled'),
+  ).toBeDefined()
   expect(wrapper.text()).not.toContain('secret.mp4')
   await wrapper.get('[data-test=extraction-copy]').trigger('click')
   expect(writeText).toHaveBeenCalledWith(JSON.stringify(report, null, 2))
@@ -78,28 +131,34 @@ it.each([false, true])(
     let signal: AbortSignal | undefined
     vi.spyOn(runner, 'runExtractionBenchmark').mockImplementation((options) => {
       signal = options.signal
-      options.onRow?.(
+      options.onSamples?.([
         {
-          backend: 'dom',
-          file: 1,
-          repetition: 1,
-          order: 1,
-          status: 'passed',
-          reason: null,
-          wallMs: 1,
-          frames: 9,
-          outputBytes: 9,
-          readBytes: null,
-          readCalls: null,
+          row: {
+            backend: 'dom',
+            file: 1,
+            repetition: 1,
+            order: 1,
+            status: 'passed',
+            reason: null,
+            wallMs: 1,
+            frames: 9,
+            outputBytes: 9,
+            readBytes: null,
+            readCalls: null,
+            startedAtMs: 0,
+            finishedAtMs: 1,
+            metrics: emptyMetrics(),
+          },
+          output: {
+            metrics: emptyMetrics(),
+            frames: Array(9).fill(new Blob(['jpeg'], { type: 'image/jpeg' })),
+            width: 160,
+            height: 90,
+            readBytes: null,
+            readCalls: null,
+          },
         },
-        {
-          frames: Array(9).fill(new Blob(['jpeg'], { type: 'image/jpeg' })),
-          width: 160,
-          height: 90,
-          readBytes: null,
-          readCalls: null,
-        },
-      )
+      ])
       return new Promise(() => {})
     })
     const wrapper = mount(CustomExtractionBenchmark, {

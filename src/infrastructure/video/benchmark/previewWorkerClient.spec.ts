@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { extractWithWorker } from './previewWorkerClient'
-import { prepareTargets } from './previewExtraction'
+import { emptyMetrics, prepareTargets } from './previewExtraction'
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null
@@ -37,6 +37,7 @@ describe('disposable extraction worker', () => {
     )
     expect(worker.postMessage).toHaveBeenCalledWith({ file, prepared })
     const output = {
+      metrics: { ...emptyMetrics(), readMs: 0, readMaxMs: 0 },
       frames: Array(9).fill(new Blob(['jpeg'], { type: 'image/jpeg' })),
       width: 320,
       height: 180,
@@ -45,6 +46,7 @@ describe('disposable extraction worker', () => {
     }
     worker.onmessage?.({ data: { ok: true, output } } as MessageEvent)
     await expect(promise).resolves.toEqual(output)
+    expect(output.metrics.workerOverheadMs).toBeGreaterThanOrEqual(0)
     expect(worker.terminate).toHaveBeenCalledOnce()
     expect(worker.onmessage).toBeNull()
   })
@@ -85,6 +87,7 @@ describe('disposable extraction worker', () => {
       data: {
         ok: true,
         output: {
+          metrics: { ...emptyMetrics(), readMs: 0, readMaxMs: 0 },
           frames: Array(9).fill(new Blob(['jpeg'], { type: 'image/jpeg' })),
           width: 320,
           height: 180,

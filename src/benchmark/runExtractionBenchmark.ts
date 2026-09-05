@@ -4,6 +4,8 @@ import {
   ExtractionError,
   safeFailure,
   validateExtraction,
+  validateMetrics,
+  type ExtractionMetrics,
   type ExtractionOutput,
   type FailureReason,
   type PreparedExtraction,
@@ -15,6 +17,7 @@ import {
 } from '../infrastructure/video/benchmark/domPreviewExtraction'
 
 export type ExtractionBackend = 'dom' | 'mediabunny'
+export type ExtractionExecution = 'paired' | ExtractionBackend
 export type ExtractionRow = {
   file: number
   repetition: number
@@ -27,10 +30,23 @@ export type ExtractionRow = {
   outputBytes: number
   readBytes: number | null
   readCalls: number | null
+  startedAtMs: number
+  finishedAtMs: number
+  metrics: ExtractionMetrics | null
+}
+export type ExtractionSample = { row: ExtractionRow; output: ExtractionOutput }
+export type ExtractionBatch = {
+  repetition: number
+  backend: ExtractionBackend
+  wallMs: number
+  peakActiveJobs: number
+  completed: number
+  failed: number
+  aborted: number
 }
 export type ExtractionReport = {
   errors: 'display-failed'[]
-  schemaVersion: 1
+  schemaVersion: 2
   mode: 'preview-extraction-custom-v1'
   status: 'completed' | 'failed' | 'interrupted'
   hidden: boolean
@@ -38,21 +54,27 @@ export type ExtractionReport = {
   identity: { build: BuildIdentity; userAgent: string; cacheScope: string }
   settings: {
     repetitions: number
-    jobs: 1
+    jobs: 1 | 2
+    execution: ExtractionExecution
+    samples: 'after-run'
     candidate: 'mediabunny@1.55.7'
     deadlineMs: number
   }
   preparation: { file: number; wallMs: number; reason: FailureReason | null }[]
   rows: ExtractionRow[]
+  batches: ExtractionBatch[]
 }
 type Options = {
   files: File[]
   selectionId: string
   repetitions: number
+  execution?: ExtractionExecution
+  jobs?: 1 | 2
   build: BuildIdentity
   signal: AbortSignal
   onProgress?: (message: string) => void
-  onRow?: (row: ExtractionRow, output?: ExtractionOutput) => void
+  onRow?: (row: ExtractionRow) => void
+  onSamples?: (samples: ExtractionSample[]) => void
 }
 
 // Deadlines bound waiting and request cancellation; they do not bound memory.
@@ -86,13 +108,20 @@ async function timedJob<T>(
 export async function runExtractionBenchmark(
   options: Options,
 ): Promise<ExtractionReport> {
+  const execution = options.execution ?? 'paired'
+  const jobs = options.jobs ?? 1
   if (
     !Number.isInteger(options.repetitions) ||
     options.repetitions < 1 ||
     options.repetitions > 5 ||
-    !options.files.length
+    !options.files.length ||
+    !['paired', 'dom', 'mediabunny'].includes(execution) ||
+    ![1, 2].includes(jobs) ||
+    (execution === 'paired' && jobs !== 1)
   )
-    throw new Error('Choose files and 1–5 repetitions')
+    throw new Error(
+      'Choose files, 1–5 repetitions and 1–2 jobs; paired comparisons require one job',
+    )
   if (!navigator.locks) throw new Error('Web Locks unavailable')
   return navigator.locks.request(
     'bvr-video-benchmark-v1',
@@ -113,7 +142,7 @@ export async function runExtractionBenchmark(
       if (options.signal.aborted || hidden) abort()
       const report: ExtractionReport = {
         errors: [],
-        schemaVersion: 1,
+        schemaVersion: 2,
         mode: 'preview-extraction-custom-v1',
         status: 'completed',
         hidden,
@@ -130,12 +159,15 @@ export async function runExtractionBenchmark(
         },
         settings: {
           repetitions: options.repetitions,
-          jobs: 1,
+          jobs,
+          execution,
+          samples: 'after-run',
           candidate: 'mediabunny@1.55.7',
           deadlineMs: EXTRACTION_DEADLINE_MS,
         },
         preparation: [],
         rows: [],
+        batches: [],
       }
       const notify = (callback: () => void) => {
         try {
@@ -146,6 +178,7 @@ export async function runExtractionBenchmark(
         }
       }
       try {
+        const runStarted = performance.now()
         const prepared: (PreparedExtraction | undefined)[] = []
         for (
           let file = 0;
@@ -172,71 +205,142 @@ export async function runExtractionBenchmark(
             reason,
           })
         }
+        let nextOrder = 0
+        let sampleKey = -1
+        let samples: ExtractionSample[] = []
+        const runFile = async (
+          file: number,
+          repetition: number,
+          backend: ExtractionBackend,
+        ) => {
+          const row: ExtractionRow = {
+            file: file + 1,
+            repetition,
+            order: ++nextOrder,
+            backend,
+            status: 'failed',
+            reason: null,
+            wallMs: 0,
+            frames: 0,
+            outputBytes: 0,
+            readBytes: null,
+            readCalls: null,
+            startedAtMs: 0,
+            finishedAtMs: 0,
+            metrics: null,
+          }
+          notify(() =>
+            options.onProgress?.(
+              `Repeat ${repetition}/${options.repetitions} · video ${file + 1}/${options.files.length} · ${backend}`,
+            ),
+          )
+          const started = performance.now()
+          row.startedAtMs = started - runStarted
+          let output: ExtractionOutput | undefined
+          try {
+            const targets = prepared[file]
+            if (!targets) throw new ExtractionError('invalid-metadata')
+            output = await timedJob(controller.signal, (signal) =>
+              (backend === 'dom' ? extractWithDom : extractWithWorker)(
+                options.files[file],
+                targets,
+                signal,
+              ),
+            )
+            validateExtraction(output, targets)
+            row.metrics = validateMetrics(output.metrics)
+            row.status = 'passed'
+            row.frames = output.frames.length
+            row.outputBytes = output.frames.reduce(
+              (n, frame) => n + frame.size,
+              0,
+            )
+            row.readBytes = output.readBytes
+            row.readCalls = output.readCalls
+          } catch (error) {
+            row.reason = safeFailure(error)
+            row.status = row.reason === 'aborted' ? 'aborted' : 'failed'
+            output = undefined
+          }
+          const finished = performance.now()
+          row.finishedAtMs = finished - runStarted
+          row.wallMs = finished - started
+          report.rows.push(row)
+          // Keep only the greatest file/repetition key, independent of completion order.
+          const key = repetition * options.files.length + file
+          if (key > sampleKey) {
+            samples = []
+            sampleKey = key
+          }
+          if (key === sampleKey && output) samples.push({ row, output })
+          notify(() => options.onRow?.(row))
+        }
         for (
           let repetition = 1;
           repetition <= options.repetitions && !controller.signal.aborted;
           repetition++
         ) {
-          const backends: ExtractionBackend[] =
-            repetition % 2 ? ['dom', 'mediabunny'] : ['mediabunny', 'dom']
-          for (
-            let file = 0;
-            file < options.files.length && !controller.signal.aborted;
-            file++
-          ) {
-            for (const backend of backends) {
-              if (controller.signal.aborted) break
-              const row: ExtractionRow = {
-                file: file + 1,
-                repetition,
-                order: report.rows.length + 1,
-                backend,
-                status: 'failed',
-                reason: null,
-                wallMs: 0,
-                frames: 0,
-                outputBytes: 0,
-                readBytes: null,
-                readCalls: null,
+          if (execution === 'paired') {
+            const backends: ExtractionBackend[] =
+              repetition % 2 ? ['dom', 'mediabunny'] : ['mediabunny', 'dom']
+            for (
+              let file = 0;
+              file < options.files.length && !controller.signal.aborted;
+              file++
+            ) {
+              for (const backend of backends) {
+                if (controller.signal.aborted) break
+                await runFile(file, repetition, backend)
               }
-              notify(() =>
-                options.onProgress?.(
-                  `Repeat ${repetition}/${options.repetitions} · video ${file + 1}/${options.files.length} · ${backend}`,
-                ),
-              )
-              const started = performance.now()
-              let output: ExtractionOutput | undefined
-              try {
-                const targets = prepared[file]
-                if (!targets) throw new ExtractionError('invalid-metadata')
-                output = await timedJob(controller.signal, (signal) =>
-                  (backend === 'dom' ? extractWithDom : extractWithWorker)(
-                    options.files[file],
-                    targets,
-                    signal,
-                  ),
-                )
-                row.wallMs = performance.now() - started
-                validateExtraction(output, targets)
-                row.status = 'passed'
-                row.frames = output.frames.length
-                row.outputBytes = output.frames.reduce(
-                  (n, frame) => n + frame.size,
-                  0,
-                )
-                row.readBytes = output.readBytes
-                row.readCalls = output.readCalls
-              } catch (error) {
-                row.wallMs = performance.now() - started
-                row.reason = safeFailure(error)
-                row.status = row.reason === 'aborted' ? 'aborted' : 'failed'
-                output = undefined
-              }
-              report.rows.push(row)
-              notify(() => options.onRow?.(row, output))
             }
+          } else {
+            const batchStarted = performance.now()
+            let nextFile = 0
+            let activeJobs = 0
+            let peakActiveJobs = 0
+            const consume = async () => {
+              while (
+                nextFile < options.files.length &&
+                !controller.signal.aborted
+              ) {
+                const file = nextFile++
+                activeJobs++
+                peakActiveJobs = Math.max(peakActiveJobs, activeJobs)
+                try {
+                  await runFile(file, repetition, execution)
+                } finally {
+                  activeJobs--
+                }
+              }
+            }
+            await Promise.all(
+              Array.from(
+                { length: Math.min(jobs, options.files.length) },
+                consume,
+              ),
+            )
+            const wallMs = performance.now() - batchStarted
+            const batchRows = report.rows.filter(
+              (row) => row.repetition === repetition,
+            )
+            report.batches.push({
+              repetition,
+              backend: execution,
+              wallMs,
+              peakActiveJobs,
+              completed: batchRows.filter((row) => row.status === 'passed')
+                .length,
+              failed: batchRows.filter((row) => row.status === 'failed').length,
+              aborted: batchRows.filter((row) => row.status === 'aborted')
+                .length,
+            })
           }
         }
+        report.rows.sort((a, b) => a.order - b.order)
+        // No sample image decoding while measured extraction is active.
+        if (!controller.signal.aborted)
+          notify(() => options.onSamples?.(samples))
+        samples = []
         report.hidden = hidden
         report.status = controller.signal.aborted
           ? 'interrupted'

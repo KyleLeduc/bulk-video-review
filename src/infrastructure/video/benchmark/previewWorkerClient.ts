@@ -2,6 +2,7 @@ import {
   EXTRACTION_DEADLINE_MS,
   ExtractionError,
   validateExtraction,
+  validateMetrics,
   workerFailure,
   type PreparedExtraction,
   type ExtractionOutput,
@@ -12,6 +13,7 @@ export function extractWithWorker(
   prepared: PreparedExtraction,
   signal: AbortSignal,
 ): Promise<ExtractionOutput> {
+  const started = performance.now()
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
       reject(new DOMException('Cancelled', 'AbortError'))
@@ -51,11 +53,18 @@ export function extractWithWorker(
       try {
         if (event.data?.ok !== true) throw workerFailure(event.data?.reason)
         const output = validateExtraction(event.data.output, prepared)
+        output.metrics = validateMetrics(output.metrics)
+        output.metrics.workerOverheadMs = Math.max(
+          0,
+          performance.now() - started - output.metrics.totalMs,
+        )
         if (
           output.readBytes === null ||
           output.readCalls === null ||
           output.readCalls <= 0 ||
-          output.readBytes < output.readCalls
+          output.readBytes < output.readCalls ||
+          output.metrics.readMs === null ||
+          output.metrics.readMaxMs === null
         )
           throw new ExtractionError('output-invalid')
         finish(output)

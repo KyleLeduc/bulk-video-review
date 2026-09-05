@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { runExtractionBenchmark } from './runExtractionBenchmark'
 import * as dom from '../infrastructure/video/benchmark/domPreviewExtraction'
 import * as candidate from '../infrastructure/video/benchmark/previewWorkerClient'
+import { emptyMetrics } from '../infrastructure/video/benchmark/previewExtraction'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -15,6 +16,7 @@ describe('serial custom extraction comparison', () => {
     height: 180,
   }
   const output = {
+    metrics: emptyMetrics(),
     frames: Array(9).fill(new Blob(['jpeg'], { type: 'image/jpeg' })),
     width: 320,
     height: 180,
@@ -71,6 +73,120 @@ describe('serial custom extraction comparison', () => {
     ])
       expect(json).not.toContain(secret)
     expect(result.selection.sizes).toEqual([file.size])
+  })
+  it('runs only the selected backend with two bounded jobs and records actual batch elapsed time', async () => {
+    setup()
+    let active = 0
+    let peak = 0
+    vi.spyOn(candidate, 'extractWithWorker').mockImplementation(async () => {
+      active++
+      peak = Math.max(peak, active)
+      await new Promise((resolve) => setTimeout(resolve, 15))
+      active--
+      return output
+    })
+    const result = await runExtractionBenchmark({
+      files: [file, file, file, file],
+      selectionId: 'selection',
+      repetitions: 2,
+      execution: 'mediabunny',
+      jobs: 2,
+      build: { revision: null, dirty: null, assetsSha256: null },
+      signal: new AbortController().signal,
+    })
+    expect(peak).toBe(2)
+    expect(dom.extractWithDom).not.toHaveBeenCalled()
+    expect(result.rows).toHaveLength(8)
+    expect(result.rows.map((row) => row.order)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8,
+    ])
+    expect(result.batches).toHaveLength(2)
+    for (const batch of result.batches) {
+      expect(batch.peakActiveJobs).toBe(2)
+      expect(batch.completed).toBe(4)
+      const rows = result.rows.filter(
+        (row) => row.repetition === batch.repetition,
+      )
+      expect(batch.wallMs).toBeLessThan(
+        rows.reduce((sum, row) => sum + row.wallMs, 0),
+      )
+      expect(rows[1].startedAtMs).toBeLessThan(rows[0].finishedAtMs)
+    }
+    expect(result.rows[4].startedAtMs).toBeGreaterThanOrEqual(
+      result.rows[3].finishedAtMs,
+    )
+    expect(result.schemaVersion).toBe(2)
+  })
+  it('defers bounded sample publication until all jobs finish', async () => {
+    const order = setup()
+    const samples: string[] = []
+    const onRow = vi.fn()
+    const result = await runExtractionBenchmark({
+      files: [file, file],
+      selectionId: 'selection',
+      repetitions: 1,
+      build: { revision: null, dirty: null, assetsSha256: null },
+      signal: new AbortController().signal,
+      onRow,
+      onSamples: (pair) => {
+        expect(order).toHaveLength(4)
+        samples.push(
+          ...pair.map((item) => `${item.row.file}:${item.row.backend}`),
+        )
+      },
+    })
+    expect(result.status).toBe('completed')
+    expect(samples).toEqual(['2:dom', '2:mediabunny'])
+    expect(onRow.mock.calls.every((args) => args.length === 1)).toBe(true)
+  })
+  it('rejects unsafe job counts and concurrent paired comparisons before preparing files', async () => {
+    setup()
+    for (const options of [
+      { execution: 'paired', jobs: 2 },
+      { execution: 'dom', jobs: 3 },
+    ]) {
+      await expect(
+        runExtractionBenchmark({
+          files: [file],
+          selectionId: 'selection',
+          repetitions: 1,
+          build: { revision: null, dirty: null, assetsSha256: null },
+          signal: new AbortController().signal,
+          ...options,
+        } as Parameters<typeof runExtractionBenchmark>[0]),
+      ).rejects.toThrow()
+    }
+    expect(dom.prepareFile).not.toHaveBeenCalled()
+  })
+  it('settles active concurrent jobs on cancellation without launching the queue', async () => {
+    setup()
+    const controller = new AbortController()
+    let active = 0
+    vi.spyOn(candidate, 'extractWithWorker').mockImplementation(
+      async (_file, _prepared, signal) => {
+        active++
+        if (active === 2) queueMicrotask(() => controller.abort())
+        await new Promise<void>((_resolve, reject) =>
+          signal.addEventListener('abort', () =>
+            reject(new DOMException('cancel', 'AbortError')),
+          ),
+        )
+        return output
+      },
+    )
+    const result = await runExtractionBenchmark({
+      files: [file, file, file, file],
+      selectionId: 'selection',
+      repetitions: 2,
+      execution: 'mediabunny',
+      jobs: 2,
+      build: { revision: null, dirty: null, assetsSha256: null },
+      signal: controller.signal,
+    })
+    expect(result.status).toBe('interrupted')
+    expect(result.rows).toHaveLength(2)
+    expect(result.rows.every((row) => row.status === 'aborted')).toBe(true)
+    expect(result.batches).toHaveLength(1)
   })
   it('records candidate failure without DOM fallback or dropping the row', async () => {
     const order = setup()

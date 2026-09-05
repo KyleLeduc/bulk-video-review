@@ -18,6 +18,8 @@ describe('Custom extraction built-runtime smoke', () => {
         const json = String(value)
         const result = JSON.parse(json)
         expect(result.mode).to.equal('preview-extraction-custom-v1')
+        expect(result.schemaVersion).to.equal(2)
+        expect(result.settings.samples).to.equal('after-run')
         expect(result.status).to.equal('completed')
         expect(result.hidden).to.equal(false)
         expect(result.rows).to.have.length(8)
@@ -36,6 +38,19 @@ describe('Custom extraction built-runtime smoke', () => {
         for (const row of result.rows) {
           expect(row.status).to.equal('passed')
           expect(row.frames).to.equal(9)
+          expect(row.metrics.setupMs).to.be.at.least(0)
+          expect(row.metrics.extractionMs).to.be.at.least(0)
+          expect(row.metrics.encodeMs).to.be.greaterThan(0)
+          expect(row.metrics.cleanupMs).to.be.at.least(0)
+          expect(row.metrics.totalMs).to.be.greaterThan(0)
+          expect(row.finishedAtMs).to.be.greaterThan(row.startedAtMs)
+          if (row.backend === 'mediabunny') {
+            expect(row.metrics.readMs).to.be.greaterThan(0)
+            expect(row.metrics.workerOverheadMs).to.be.at.least(0)
+          } else {
+            expect(row.metrics.readMs).to.equal(null)
+            expect(row.metrics.workerOverheadMs).to.equal(null)
+          }
         }
         for (const privateValue of [
           'short-blue',
@@ -79,6 +94,36 @@ describe('Custom extraction built-runtime smoke', () => {
     cy.request('/third-party/mediabunny/mediabunny-1.55.7.tar.gz')
       .its('status')
       .should('equal', 200)
+    for (const backend of ['dom', 'mediabunny']) {
+      cy.get('[data-test=extraction-execution]').select(backend)
+      cy.get('[data-test=extraction-jobs]').select('2')
+      cy.get('[data-test=extraction-repetitions]').clear()
+      cy.get('[data-test=extraction-repetitions]').type('1')
+      cy.get('[data-test=extraction-start]').click()
+      cy.get('[data-test=extraction-json]', { timeout: 120000 })
+        .invoke('val')
+        .should((value) => {
+          const result = JSON.parse(String(value))
+          expect(result.status).to.equal('completed')
+          expect(result.settings.execution).to.equal(backend)
+          expect(result.settings.jobs).to.equal(2)
+          expect(result.rows).to.have.length(2)
+          expect(
+            result.rows.every(
+              (row: { backend: string }) => row.backend === backend,
+            ),
+          ).to.equal(true)
+          expect(result.rows[1].startedAtMs).to.be.lessThan(
+            result.rows[0].finishedAtMs,
+          )
+          expect(result.batches).to.have.length(1)
+          expect(result.batches[0].peakActiveJobs).to.equal(2)
+          expect(result.batches[0].completed).to.equal(2)
+          expect(result.batches[0].wallMs).to.be.greaterThan(0)
+        })
+      cy.get('section .samples img').should('have.length', 9)
+      cy.get('[data-test=extraction-batches]').should('contain', '2 / 2')
+    }
     cy.get('[data-test=extraction-start]').click()
     cy.get('[data-test=extraction-stop]').click()
     cy.get('[data-test=extraction-json]')

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, shallowRef } from 'vue'
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
 import {
   runExtractionBenchmark,
   type ExtractionReport,
   type ExtractionRow,
   type ExtractionBackend,
+  type ExtractionExecution,
 } from './runExtractionBenchmark'
 
 const props = defineProps<{ build: BuildIdentity; capable: boolean }>()
@@ -13,6 +14,11 @@ const emit = defineEmits<{ active: [value: boolean] }>()
 const files = shallowRef<File[]>([])
 const selectionId = ref('')
 const repetitions = ref(3)
+const execution = ref<ExtractionExecution>('paired')
+const jobs = ref<1 | 2>(1)
+watch(execution, (value) => {
+  if (value === 'paired') jobs.value = 1
+})
 const acknowledged = ref(false)
 const active = ref(false)
 const progress = ref('Choose local files to begin')
@@ -74,28 +80,35 @@ async function start() {
       files: files.value,
       selectionId: selectionId.value,
       repetitions: repetitions.value,
+      execution: execution.value,
+      jobs: execution.value === 'paired' ? 1 : jobs.value,
       build: props.build,
       signal: controller.signal,
       onProgress: (message) => {
         if (!disposed) progress.value = message
       },
-      onRow: (row, output) => {
+      onRow: (row) => {
         if (disposed) return
-        rows.value = [...rows.value, row]
-        const pair = `Video ${row.file} · repetition ${row.repetition}`
-        if (samplePair.value !== pair) {
-          releaseSamples()
-          samplePair.value = pair
-        }
-        if (output) {
-          const urls: string[] = []
-          try {
-            for (const blob of output.frames)
-              urls.push(URL.createObjectURL(blob))
-            samples.value = [...samples.value, { backend: row.backend, urls }]
-          } catch (error) {
-            for (const url of urls) URL.revokeObjectURL(url)
-            throw error
+        rows.value = [...rows.value, row].sort((a, b) => a.order - b.order)
+      },
+      onSamples: (pairSamples) => {
+        if (disposed) return
+        for (const { row, output } of pairSamples) {
+          const pair = `Video ${row.file} · repetition ${row.repetition}`
+          if (samplePair.value !== pair) {
+            releaseSamples()
+            samplePair.value = pair
+          }
+          if (output) {
+            const urls: string[] = []
+            try {
+              for (const blob of output.frames)
+                urls.push(URL.createObjectURL(blob))
+              samples.value = [...samples.value, { backend: row.backend, urls }]
+            } catch (error) {
+              for (const url of urls) URL.revokeObjectURL(url)
+              throw error
+            }
           }
         }
       },
@@ -173,6 +186,30 @@ onBeforeUnmount(() => {
         silently retried with DOM.
       </p>
       <label
+        >Run method
+        <select v-model="execution" data-test="extraction-execution">
+          <option value="paired">Paired DOM vs Mediabunny (serial)</option>
+          <option value="dom">DOM only</option>
+          <option value="mediabunny">Mediabunny only</option>
+        </select>
+      </label>
+      <label
+        >Concurrent file jobs
+        <select
+          v-model.number="jobs"
+          data-test="extraction-jobs"
+          :disabled="execution === 'paired'"
+        >
+          <option :value="1">1 job</option>
+          <option :value="2">2 jobs (more memory)</option>
+        </select>
+      </label>
+      <p>
+        Two jobs use separate media elements or workers, but share disk and
+        decoder/GPU resources. Memory pressure can roughly double; speedup is
+        not guaranteed.
+      </p>
+      <label
         >Repetitions
         <input
           v-model.number="repetitions"
@@ -188,12 +225,15 @@ onBeforeUnmount(() => {
       >
     </fieldset>
     <p>
-      One file/method runs at a time. Method order alternates each repetition.
-      Both use the same nine DOM-derived target times, JPEG quality 0.72 and
-      maximum width 480 (no upscaling). DOM metadata preparation is recorded
-      separately, outside extraction timing. Jobs include fresh media/worker
-      startup, loading, seeking/decoding and encoding. Browser and OS caches
-      remain shared; no saved app previews are reused.
+      Paired mode runs one file/method at a time and alternates method order
+      each repetition. Standalone modes run only the selected method with one or
+      two concurrent files. Both use the same nine DOM-derived target times,
+      JPEG quality 0.72 and maximum width 480 (no upscaling). DOM metadata
+      preparation is recorded separately, outside extraction timing. Jobs
+      include fresh media/worker startup, loading, seeking/decoding and
+      encoding. Browser and OS caches remain shared; no saved app previews are
+      reused. Sample images appear only after the run, so their decoding does
+      not compete with timed jobs.
     </p>
     <div class="controls">
       <button data-test="extraction-start" :disabled="!canStart" @click="start">
@@ -224,6 +264,35 @@ onBeforeUnmount(() => {
       timestamps. Exact sizes can still be identifying; this is minimized
       metadata, not guaranteed anonymity.
     </p>
+    <div v-if="result?.batches.length" class="table-scroll">
+      <h3>Standalone batch throughput ({{ result.settings.jobs }} jobs)</h3>
+      <p>
+        Use batch elapsed time for throughput, not the sum of overlapping job
+        times. Failed or interrupted batches are not valid speed comparisons.
+      </p>
+      <table data-test="extraction-batches">
+        <thead>
+          <tr>
+            <th>Repeat</th>
+            <th>Method</th>
+            <th>Batch elapsed</th>
+            <th>Peak jobs</th>
+            <th>Completed / selected</th>
+            <th>Failed / aborted</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="batch in result.batches" :key="batch.repetition">
+            <td>{{ batch.repetition }}</td>
+            <td>{{ batch.backend }}</td>
+            <td>{{ (batch.wallMs / 1000).toFixed(3) }} s</td>
+            <td>{{ batch.peakActiveJobs }}</td>
+            <td>{{ batch.completed }} / {{ result.selection.sizes.length }}</td>
+            <td>{{ batch.failed }} / {{ batch.aborted }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div class="table-scroll" v-if="rows.length">
       <table>
         <thead>
@@ -257,9 +326,10 @@ onBeforeUnmount(() => {
     <section v-if="samples.length">
       <h3>Local visual check: {{ samplePair }}</h3>
       <p>
-        Only the latest pair is retained. A passed row confirms output count and
-        shape, not identical pixels or frame choice. Compare the images; decoder
-        seeking can choose adjacent frames.
+        Only the latest file's output is retained (a pair in paired mode). A
+        passed row confirms output count and shape, not identical pixels or
+        frame choice. Compare the images; decoder seeking can choose adjacent
+        frames.
       </p>
       <div v-for="sample in samples" :key="sample.backend">
         <h4>{{ sample.backend }}</h4>
@@ -288,8 +358,10 @@ onBeforeUnmount(() => {
         target="_blank"
         rel="noopener"
         >Mediabunny 1.55.7 license, notices and corresponding source</a
-      >. Memory and interaction-latency metrics are unavailable. No normal-app
-      backend or concurrency setting is changed.
+      >. JSON includes setup, extraction, encoding, cleanup and worker-overhead
+      timings; read timings are nested inside worker work and must not be added
+      to it. Memory and interaction-latency metrics are unavailable. No
+      normal-app backend or concurrency setting is changed.
     </p>
   </section>
 </template>
