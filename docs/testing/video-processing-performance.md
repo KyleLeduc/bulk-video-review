@@ -14,6 +14,18 @@
 
 The prepared corpus is retained on the devbox under the ignored `20260904-184155-dependencies-and-performance/reference-corpus` task-evidence folder. Copy that public fixture folder to the browser machine when needed; no operator media is required. Attribution and fixture hashes are visible in the page and tracked in `src/shared/benchmark/referenceFixtures.json`; media is not bundled in the app.
 
+### Custom local files
+
+Choose **Input mode → Custom files** to select your own videos directly from the browser machine. No devbox copy, upload, reference filenames or manifest is required. Select 1–100 media files; unsupported/non-media entries are ignored with a visible count. Start with DOM ingestion 2, previews 1 and one fresh/cached pair, then increase repetitions or select multiple concurrency settings for a repeatable comparison. Keep the tab visible.
+
+The same selected File objects and order are retained across trials. Each row shows actual created, existing, skipped, failed and duplicate counts, plus preview failures. A valid fresh row checks nine persisted, decodable JPEG previews per successfully ingested video; its cached pair must reuse those outputs without generating previews again. Skipped videos remain visible: a passed trial means internally consistent evidence, **not that every custom file succeeded**. Processing/output failures, no successful videos, changed outcomes or uncertain cleanup exclude the suite from summaries.
+
+Custom results use the separate `pipeline-custom-files-v1` mode, not the fixed 7-video/63-frame baseline. Exported identity contains an opaque selection ID and ordered byte sizes, not filenames, paths or content hashes. Reselecting files creates a new ID; equal sizes are not proof of equal content. Only compare results from the same retained selection with matching outcomes and browser/build conditions. The reference CLI still rejects custom results.
+
+The existing 120-second deadline covers each trial including post-timing output inspection. Inspection retains at most 16 MiB of preview images; exceeding that bound invalidates the trial instead of silently truncating a passing result. Use a smaller selection if either limit is reached. Stop waits for the current trial; it is not immediate cancellation. Switching modes clears the selection and displayed results, so download JSON first.
+
+For native acceptance, return the downloaded JSON and note whether the counts and thumbnail images look right for your files. Review the report's environment, sizes and timestamps before sharing. Verify normal-review votes/thumbnails remain after returning and reloading; do not wipe the catalog. Personal videos can remain private on your desktop.
+
 ### Built local runtime and opt-in automation
 
 ```sh
@@ -27,7 +39,7 @@ node scripts/videoProcessingBenchmark.mjs --view pipeline --browser chrome \
 
 Run Edge separately with a new output path; use `--pilot` for a separate one-pair rehearsal. The CLI explicitly sets and validates DOM 2/1 fresh/cached pairs, delegates ordering to the page, verifies actual fixture sizes and streaming SHA-256 before browser launch, and checks served assets against local `dist`. It captures pre-launch runner/resource identity, browser product and page UA, with whole-browser sampled summed RSS recorded separately. Summed RSS may double-count shared pages and is not native decoder memory. A failed/interrupted runner retains provenance and the last observed completed-row snapshot; uncatchable process failure can still require task-container cleanup. Output creation is exclusive and never overwrites earlier evidence.
 
-`npm run test:benchmark -- --browser chrome` (then Edge) is explicitly opt-in and requires the enabled built runtime plus the prepared corpus mounted at `/corpus`. Ordinary `npm run test:e2e` excludes this reference-only spec and retains the normal gallery smoke. Cypress's frame rewriting is disabled to preserve the actual benchmark parent/source checks; [Cypress documents this option for valid code affected by rewriting](https://docs.cypress.io/app/references/configuration). The tests use disposable profiles, prove exact benchmark IndexedDB names, and retain a sentinel in the normal catalog.
+`npm run test:benchmark -- --browser chrome` (then Edge) is explicitly opt-in and requires the enabled built runtime plus the prepared corpus mounted at `/corpus`. It covers both reference and custom fresh/cached/stop cases, including ignored, invalid and duplicate custom inputs. Ordinary `npm run test:e2e` excludes this benchmark spec and retains the normal gallery smoke. Cypress's frame rewriting is disabled to preserve the actual benchmark parent/source checks; [Cypress documents this option for valid code affected by rewriting](https://docs.cypress.io/app/references/configuration). The tests use disposable profiles, prove exact benchmark IndexedDB names, and retain a sentinel in the normal catalog.
 
 Without exact runtime `BVR_BENCHMARK_ENABLED=true`, reserved benchmark routes return 404 before SPA fallback. The capability response and HTML are no-store. The same immutable image serves enabled preprod and disabled deployments; homelab's fixed BVR Compose template owns live enablement. Local Vite development is also usable when enabled, but its summaries are explicitly unqualified and cannot pass the strict built-artifact CLI gate. A source SHA alone does not establish CI provenance.
 

@@ -99,15 +99,16 @@ describe('real-store trial observation', () => {
       wrapper.unmount()
     },
   )
-  test.each([false, true])(
-    'waits for previews and retains terminal timing even if output reads fail (%s)',
-    async (readFailure) => {
+  test.each(['reference', 'read-failure', 'malformed-custom'])(
+    'waits for previews and retains terminal timing even if evidence is invalid (%s)',
+    async (scenario) => {
       const session = reactive({
         status: 'thumbnailing',
         pipelineCompletedAtMs: null as number | null,
         previewAttempts: { started: 1, completed: 0, failed: 0, aborted: 0 },
       })
-      const report = vi.fn(() => null)
+      const evidence = scenario === 'malformed-custom' ? {} : null
+      const report = vi.fn(() => evidence)
       state.store = {
         displayedIngestionSession: session,
         allVideos: [],
@@ -121,12 +122,16 @@ describe('real-store trial observation', () => {
       )
       const services = createVideoServices({ databaseConnection: connection })
       vi.spyOn(services.videoQueryAdapter, 'getAllVideos').mockResolvedValue([])
-      if (readFailure)
+      if (scenario === 'read-failure')
         vi.mocked(services.videoQueryAdapter.getAllVideos).mockRejectedValue(
           new Error('IndexedDB read failed'),
         )
       const wrapper = mount(VideoBenchmarkTrial, {
         props: {
+          selection:
+            scenario === 'malformed-custom'
+              ? createCustomSelection([new File(['clip'], 'personal.mp4')])
+              : undefined,
           connection,
           services,
           configuration: {
@@ -157,7 +162,8 @@ describe('real-store trial observation', () => {
       expect(report).toHaveBeenCalledOnce()
       expect(result.row.status).toBe('failed')
       expect(result.row.wallMs).toBeTypeOf('number')
-      if (readFailure)
+      expect(result.row.report).toEqual(evidence)
+      if (scenario === 'read-failure')
         expect(result.row.outputs?.errors).toContain(
           'Persisted output inspection failed',
         )

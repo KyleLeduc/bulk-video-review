@@ -72,8 +72,8 @@ async function run(files: File[]): Promise<TrialResult> {
     const expected = props.selection
       ? {
           supported:
-            (report?.foreground.counts.created ?? 0) +
-            (report?.foreground.counts.existing ?? 0),
+            (report?.foreground?.counts?.created ?? 0) +
+            (report?.foreground?.counts?.existing ?? 0),
         }
       : referenceExpected
     const errors: string[] = []

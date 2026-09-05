@@ -247,7 +247,11 @@ describe('benchmark protocol', () => {
     },
     rows: [
       {
-        configuration: { ...configurations[1], repetition: 1, cache: 'cold' },
+        configuration: {
+          ...configurations[1],
+          repetition: 1,
+          cache: 'cold' as const,
+        },
         status: 'passed',
         cleanup: 'complete',
         hidden: false,
@@ -332,6 +336,105 @@ describe('benchmark protocol', () => {
         fixture,
       ).length,
     ).toBeGreaterThan(0)
+  })
+
+  test('requires custom timing evidence, active lanes and honest fresh/cached classification', () => {
+    const fixture = {
+      kind: 'custom' as const,
+      id: '12345678-1234-4123-8123-123456789abc',
+      files: reference.files.map((file) => file.bytes),
+      verification: 'selection-only',
+    }
+    const configuration = completeSuite().rows[0].configuration
+    const cold = completeReport()
+    const warm = completeReport()
+    Object.assign(warm.foreground.counts, {
+      new: 0,
+      retryQueue: 2,
+      created: 0,
+      existing: 7,
+    })
+    Object.assign(warm.backgroundPreviews.counts, { total: 0, ready: 0 })
+    warm.backgroundPreviews.completedFrames = 0
+    warm.backgroundPreviews.peakActiveJobs = 0
+    Object.assign(warm.measurements, {
+      foreground: { metadata: phase(2, 2), persistence: phase(20) },
+      previews: {},
+    })
+    Object.assign(warm.measurements.previewAttempts, {
+      started: 0,
+      settled: 0,
+      completed: 0,
+    })
+    expect(
+      validateCustomReport(warm, { ...configuration, cache: 'warm' }, fixture),
+    ).toEqual([])
+    const mutations: Array<
+      (report: ReturnType<typeof completeReport>) => void
+    > = [
+      (report) => {
+        Object.assign(report.measurements, { foreground: {} })
+      },
+      (report) => {
+        Object.assign(report.measurements, { previews: {} })
+      },
+      (report) => {
+        report.foreground.concurrency.peakActiveJobs = 0
+      },
+      (report) => {
+        report.backgroundPreviews.peakActiveJobs = 0
+      },
+      (report) => {
+        report.foreground.counts.new--
+        report.foreground.counts.retryQueue++
+      },
+    ]
+    for (const mutate of mutations) {
+      const changed = structuredClone(cold)
+      mutate(changed)
+      expect(
+        validateCustomReport(changed, configuration, fixture).length,
+      ).toBeGreaterThan(0)
+    }
+    const wrongWarm = structuredClone(warm)
+    wrongWarm.foreground.counts.new++
+    wrongWarm.foreground.counts.retryQueue--
+    expect(
+      validateCustomReport(
+        wrongWarm,
+        { ...configuration, cache: 'warm' },
+        fixture,
+      ).length,
+    ).toBeGreaterThan(0)
+    const noSuccess = structuredClone(cold)
+    Object.assign(noSuccess.foreground.counts, { created: 0, skipped: 9 })
+    expect(validateCustomReport(noSuccess, configuration, fixture)).toContain(
+      'No custom videos successfully ingested',
+    )
+    const suite = {
+      ...completeSuite(),
+      mode: 'pipeline-custom-files-v1',
+      fixture,
+      settings: { ...completeSuite().settings, includeCached: true },
+      rows: [
+        completeSuite().rows[0],
+        {
+          ...completeSuite().rows[0],
+          configuration: { ...configuration, cache: 'warm' },
+          report: warm,
+        },
+      ],
+    }
+    expect(validateSuite(suite, reference, { allowCustomFiles: true })).toEqual(
+      [],
+    )
+    const changedOutcome = structuredClone(suite)
+    changedOutcome.rows[1].report.foreground.counts.skipped--
+    changedOutcome.rows[1].report.foreground.counts.duplicates++
+    changedOutcome.rows[1].report.foreground.counts.retryQueue--
+    expect(
+      validateSuite(changedOutcome, reference, { allowCustomFiles: true }),
+    ).toContain('Custom outcomes changed across trials:1')
   })
 
   test('allows explicitly unqualified development summaries without qualifying CLI evidence', () => {

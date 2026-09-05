@@ -169,11 +169,17 @@ export function validateCustomReport(report, configuration, selection) {
         actual.concurrency.effective !== requested ||
         !Number.isInteger(peak) ||
         peak < 0 ||
+        ((lane === 'foreground' || counts.created > 0) && peak === 0) ||
         peak > requested
       )
         errors.push('Custom concurrency mismatch')
     }
     for (const lane of ['foreground', 'previews']) {
+      if (
+        (lane === 'foreground' || counts.created > 0) &&
+        Object.keys(measurements[lane] ?? {}).length === 0
+      )
+        errors.push(`Missing custom phase evidence:${lane}`)
       for (const [phase, sample] of Object.entries(measurements[lane] ?? {})) {
         if (
           ![
@@ -220,8 +226,9 @@ export function validateCustomReport(report, configuration, selection) {
       errors.push('Custom preview output mismatch')
     if (
       configuration.cache === 'cold'
-        ? counts.existing !== 0
+        ? counts.existing !== 0 || counts.retryQueue !== 0
         : counts.created !== 0 ||
+          counts.new !== 0 ||
           Object.keys(measurements.previews ?? {}).length !== 0
     )
       errors.push('Custom cache state mismatch')

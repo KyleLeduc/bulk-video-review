@@ -5,6 +5,7 @@ import {
   validateCustomFiles,
 } from '../shared/benchmark/videoBenchmarkProtocol'
 import reference from '../shared/benchmark/referenceFixtures.json'
+import { isBrowserPlayableVideoFile } from '../shared/video/browserPlayableVideoTypes'
 
 async function initialize() {
   const response = await fetch('/benchmark/capabilities', { cache: 'no-store' })
@@ -48,6 +49,11 @@ async function initialize() {
           selection === undefined
             ? orderFixtureFiles(files, reference)
             : validateCustomFiles(files, selection)
+        if (
+          selection !== undefined &&
+          !ordered.every(isBrowserPlayableVideoFile)
+        )
+          throw new TypeError('Unsupported custom media type')
         // Qualify capability and message ownership before creating services.
         const [
           { createApp },

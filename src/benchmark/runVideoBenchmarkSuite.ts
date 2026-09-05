@@ -11,6 +11,7 @@ import {
 } from '../shared/benchmark/videoBenchmarkProtocol'
 import reference from '../shared/benchmark/referenceFixtures.json'
 import { DatabaseConnection } from '../infrastructure/database/DatabaseConnection'
+import { isBrowserPlayableVideoFile } from '../shared/video/browserPlayableVideoTypes'
 
 export interface SuiteOptions {
   files: File[]
@@ -77,7 +78,11 @@ export async function runVideoBenchmarkSuite(
     options.selection === undefined
       ? undefined
       : structuredClone(options.selection)
-  if (selection !== undefined) validateCustomFiles(files, selection)
+  if (selection !== undefined) {
+    validateCustomFiles(files, selection)
+    if (!files.every(isBrowserPlayableVideoFile))
+      throw new TypeError('Unsupported custom media type')
+  }
   const settings = {
     configurations: options.configurations.map((value) => ({ ...value })),
     repetitions: options.repetitions,

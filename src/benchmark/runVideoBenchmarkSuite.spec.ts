@@ -8,7 +8,10 @@ const runVideoBenchmarkSuite = async (
     options,
     dependencies,
   )
-afterEach(() => vi.resetModules())
+afterEach(() => {
+  vi.resetModules()
+  vi.restoreAllMocks()
+})
 import type { HostOptions, TrialResult } from './videoBenchmarkHost'
 import { createCustomSelection } from '../shared/benchmark/videoBenchmarkProtocol'
 
@@ -73,6 +76,9 @@ const setup = () => {
 
 describe('serial benchmark suite', () => {
   test('passes one immutable custom selection through fresh/cached hosts and keeps distinct evidence', async () => {
+    vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue(
+      'probably',
+    )
     const { options, dependencies, hosts } = setup()
     options.files = [new File(['clip'], 'private.mp4')]
     options.selection = createCustomSelection(options.files)
@@ -86,6 +92,19 @@ describe('serial benchmark suite', () => {
       hosts.every((host) => host.selection?.id === options.selection?.id),
     ).toBe(true)
     expect(JSON.stringify(result)).not.toContain('private.mp4')
+  })
+  test('rejects non-media custom input before creating a host or database', async () => {
+    vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue(
+      'probably',
+    )
+    const { options, dependencies } = setup()
+    options.files = [new File(['notes'], 'private.txt', { type: 'text/plain' })]
+    options.selection = createCustomSelection(options.files)
+    await expect(runVideoBenchmarkSuite(options, dependencies)).rejects.toThrow(
+      'Unsupported custom media type',
+    )
+    expect(dependencies.createHost).not.toHaveBeenCalled()
+    expect(dependencies.deletePair).not.toHaveBeenCalled()
   })
   test.each(['onImages', 'onRow'] as const)(
     'retains evidence and halts safely if %s fails',

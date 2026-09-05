@@ -5,6 +5,8 @@ import {
   summarize,
   validatePipelineSuite,
   type BuildIdentity,
+  createCustomSelection,
+  type CustomSelection,
 } from '../shared/benchmark/videoBenchmarkProtocol'
 import reference from '../shared/benchmark/referenceFixtures.json'
 import { isBrowserPlayableVideoFile } from '../shared/video/browserPlayableVideoTypes'
@@ -16,6 +18,8 @@ import type { TrialRow } from './videoBenchmarkHost'
 
 const props = defineProps<{ build: BuildIdentity; capable: boolean }>()
 const files = shallowRef<File[]>([])
+const inputMode = ref('reference')
+const selection = shallowRef<CustomSelection>()
 const selectionError = ref('')
 const ignored = ref(0)
 const foreground = ref('2')
@@ -38,7 +42,9 @@ const validSettings = computed(
 const canStart = computed(
   () =>
     props.capable &&
-    files.value.length === reference.files.length &&
+    (inputMode.value === 'custom'
+      ? Boolean(selection.value)
+      : files.value.length === reference.files.length) &&
     validSettings.value &&
     !active.value,
 )
@@ -46,6 +52,7 @@ const evidenceErrors = computed(() =>
   result.value
     ? validatePipelineSuite(result.value, reference, {
         allowDevelopmentBuild: true,
+        allowCustomFiles: true,
       })
     : [],
 )
@@ -93,17 +100,43 @@ function phaseTotals(report: unknown) {
 
 function select(event: Event) {
   if (active.value) return
-  files.value = []
-  selectionError.value = ''
+  resetSelection()
   const selected = Array.from((event.target as HTMLInputElement).files ?? [])
   const media = selected.filter(isBrowserPlayableVideoFile)
   ignored.value = selected.length - media.length
   try {
-    files.value = orderFixtureFiles(media, reference)
+    if (inputMode.value === 'custom') {
+      selection.value = createCustomSelection(media)
+      files.value = media
+    } else files.value = orderFixtureFiles(media, reference)
   } catch (error) {
     selectionError.value =
       error instanceof Error ? error.message : 'Invalid fixture selection'
   }
+}
+function resetSelection() {
+  if (active.value) return
+  files.value = []
+  selection.value = undefined
+  selectionError.value = ''
+  ignored.value = 0
+  result.value = null
+  rows.value = []
+  failure.value = ''
+  setImages([])
+}
+
+function outcomes(report: unknown) {
+  const data = report as {
+    foreground?: { counts?: Record<string, number> }
+    backgroundPreviews?: { counts?: { failed?: number } }
+  } | null
+  return [
+    ...['created', 'existing', 'skipped', 'failed', 'duplicates'].map(
+      (key) => `${key}: ${data?.foreground?.counts?.[key] ?? 'unavailable'}`,
+    ),
+    `preview failures: ${data?.backgroundPreviews?.counts?.failed ?? 'unavailable'}`,
+  ].join(' · ')
 }
 function setImages(blobs: Blob[]) {
   for (const url of images.value) URL.revokeObjectURL(url)
@@ -126,6 +159,7 @@ async function start() {
   try {
     result.value = await runVideoBenchmarkSuite({
       files: files.value,
+      selection: selection.value,
       configurations,
       repetitions: repetitions.value,
       includeCached: includeCached.value,
@@ -141,6 +175,7 @@ async function start() {
       result.value.status === 'completed' &&
       validatePipelineSuite(result.value, reference, {
         allowDevelopmentBuild: true,
+        allowCustomFiles: true,
       }).length
     )
       result.value = {
@@ -202,28 +237,52 @@ onBeforeUnmount(() => {
       Locks, DataTransfer and image decoding available.
     </p>
     <fieldset :disabled="active">
-      <legend>Fixed reference fixtures</legend>
+      <legend>Video selection</legend>
       <label
-        >Choose the prepared fixture folder
+        >Input mode
+        <select
+          v-model="inputMode"
+          data-test="input-mode"
+          @change="resetSelection"
+        >
+          <option value="reference">Reference fixtures</option>
+          <option value="custom">Custom files</option>
+        </select>
+      </label>
+      <label
+        >{{
+          inputMode === 'custom'
+            ? 'Choose your local video files'
+            : 'Choose the prepared fixture folder'
+        }}
         <input
+          :key="inputMode"
           data-test="fixture-files"
           type="file"
           multiple
-          webkitdirectory
+          :webkitdirectory="inputMode === 'reference' ? '' : undefined"
           @change="select"
       /></label>
-      <p>
+      <p v-if="inputMode === 'reference'">
         {{ reference.id }} · {{ files.length }} /
         {{ reference.files.length }} media selected ·
         <strong>selection-only</strong> verification.
       </p>
-      <p>
+      <p v-if="inputMode === 'reference'">
         Names, sizes, paths and multiplicity are checked; content hashes are not
         computed in this page. The CLI verifies full SHA-256 separately.
         Metadata files and archives are ignored ({{ ignored }}).
       </p>
+      <p v-else>
+        Custom files · {{ files.length }} media selected ·
+        {{ ignored }} unsupported/non-media files ignored. Select 1–100 videos;
+        the same selection is reused for every trial. Results describe observed
+        outcomes, not the reference baseline. Names/paths and video contents are
+        not exported; the selection ID is not a content hash. The current
+        deadline is two minutes per trial, including output checks.
+      </p>
       <p v-if="selectionError" role="alert">{{ selectionError }}</p>
-      <details>
+      <details v-if="inputMode === 'reference'">
         <summary>Fixture manifest and attribution</summary>
         <ul>
           <li v-for="file in reference.files" :key="file.path">
@@ -338,6 +397,11 @@ onBeforeUnmount(() => {
             <td>
               {{ row.outputs?.videos ?? '—' }} videos /
               {{ row.outputs?.frames ?? '—' }} frames
+              <small
+                v-if="inputMode === 'custom'"
+                data-test="custom-outcomes"
+                >{{ outcomes(row.report) }}</small
+              >
             </td>
             <td>
               {{ row.status }} / {{ row.cleanup
@@ -358,6 +422,12 @@ onBeforeUnmount(() => {
     </section>
     <section v-if="result">
       <h2>Suite evidence</h2>
+      <p v-if="result.mode === 'pipeline-custom-files-v1'" class="notice">
+        Custom file results — not the reference baseline. A passed trial means
+        consistent observed evidence, not that every input succeeded. Review
+        skipped/failed counts and thumbnails. Compare only runs of the same
+        retained selection and outcomes.
+      </p>
       <p v-if="evidenceErrors.length" role="alert">
         Not a complete comparable suite:
         {{ [...new Set(evidenceErrors)].join('; ') }}
