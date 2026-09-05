@@ -1,4 +1,5 @@
 import type { VideoEntity } from '@domain/entities'
+import type { VideoProcessingTimingObserver } from './VideoProcessingTiming'
 
 export interface VideoMetadataExtractionResult {
   videoEntity: VideoEntity
@@ -7,6 +8,7 @@ export interface VideoMetadataExtractionResult {
 
 export interface ExtractVideoMetadataOptions {
   idHint?: string
+  onTiming?: VideoProcessingTimingObserver
 }
 
 export interface IVideoMetadataExtractor {

@@ -187,6 +187,54 @@
     <section class="panel-section">
       <h2>Run report</h2>
       <template v-if="runReport">
+        <p>Backend: DOM (workers disabled)</p>
+        <table class="phase-timings">
+          <caption>
+            Phase work
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Phase</th>
+              <th scope="col">Ingestion</th>
+              <th scope="col">Previews</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="phase in processingPhases"
+              :key="phase"
+              :data-testid="`phase-${phase}`"
+            >
+              <th scope="row">{{ phase }}</th>
+              <td>
+                {{
+                  formatPhaseTime(
+                    runReport.measurements.foreground[phase]?.totalMs,
+                  )
+                }}
+              </td>
+              <td>
+                {{
+                  formatPhaseTime(
+                    runReport.measurements.previews[phase]?.totalMs,
+                  )
+                }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted">
+          Summed operation time, not pipeline wall time. Capture includes
+          resize. Missing phases are unmeasured, not zero-cost.
+        </p>
+        <p class="muted">
+          Preview attempts:
+          {{ runReport.measurements.previewAttempts.settled }}/{{
+            runReport.measurements.previewAttempts.started
+          }}
+          settled; {{ runReport.measurements.previewAttempts.failed }} failed,
+          {{ runReport.measurements.previewAttempts.aborted }} aborted.
+        </p>
         <button
           type="button"
           data-testid="copy-ingestion-report"
@@ -249,6 +297,16 @@ const {
 
 const ingestionConcurrencyOptions = [1, 2, 3, 4]
 const thumbnailConcurrencyOptions = [1, 2, 3, 4]
+const processingPhases = [
+  'metadata',
+  'seek',
+  'capture',
+  'encode',
+  'serialize',
+  'persistence',
+] as const
+const formatPhaseTime = (durationMs?: number) =>
+  durationMs == null ? '—' : `${durationMs.toFixed(2)} ms`
 const copyStatus = ref('')
 const copyStatusReportJson = ref('')
 const ingestionConcurrencySelection = computed(() =>
@@ -264,7 +322,11 @@ const thumbnailConcurrencySelection = computed(() =>
 const displayedIngestionProgress = computed(
   () => displayedIngestionSession.value?.progress ?? null,
 )
-const runReport = computed(() => videoStore.createDisplayedIngestionRunReport())
+const runReport = computed(() =>
+  isDiagnosticsPanelOpen.value
+    ? videoStore.createDisplayedIngestionRunReport()
+    : null,
+)
 const reportJson = computed(() =>
   runReport.value ? JSON.stringify(runReport.value, null, 2) : '',
 )
@@ -433,6 +495,19 @@ nav {
 
 .panel-section:last-of-type {
   border-bottom: 0;
+}
+
+.phase-timings {
+  width: 100%;
+  font-size: 0.8rem;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.phase-timings th,
+.phase-timings td {
+  padding: 0.35rem 0.2rem;
+  overflow-wrap: anywhere;
 }
 
 .stats-list {

@@ -38,6 +38,82 @@ const buildPreviewRepository = (): IVideoPreviewRepository => ({
 })
 
 describe('UpdateVideoThumbnailsUseCase', () => {
+  test.each(['completed', 'failed', 'aborted'] as const)(
+    'measures awaited preview persistence through %s',
+    async (outcome) => {
+      let clockMs = 0
+      const clock = vi
+        .spyOn(performance, 'now')
+        .mockImplementation(() => clockMs)
+      const aggregate = buildVideoAggregate()
+      const repository: IVideoAggregateRepository = {
+        getVideo: async () => {
+          clockMs += 3
+          return aggregate
+        },
+        updateVideo: async (video) => {
+          clockMs += 7
+          return video
+        },
+        getAllVideos: async () => [],
+        postVideo: async (video) => ({ ...video, votes: 0 }),
+        updateVotes: async () => null,
+        wipeData: async () => {},
+      }
+      const previews = buildPreviewRepository()
+      const error = new DOMException(
+        'write failed',
+        outcome === 'aborted' ? 'AbortError' : 'Error',
+      )
+      previews.replaceFrames = async () => {
+        clockMs += 5
+        if (outcome !== 'completed') throw error
+      }
+      const publisher = {
+        publish: async () => {
+          clockMs += 100
+        },
+        publishBatch: async () => {},
+      }
+      const onTiming = vi.fn()
+      const useCase = new UpdateVideoThumbnailsUseCase(
+        {
+          generateThumbnails: async (_url, options) => {
+            options?.onTiming?.({
+              phase: 'encode',
+              durationMs: 2,
+              outcome: 'completed',
+            })
+            return previewFrames
+          },
+        },
+        repository,
+        buildSessionRegistry(),
+        publisher,
+        previews,
+      )
+      try {
+        const result = useCase.execute(
+          buildParsedVideo({ url: 'blob:video' }),
+          { onTiming },
+        )
+        if (outcome === 'completed')
+          await expect(result).resolves.toMatchObject({ previewFrames })
+        else await expect(result).rejects.toBe(error)
+        expect(onTiming.mock.calls).toEqual([
+          [{ phase: 'encode', durationMs: 2, outcome: 'completed' }],
+          [{ phase: 'persistence', durationMs: 3, outcome: 'completed' }],
+          [{ phase: 'persistence', durationMs: 5, outcome }],
+          ...(outcome === 'completed'
+            ? [[{ phase: 'persistence', durationMs: 7, outcome }]]
+            : []),
+        ])
+      } finally {
+        clock.mockRestore()
+      }
+    },
+  )
+
   test.each(['entry', 'lookup', 'progress', 'frames', 'aggregate'] as const)(
     'does not publish stale completion when cancelled during %s',
     async (stage) => {

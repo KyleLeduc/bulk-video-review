@@ -73,6 +73,58 @@ describe('seekToTime', () => {
 })
 
 describe('generateThumbnails', () => {
+  it('measures seek, synchronous capture and asynchronous encode separately', async () => {
+    let clockMs = 0
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => clockMs)
+    const video = buildVideoElement({
+      duration: 12,
+      onSeek: (_time, signalSeeked) => {
+        clockMs += 7
+        signalSeeked()
+      },
+    })
+    const context = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue({
+        drawImage: () => {
+          clockMs += 3
+        },
+      } as unknown as CanvasRenderingContext2D)
+    const encode = vi
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+      .mockImplementation((callback) => {
+        clockMs += 11
+        callback(new Blob(['thumb']))
+      })
+    const onTiming = vi.fn()
+    try {
+      expect(
+        await generateThumbnails(video, { count: 2, onTiming }),
+      ).toHaveLength(1)
+      expect(onTiming.mock.calls).toEqual([
+        [{ phase: 'seek', durationMs: 7, outcome: 'completed' }],
+        [{ phase: 'capture', durationMs: 3, outcome: 'completed' }],
+        [{ phase: 'encode', durationMs: 11, outcome: 'completed' }],
+      ])
+      onTiming.mockClear()
+      await captureThumbnail(video, 2, { onTiming })
+      expect(onTiming.mock.calls.map(([sample]) => sample.phase)).toEqual([
+        'seek',
+        'capture',
+        'encode',
+        'serialize',
+      ])
+      expect(onTiming.mock.calls[3][0]).toMatchObject({
+        outcome: 'completed',
+        durationMs: 0,
+      })
+    } finally {
+      clock.mockRestore()
+      context.mockRestore()
+      encode.mockRestore()
+    }
+  })
+
   it('returns [] when a later seek fails after earlier successes', async () => {
     vi.useFakeTimers()
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})

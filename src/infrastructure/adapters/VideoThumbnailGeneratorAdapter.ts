@@ -2,6 +2,7 @@ import type {
   IVideoThumbnailGenerator,
   VideoPreviewGenerationOptions,
 } from '@app/ports'
+import { measureVideoProcessing } from '@app/services/videoProcessingTiming'
 import {
   disposeVideoElement,
   generateThumbnails,
@@ -23,7 +24,11 @@ export class VideoThumbnailGeneratorAdapter
         completedFrames: 0,
         totalFrames: Math.max(0, (options.count ?? 10) - 1),
       })
-      video = await loadVideoElement(url, { signal: options.signal })
+      video = await measureVideoProcessing(
+        'metadata',
+        () => loadVideoElement(url, { signal: options.signal }),
+        options.onTiming,
+      )
       return await generateThumbnails(video, options)
     } finally {
       disposeVideoElement(video)

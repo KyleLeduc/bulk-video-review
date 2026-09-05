@@ -1,6 +1,6 @@
 # Product and maintenance backlog
 
-Items here are planned work, not implemented behavior. Reassess versions and browser capabilities when starting an item.
+Individual statuses distinguish planned work, verified branch changes and integrated behavior. Reassess versions and browser capabilities when starting an item.
 
 ## BVR-001 — Upgrade dependencies and modernize the toolchain
 
@@ -45,7 +45,7 @@ Local checks on Node 24.19.0: private clean install, lint, app/Cypress types, 30
 
 ## BVR-002 — Parallel video ingestion and thumbnail processing
 
-**Status:** Proposed design and implementation plan; no implementation started.
+**Status:** Measurement-only implementation on `feat/video-processing-measurements`, stacked on the verified dependency-security branch. No worker implementation, integration or deployment. Representative native Chrome/Edge baseline remains pending the user's permitted local video corpus.
 
 **Benefit:** Import batches and generate previews faster while keeping filtering, scrolling, voting, and playback responsive.
 
@@ -57,3 +57,5 @@ Local checks on Node 24.19.0: private clean install, lint, app/Cypress types, 30
 - Treat cross-origin isolation/threaded WASM as a separate, evidence-gated option, not a prerequisite for ordinary workers or WebCodecs.
 
 See the [design](plans/2026-09-04-parallel-video-processing-design.md) and [implementation plan](plans/2026-09-04-parallel-video-processing.md). The dependency refresh is separately deliverable; only a demonstrated tooling/security prerequisite should block the first worker phase.
+
+The [measurement task expansion](plans/2026-09-04-video-processing-measurements.md) and [measurement protocol/evidence](testing/video-processing-performance.md) cover actual phase timings, session/attempt attribution and the opt-in browser UI probe. Synthetic real Chrome/Edge smoke qualifies instrumentation, not throughput, p95 interactions or native memory. Keep the baseline gate open before introducing workers.

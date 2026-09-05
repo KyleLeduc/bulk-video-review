@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { VideoPreviewGenerationOptions } from '@app/ports'
+import type { VideoIngestionOptions } from '@app/usecases/VideoIngestionUseCase'
 import type { ParsedVideo } from '@domain/entities'
 import { useVideoStore } from '@presentation/stores'
 import {
@@ -55,6 +56,73 @@ describe('useVideoStore ingestion scheduler', () => {
     vi.restoreAllMocks()
   })
 
+  test('keeps phase work in its execution session, detached from queue time and late callbacks', async () => {
+    vi.useFakeTimers()
+    let releaseFirst: () => void = () => {}
+    const callbacks: Array<VideoIngestionOptions['onTiming']> = []
+    const context = createPresentationTestContext({
+      useCases: {
+        addVideosUseCase: {
+          execute: vi.fn(async function* (_items, options) {
+            callbacks.push(options?.onTiming)
+            if (callbacks.length === 1)
+              await new Promise<void>((resolve) => {
+                releaseFirst = resolve
+              })
+            options?.onTiming?.({
+              videoId: 'private-id',
+              phase: 'metadata',
+              durationMs: callbacks.length * 7,
+              outcome: 'completed',
+            })
+            yield* []
+          }),
+        },
+      },
+    })
+    const store = mountStore(context)
+    const file = new File(['video'], 'private.mp4', { type: 'video/mp4' })
+    const first = store.addVideosFromFiles(createMockFileList(file))
+    await flushPromises()
+    const second = store.addVideosFromFiles(createMockFileList(file))
+    await vi.advanceTimersByTimeAsync(100)
+    releaseFirst()
+    await first
+    await second
+    const firstReport = store.createIngestionRunReport('ingestion-1')!
+    const secondReport = store.createIngestionRunReport('ingestion-2')!
+    expect(firstReport).toHaveProperty('measurements')
+    expect(firstReport.measurements.foreground.metadata).toEqual({
+      count: 1,
+      completed: 1,
+      failed: 0,
+      aborted: 0,
+      totalMs: 7,
+      maxMs: 7,
+    })
+    expect(secondReport.measurements.foreground.metadata?.totalMs).toBe(14)
+    expect(secondReport.timing.queueWaitMs).toBe(100)
+    expect(secondReport.measurements).toMatchObject({
+      version: 1,
+      backend: 'dom',
+      workersEnabled: false,
+      fallbackReason: null,
+      foregroundCancellationSupported: false,
+    })
+    const saved = JSON.stringify(store.createIngestionRunReport('ingestion-1'))
+    callbacks[0]?.({
+      videoId: 'private-id',
+      phase: 'encode',
+      durationMs: 999,
+      outcome: 'completed',
+    })
+    firstReport.measurements.foreground.metadata!.totalMs = 999
+    expect(JSON.stringify(store.createIngestionRunReport('ingestion-1'))).toBe(
+      saved,
+    )
+    expect(JSON.stringify(secondReport)).not.toContain('private')
+  })
+
   test('uses two foreground jobs by default and clamps manual settings to one through four', async () => {
     const context = createPresentationTestContext({
       useCases: {
@@ -75,14 +143,20 @@ describe('useVideoStore ingestion scheduler', () => {
     await store.addVideosFromFiles(createMockFileList(first))
     expect(
       context.mocks.useCases.addVideosUseCase.execute,
-    ).toHaveBeenNthCalledWith(1, [{ file: first }], { concurrency: 2 })
+    ).toHaveBeenNthCalledWith(1, [{ file: first }], {
+      concurrency: 2,
+      onTiming: expect.any(Function),
+    })
     ;(store as any).setIngestionConcurrencyOverride(99)
     expect((store as any).effectiveIngestionConcurrency).toBe(4)
 
     await store.addVideosFromFiles(createMockFileList(second))
     expect(
       context.mocks.useCases.addVideosUseCase.execute,
-    ).toHaveBeenNthCalledWith(2, [{ file: second }], { concurrency: 4 })
+    ).toHaveBeenNthCalledWith(2, [{ file: second }], {
+      concurrency: 4,
+      onTiming: expect.any(Function),
+    })
     ;(store as any).setIngestionConcurrencyOverride(0)
     expect((store as any).effectiveIngestionConcurrency).toBe(1)
     ;(store as any).setIngestionConcurrencyOverride(null)
@@ -128,7 +202,10 @@ describe('useVideoStore ingestion scheduler', () => {
 
       expect(
         context.mocks.useCases.addVideosUseCase.execute,
-      ).toHaveBeenNthCalledWith(2, [{ file: second }], { concurrency: 1 })
+      ).toHaveBeenNthCalledWith(2, [{ file: second }], {
+        concurrency: 1,
+        onTiming: expect.any(Function),
+      })
     } finally {
       releaseFirst?.()
       await firstRun
@@ -440,6 +517,7 @@ describe('useVideoStore ingestion scheduler', () => {
   test('completes every owning ingestion session when a repeated video shares a requeued preview job', async () => {
     vi.useFakeTimers()
     let previewCallCount = 0
+    const callbacks: Array<VideoPreviewGenerationOptions['onTiming']> = []
     const context = createPresentationTestContext({
       useCases: {
         addVideosUseCase: {
@@ -468,9 +546,15 @@ describe('useVideoStore ingestion scheduler', () => {
           execute: vi.fn(
             (video: ParsedVideo, options?: VideoPreviewGenerationOptions) => {
               previewCallCount += 1
+              callbacks.push(options?.onTiming)
               if (previewCallCount === 1) {
                 return new Promise<ParsedVideo>((_resolve, reject) => {
                   const rejectAsAborted = () => {
+                    options?.onTiming?.({
+                      phase: 'encode',
+                      durationMs: 5,
+                      outcome: 'aborted',
+                    })
                     const error = new Error('Preview generation interrupted')
                     error.name = 'AbortError'
                     reject(error)
@@ -488,6 +572,11 @@ describe('useVideoStore ingestion scheduler', () => {
                 })
               }
 
+              options?.onTiming?.({
+                phase: 'encode',
+                durationMs: 12,
+                outcome: 'completed',
+              })
               return Promise.resolve(
                 buildParsedVideo({
                   ...video,
@@ -537,6 +626,39 @@ describe('useVideoStore ingestion scheduler', () => {
         }),
       }),
     )
+    expect(
+      store.createIngestionRunReport('ingestion-1')?.measurements,
+    ).toMatchObject({
+      previews: {
+        encode: { count: 2, totalMs: 17, completed: 1, aborted: 1, failed: 0 },
+      },
+      previewAttempts: {
+        started: 2,
+        settled: 2,
+        completed: 1,
+        aborted: 1,
+        failed: 0,
+      },
+    })
+    expect(
+      store.createIngestionRunReport('ingestion-2')?.measurements,
+    ).toMatchObject({
+      previews: { encode: { count: 1, totalMs: 12, completed: 1, aborted: 0 } },
+      previewAttempts: {
+        started: 1,
+        settled: 1,
+        completed: 1,
+        aborted: 0,
+        failed: 0,
+      },
+    })
+    const before = JSON.stringify(store.createIngestionRunReport('ingestion-1'))
+    callbacks.forEach((callback) =>
+      callback?.({ phase: 'encode', durationMs: 999, outcome: 'completed' }),
+    )
+    expect(JSON.stringify(store.createIngestionRunReport('ingestion-1'))).toBe(
+      before,
+    )
   })
 
   test('freezes a completed run preview report before later direct warmups', async () => {
@@ -567,17 +689,24 @@ describe('useVideoStore ingestion scheduler', () => {
           }),
         },
         updateThumbUseCase: {
-          execute: vi.fn((video: ParsedVideo) => {
-            previewCallCount += 1
-            return Promise.resolve(
-              previewCallCount === 1
-                ? video
-                : buildParsedVideo({
-                    ...video,
-                    thumbUrls: ['thumb-1', 'thumb-2'],
-                  }),
-            )
-          }),
+          execute: vi.fn(
+            (video: ParsedVideo, options?: VideoPreviewGenerationOptions) => {
+              previewCallCount += 1
+              options?.onTiming?.({
+                phase: 'seek',
+                durationMs: 50,
+                outcome: previewCallCount === 1 ? 'failed' : 'completed',
+              })
+              return Promise.resolve(
+                previewCallCount === 1
+                  ? video
+                  : buildParsedVideo({
+                      ...video,
+                      thumbUrls: ['thumb-1', 'thumb-2'],
+                    }),
+              )
+            },
+          ),
         },
       },
     })
@@ -601,6 +730,14 @@ describe('useVideoStore ingestion scheduler', () => {
       }),
     )
     const completedReportJson = JSON.stringify(completedReport)
+    expect(completedReport).toHaveProperty('measurements')
+    expect(completedReport.measurements.previewAttempts).toEqual({
+      started: 1,
+      settled: 1,
+      completed: 0,
+      failed: 1,
+      aborted: 0,
+    })
 
     await store.updateVideoThumbnails('id-1')
 
@@ -608,6 +745,67 @@ describe('useVideoStore ingestion scheduler', () => {
       JSON.stringify((store as any).createDisplayedIngestionRunReport()),
     ).toBe(completedReportJson)
   })
+
+  test.each(['remove', 'clear'] as const)(
+    'does not finalize a %s video run before its aborted attempt settles',
+    async (action) => {
+      vi.useFakeTimers()
+      let rejectAttempt: (error: unknown) => void = () => {}
+      let timing: VideoPreviewGenerationOptions['onTiming']
+      const context = createPresentationTestContext({
+        useCases: {
+          addVideosUseCase: {
+            execute: vi.fn(async function* () {
+              yield {
+                type: 'video' as const,
+                video: buildParsedVideo({ id: 'remove-me' }),
+              }
+            }),
+          },
+          updateThumbUseCase: {
+            execute: vi.fn((_video, options) => {
+              timing = options?.onTiming
+              return new Promise<ParsedVideo>((_resolve, reject) => {
+                rejectAttempt = reject
+              })
+            }),
+          },
+        },
+      })
+      const store = mountStore(context)
+      await store.addVideosFromFiles(
+        createMockFileList(new File(['v'], 'v.mp4', { type: 'video/mp4' })),
+      )
+      await vi.advanceTimersByTimeAsync(150)
+      if (action === 'remove') store.removeVideo('remove-me')
+      else store.removeAllUnpinned()
+      expect(store.createDisplayedIngestionRunReport()?.status).toBe(
+        'thumbnailing',
+      )
+      expect(
+        store.createDisplayedIngestionRunReport()?.timing.pipelineCompletedAtMs,
+      ).toBeNull()
+      await vi.advanceTimersByTimeAsync(25)
+      timing?.({ phase: 'encode', durationMs: 25, outcome: 'aborted' })
+      rejectAttempt(new DOMException('removed', 'AbortError'))
+      await flushPromises()
+      const report = store.createDisplayedIngestionRunReport()!
+      expect(report.status).toBe('completed')
+      expect(report.measurements.previewAttempts).toEqual({
+        started: 1,
+        settled: 1,
+        completed: 0,
+        failed: 0,
+        aborted: 1,
+      })
+      expect(report.timing.pipelineElapsedMs).toBe(175)
+      const before = JSON.stringify(report)
+      timing?.({ phase: 'encode', durationMs: 99, outcome: 'completed' })
+      expect(JSON.stringify(store.createDisplayedIngestionRunReport())).toBe(
+        before,
+      )
+    },
+  )
 
   test('uses the background concurrency captured with the ingestion session', async () => {
     vi.useFakeTimers()

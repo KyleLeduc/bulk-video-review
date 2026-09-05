@@ -1,5 +1,6 @@
 import type { ParsedVideo } from '@domain/entities'
 import type { VideoImportItem } from '@domain/valueObjects'
+import type { VideoProcessingTiming } from '@app/ports/VideoProcessingTiming'
 
 export type VideoIngestionPhase =
   | 'identifying'
@@ -10,6 +11,7 @@ export type VideoIngestionPhase =
 
 export interface VideoIngestionOptions {
   concurrency?: number
+  onTiming?: (timing: VideoProcessingTiming & { videoId: string }) => void
 }
 
 export interface VideoIngestionProgress {

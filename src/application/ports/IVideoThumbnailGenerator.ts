@@ -1,4 +1,5 @@
 import type { VideoPreviewFrame } from '@domain/entities'
+import type { VideoProcessingTimingObserver } from './VideoProcessingTiming'
 
 export type VideoPreviewGenerationProgress = {
   stage: 'loading' | 'seeking' | 'encoding' | 'persisting'
@@ -12,6 +13,7 @@ export type VideoPreviewGenerationOptions = {
   maxWidth?: number
   signal?: AbortSignal
   onProgress?: (progress: VideoPreviewGenerationProgress) => void
+  onTiming?: VideoProcessingTimingObserver
 }
 
 export interface IVideoThumbnailGenerator {

@@ -1,4 +1,5 @@
 import type { ParsedVideo } from '@domain/entities'
+import { measureVideoProcessing } from '@app/services/videoProcessingTiming'
 import type {
   IVideoThumbnailGenerator,
   IEventPublisher,
@@ -54,7 +55,11 @@ export class UpdateVideoThumbnailsUseCase {
       return video
     }
 
-    const currentAggregate = await this.aggregateRepository.getVideo(video.id)
+    const currentAggregate = await measureVideoProcessing(
+      'persistence',
+      () => this.aggregateRepository.getVideo(video.id),
+      options?.onTiming,
+    )
     options?.signal?.throwIfAborted()
     if (!currentAggregate) {
       return video
@@ -67,16 +72,25 @@ export class UpdateVideoThumbnailsUseCase {
     })
 
     options?.signal?.throwIfAborted()
-    await this.previewRepository.replaceFrames(video.id, previewFrames)
+    await measureVideoProcessing(
+      'persistence',
+      () => this.previewRepository.replaceFrames(video.id, previewFrames),
+      options?.onTiming,
+    )
     // A committed frame set is safe to retain after cancellation, but must not
     // clear legacy data or publish completion for a cancelled job.
     options?.signal?.throwIfAborted()
 
     const { url, pinned } = video
-    const dto = await this.aggregateRepository.updateVideo({
-      ...currentAggregate,
-      thumbUrls: [],
-    })
+    const dto = await measureVideoProcessing(
+      'persistence',
+      () =>
+        this.aggregateRepository.updateVideo({
+          ...currentAggregate,
+          thumbUrls: [],
+        }),
+      options?.onTiming,
+    )
 
     options?.signal?.throwIfAborted()
     if (!dto) {

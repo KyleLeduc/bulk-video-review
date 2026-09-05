@@ -1,4 +1,6 @@
 import type { ParsedVideo } from '@domain/entities'
+import { measureVideoProcessing } from '@app/services/videoProcessingTiming'
+import type { VideoProcessingTimingObserver } from '@app/ports/VideoProcessingTiming'
 import type { VideoImportItem } from '@domain/valueObjects'
 import type {
   IVideoAggregateRepository,
@@ -79,6 +81,12 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     items: VideoImportItem[],
     options?: VideoIngestionOptions,
   ): AsyncGenerator<VideoIngestionEvent> {
+    const timingFor = (
+      videoId: string,
+    ): VideoProcessingTimingObserver | undefined => {
+      const observer = options?.onTiming
+      return observer ? (timing) => observer({ ...timing, videoId }) : undefined
+    }
     const startedAt = performance.now()
     const elapsedMs = () => Number((performance.now() - startedAt).toFixed(2))
     const effectiveConcurrency = normalizeConcurrency(options?.concurrency)
@@ -215,7 +223,8 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     for await (const completion of this.runBounded(
       uniqueItems,
       effectiveConcurrency,
-      (pending) => this.classifyItem(pending, items.length),
+      (pending) =>
+        this.classifyItem(pending, items.length, timingFor(pending.id)),
     )) {
       classificationCompletedCount += 1
       progress.scanned += 1
@@ -336,7 +345,8 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
       for await (const completion of this.runBounded(
         lane.items,
         effectiveConcurrency,
-        (pending) => this.processItem(pending, items.length),
+        (pending) =>
+          this.processItem(pending, items.length, timingFor(pending.id)),
       )) {
         phaseCompletedCount += 1
         let createdVideo: ParsedVideo | undefined
@@ -453,17 +463,28 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
   private async classifyItem(
     pending: PendingVideoItem,
     total: number,
+    onTiming?: VideoProcessingTimingObserver,
   ): Promise<ClassificationResult> {
     const { id, item, index } = pending
     const context = this.createContext(item.file, index + 1, total)
 
     try {
-      const existing = await this.aggregateRepository.getVideo(id)
+      const existing = await measureVideoProcessing(
+        'persistence',
+        () => this.aggregateRepository.getVideo(id),
+        onTiming,
+      )
       if (existing) {
         const parsedVideo = this.mapToParsed(existing)
         try {
-          parsedVideo.previewFrames =
-            (await this.previewRepository?.getFrames(id)) ?? []
+          if (this.previewRepository) {
+            const previews = this.previewRepository
+            parsedVideo.previewFrames = await measureVideoProcessing(
+              'persistence',
+              () => previews.getFrames(id),
+              onTiming,
+            )
+          }
         } catch (error) {
           this.logger.warn('[linear-ingestion] cached-preview:hydrate:failed', {
             ...context,
@@ -476,7 +497,7 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
         return { status: 'cached', video: parsedVideo }
       }
 
-      if (await this.hasRecordedFailure(id)) {
+      if (await this.hasRecordedFailure(id, onTiming)) {
         return { status: 'deferred', pending }
       }
 
@@ -550,6 +571,7 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
   private async processItem(
     pending: PendingVideoItem,
     total: number,
+    onTiming?: VideoProcessingTimingObserver,
   ): Promise<ProcessResult> {
     const { item, id, index } = pending
     const context = {
@@ -560,9 +582,10 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     try {
       const extractionResult = await this.metadataExtractor.extract(item.file, {
         idHint: id,
+        ...(onTiming ? { onTiming } : {}),
       })
       if (!extractionResult) {
-        await this.recordFailure(id)
+        await this.recordFailure(id, onTiming)
         this.logger.warn('[linear-ingestion] item:skipped', {
           ...context,
           reason: 'unplayable-or-invalid',
@@ -570,16 +593,18 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
         return { status: 'skipped' }
       }
 
-      const persisted = await this.aggregateRepository.postVideo(
-        extractionResult.videoEntity,
+      const persisted = await measureVideoProcessing(
+        'persistence',
+        () => this.aggregateRepository.postVideo(extractionResult.videoEntity),
+        onTiming,
       )
 
       this.sessionRegistry.registerFile(id, item.file)
-      await this.clearFailure(id)
+      await this.clearFailure(id, onTiming)
 
       return { status: 'created', video: this.mapToParsed(persisted) }
     } catch (error) {
-      await this.recordFailure(id)
+      await this.recordFailure(id, onTiming)
       this.logger.error('[linear-ingestion] item:failed', {
         ...context,
         error,
@@ -588,9 +613,16 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     }
   }
 
-  private async hasRecordedFailure(videoId: string): Promise<boolean> {
+  private async hasRecordedFailure(
+    videoId: string,
+    onTiming?: VideoProcessingTimingObserver,
+  ): Promise<boolean> {
     try {
-      return await this.failureTracker.hasFailure(videoId)
+      return await measureVideoProcessing(
+        'persistence',
+        () => this.failureTracker.hasFailure(videoId),
+        onTiming,
+      )
     } catch (error) {
       this.logger.error('[linear-ingestion] failure-state:lookup-failed', {
         videoId,
@@ -600,9 +632,16 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     }
   }
 
-  private async recordFailure(videoId: string): Promise<void> {
+  private async recordFailure(
+    videoId: string,
+    onTiming?: VideoProcessingTimingObserver,
+  ): Promise<void> {
     try {
-      await this.failureTracker.recordFailure(videoId)
+      await measureVideoProcessing(
+        'persistence',
+        () => this.failureTracker.recordFailure(videoId),
+        onTiming,
+      )
     } catch (error) {
       this.logger.error('[linear-ingestion] failure-state:record-failed', {
         videoId,
@@ -611,9 +650,16 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     }
   }
 
-  private async clearFailure(videoId: string): Promise<void> {
+  private async clearFailure(
+    videoId: string,
+    onTiming?: VideoProcessingTimingObserver,
+  ): Promise<void> {
     try {
-      await this.failureTracker.clearFailure(videoId)
+      await measureVideoProcessing(
+        'persistence',
+        () => this.failureTracker.clearFailure(videoId),
+        onTiming,
+      )
     } catch (error) {
       this.logger.error('[linear-ingestion] failure-state:clear-failed', {
         videoId,

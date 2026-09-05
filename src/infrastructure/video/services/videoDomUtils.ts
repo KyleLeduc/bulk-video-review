@@ -1,5 +1,12 @@
 import type { VideoPreviewFrame } from '@domain/entities'
-import type { VideoPreviewGenerationOptions } from '@app/ports'
+import type {
+  VideoPreviewGenerationOptions,
+  VideoProcessingTimingObserver,
+} from '@app/ports'
+import {
+  measureVideoProcessing,
+  measureVideoProcessingSync,
+} from '@app/services/videoProcessingTiming'
 
 const createVideoElement = () => {
   const video = document.createElement('video')
@@ -46,6 +53,7 @@ const DEFAULT_PREVIEW_ENCODE_TIMEOUT_MS = 10_000
 type CaptureFrameOptions = {
   maxWidth?: number
   signal?: AbortSignal
+  onTiming?: VideoProcessingTimingObserver
 }
 
 const createAbortError = () =>
@@ -457,19 +465,30 @@ export const capturePreviewFrame = async (
 ): Promise<VideoPreviewFrame> => {
   throwIfAborted(options?.signal)
 
-  const { width, height } = getCaptureDimensions(video, options?.maxWidth)
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
+  const { canvas, width, height } = measureVideoProcessingSync(
+    'capture',
+    () => {
+      const { width, height } = getCaptureDimensions(video, options?.maxWidth)
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
 
-  const context = canvas.getContext('2d')
-  if (!context) {
-    throw new Error('Unable to capture thumbnail: canvas context missing')
-  }
+      const context = canvas.getContext('2d')
+      if (!context) {
+        throw new Error('Unable to capture thumbnail: canvas context missing')
+      }
 
-  context.drawImage(video, 0, 0, width, height)
+      context.drawImage(video, 0, 0, width, height)
+      return { canvas, width, height }
+    },
+    options?.onTiming,
+  )
   throwIfAborted(options?.signal)
-  const blob = await encodeCanvas(canvas, options?.signal)
+  const blob = await measureVideoProcessing(
+    'encode',
+    () => encodeCanvas(canvas, options?.signal),
+    options?.onTiming,
+  )
 
   return {
     timestampSeconds,
@@ -493,11 +512,19 @@ export const captureThumbnail = async (
         ? video.duration
         : Number.POSITIVE_INFINITY
     captureTime = Math.min(Math.max(timestamp, 0), upperBound)
-    await seekToTime(video, captureTime, { signal: options?.signal })
+    await measureVideoProcessing(
+      'seek',
+      () => seekToTime(video, captureTime, { signal: options?.signal }),
+      options?.onTiming,
+    )
   }
 
   const frame = await capturePreviewFrame(video, captureTime, options)
-  return await blobToDataUrl(frame.blob)
+  return await measureVideoProcessing(
+    'serialize',
+    () => blobToDataUrl(frame.blob),
+    options?.onTiming,
+  )
 }
 
 const normalizeGenerationOptions = (
@@ -531,7 +558,11 @@ export const generateThumbnails = async (
         totalFrames,
         timestampSeconds: seekTime,
       })
-      await seekToTime(video, seekTime, { signal: options.signal })
+      await measureVideoProcessing(
+        'seek',
+        () => seekToTime(video, seekTime, { signal: options.signal }),
+        options.onTiming,
+      )
       options.onProgress?.({
         stage: 'encoding',
         completedFrames: frames.length,
@@ -542,6 +573,7 @@ export const generateThumbnails = async (
         await capturePreviewFrame(video, seekTime, {
           maxWidth: options.maxWidth,
           signal: options.signal,
+          onTiming: options.onTiming,
         }),
       )
     } catch (error) {

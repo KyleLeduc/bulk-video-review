@@ -69,8 +69,14 @@ describe('BrowserVideoFileParser', () => {
       value: 120,
     })
 
-    loadVideoElementMock.mockResolvedValue(generatedVideo)
+    let clockMs = 10
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => clockMs)
+    loadVideoElementMock.mockImplementation(async () => {
+      clockMs += 25
+      return generatedVideo
+    })
     captureThumbnailMock.mockResolvedValue('cover-thumb')
+    const onTiming = vi.fn()
 
     const { spy: createSpy, restore: restoreCreate } = stubUrlFunction(
       'createObjectURL',
@@ -82,7 +88,16 @@ describe('BrowserVideoFileParser', () => {
     )
 
     try {
-      const result = await parser.transformVideoData(file, { idHint: 'id-1' })
+      const result = await parser.transformVideoData(file, {
+        idHint: 'id-1',
+        onTiming,
+      })
+
+      expect(onTiming).toHaveBeenCalledWith({
+        phase: 'metadata',
+        durationMs: 25,
+        outcome: 'completed',
+      })
 
       expect(result).toEqual({
         videoEntity: buildVideoEntity({
@@ -101,9 +116,12 @@ describe('BrowserVideoFileParser', () => {
         label: 'sample.mp4',
         timeoutMs: 8000,
       })
-      expect(captureThumbnailMock).toHaveBeenCalledWith(generatedVideo, 12)
+      expect(captureThumbnailMock).toHaveBeenCalledWith(generatedVideo, 12, {
+        onTiming,
+      })
       expect(revokeSpy).toHaveBeenCalledWith('blob:tmp-v2')
     } finally {
+      clock.mockRestore()
       restoreCreate()
       restoreRevoke()
     }

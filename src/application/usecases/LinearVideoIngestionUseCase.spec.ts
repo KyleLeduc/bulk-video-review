@@ -73,6 +73,112 @@ const collectVideos = (items: Array<any>): ParsedVideo[] =>
     .map((item) => item.video as ParsedVideo)
 
 describe('LinearVideoIngestionUseCase', () => {
+  test.each([false, true])(
+    'attributes actual awaited persistence and extractor timings (write fails=%s)',
+    async (fails) => {
+      let clockMs = 0
+      const clock = vi
+        .spyOn(performance, 'now')
+        .mockImplementation(() => clockMs)
+      const deps = makeDeps()
+      deps.aggregateRepository.getVideo = async () => {
+        clockMs += 5
+        return undefined
+      }
+      deps.aggregateRepository.postVideo = async (video) => {
+        clockMs += 11
+        if (fails) throw new Error('disk full')
+        return { ...video, votes: 0 }
+      }
+      deps.metadataExtractor.extract = async (_file, options) => {
+        options?.onTiming?.({
+          phase: 'metadata',
+          durationMs: 7,
+          outcome: 'completed',
+        })
+        return { videoEntity: buildVideoEntity({ id: 'id-default' }), url: '' }
+      }
+      const tracker = buildFailureTracker({
+        hasFailure: async () => {
+          clockMs += 2
+          return false
+        },
+        clearFailure: async () => {
+          clockMs += 3
+        },
+        recordFailure: async () => {
+          clockMs += 4
+        },
+      })
+      const onTiming = vi.fn()
+      try {
+        const events = await collect(
+          new LinearVideoIngestionUseCase(
+            deps.metadataExtractor,
+            deps.aggregateRepository,
+            deps.sessionRegistry,
+            deps.logger,
+            tracker,
+          ).execute(
+            [
+              {
+                file: new File(['video'], 'private-name.mp4', {
+                  type: 'video/mp4',
+                }),
+              },
+            ],
+            { onTiming },
+          ),
+        )
+        expect(collectVideos(events)).toHaveLength(fails ? 0 : 1)
+        expect(onTiming.mock.calls).toEqual([
+          [
+            {
+              videoId: 'id-default',
+              phase: 'persistence',
+              durationMs: 5,
+              outcome: 'completed',
+            },
+          ],
+          [
+            {
+              videoId: 'id-default',
+              phase: 'persistence',
+              durationMs: 2,
+              outcome: 'completed',
+            },
+          ],
+          [
+            {
+              videoId: 'id-default',
+              phase: 'metadata',
+              durationMs: 7,
+              outcome: 'completed',
+            },
+          ],
+          [
+            {
+              videoId: 'id-default',
+              phase: 'persistence',
+              durationMs: 11,
+              outcome: fails ? 'failed' : 'completed',
+            },
+          ],
+          [
+            {
+              videoId: 'id-default',
+              phase: 'persistence',
+              durationMs: fails ? 4 : 3,
+              outcome: 'completed',
+            },
+          ],
+        ])
+      } finally {
+        clock.mockRestore()
+      }
+    },
+  )
+
   test('yields previously scanned videos before parsing unseen items', async () => {
     const newFile = new File(['video-bytes'], 'new.mp4', { type: 'video/mp4' })
     const cachedFile = new File(['video-bytes'], 'cached.mp4', {

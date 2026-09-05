@@ -212,7 +212,7 @@ describe('useVideoStore', () => {
 
     expect(mocks.useCases.addVideosUseCase.execute).toHaveBeenCalledWith(
       [{ file: playable }],
-      { concurrency: 2 },
+      { concurrency: 2, onTiming: expect.any(Function) },
     )
   })
 

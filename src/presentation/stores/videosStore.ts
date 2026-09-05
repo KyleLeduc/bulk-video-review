@@ -11,6 +11,9 @@ import type {
   ILogger,
   IVideoSessionRegistry,
   VideoPreviewGenerationProgress,
+  VideoProcessingTiming,
+  VideoProcessingPhase,
+  VideoProcessingOutcome,
 } from '@app/ports'
 import { isBrowserPlayableVideoFile } from '@/shared/video/browserPlayableVideoTypes'
 import type { VideoImportItem } from '@domain/valueObjects'
@@ -31,6 +34,47 @@ function resolveDependency<T>(dependency: T | undefined, name: string): T {
 }
 
 type ThumbnailJobState = 'queued' | 'processing' | 'ready' | 'failed'
+type PhaseMeasurements = Partial<
+  Record<
+    VideoProcessingPhase,
+    {
+      count: number
+      completed: number
+      failed: number
+      aborted: number
+      totalMs: number
+      maxMs: number
+    }
+  >
+>
+
+function recordPhaseTiming(
+  phases: PhaseMeasurements,
+  timing: VideoProcessingTiming,
+) {
+  const aggregate = (phases[timing.phase] ??= {
+    count: 0,
+    completed: 0,
+    failed: 0,
+    aborted: 0,
+    totalMs: 0,
+    maxMs: 0,
+  })
+  aggregate.count += 1
+  aggregate[timing.outcome] += 1
+  aggregate.totalMs += timing.durationMs
+  aggregate.maxMs = Math.max(aggregate.maxMs, timing.durationMs)
+}
+
+function snapshotPhases(phases: PhaseMeasurements): PhaseMeasurements {
+  return Object.fromEntries(
+    Object.entries(phases).map(([phase, aggregate]) => [
+      phase,
+      { ...aggregate },
+    ]),
+  )
+}
+
 export type ThumbnailJobDiagnostic = {
   state: ThumbnailJobState
   stage?: VideoPreviewGenerationProgress['stage']
@@ -117,6 +161,14 @@ type IngestionSession = {
   previewPeakPendingCount: number
   thumbnailVideoIds: string[]
   previewReportSnapshot: PreviewRunSnapshot | null
+  foregroundMeasurements: PhaseMeasurements
+  previewMeasurements: PhaseMeasurements
+  previewAttempts: {
+    started: number
+    completed: number
+    failed: number
+    aborted: number
+  }
 }
 
 type QueuedIngestionRequest = {
@@ -270,6 +322,9 @@ export const useVideoStore = defineStore('videos', () => {
       previewPeakPendingCount: 0,
       thumbnailVideoIds: [],
       previewReportSnapshot: null,
+      foregroundMeasurements: {},
+      previewMeasurements: {},
+      previewAttempts: { started: 0, completed: 0, failed: 0, aborted: 0 },
     })
 
     return sessionId
@@ -491,8 +546,13 @@ export const useVideoStore = defineStore('videos', () => {
       summary.pending,
     )
 
+    const unsettledAttempts =
+      session.previewAttempts.started -
+      session.previewAttempts.completed -
+      session.previewAttempts.failed -
+      session.previewAttempts.aborted
     const nowMs = Date.now()
-    if (summary.processing > 0) {
+    if (summary.processing > 0 || unsettledAttempts > 0) {
       session.previewActiveWindowStartedAtMs ??= nowMs
     } else if (session.previewActiveWindowStartedAtMs != null) {
       session.previewActiveElapsedMs += Math.max(
@@ -520,13 +580,13 @@ export const useVideoStore = defineStore('videos', () => {
     if (session.status === 'failed') {
       session.pipelineCompletedAtMs ??= session.completedAtMs
       isTerminal = true
-    } else if (summary.pending > 0) {
+    } else if (summary.pending > 0 || unsettledAttempts > 0) {
       session.status = 'thumbnailing'
       session.previewCompletedAtMs = null
       session.pipelineCompletedAtMs = null
     } else {
       session.status = 'completed'
-      if (summary.total > 0) {
+      if (summary.total > 0 || session.previewAttempts.started > 0) {
         session.previewCompletedAtMs ??= Date.now()
       }
       session.pipelineCompletedAtMs ??=
@@ -710,10 +770,15 @@ export const useVideoStore = defineStore('videos', () => {
     const deferredThumbnailQueue: ParsedVideo[] = []
     const items = session.items
     session.items = []
+    let acceptingTimings = true
 
     try {
       for await (const item of addVideosUseCase.execute(items, {
         concurrency: session.foregroundConcurrency.effective,
+        onTiming: (timing) => {
+          if (acceptingTimings)
+            recordPhaseTiming(session.foregroundMeasurements, timing)
+        },
       })) {
         if (item.type === 'video') {
           addVideos([item.video])
@@ -736,6 +801,7 @@ export const useVideoStore = defineStore('videos', () => {
       logger.error('Failed to ingest queued videos', error)
       request.reject(error)
     } finally {
+      acceptingTimings = false
       session.completedAtMs = Date.now()
       activeIngestionSessionId.value = null
       refreshSessionPreviewLifecycle(session.id)
@@ -800,6 +866,16 @@ export const useVideoStore = defineStore('videos', () => {
       const abortController = new AbortController()
       const startedAtMs = Date.now()
       let shouldSettleJob = true
+      let acceptingTimings = true
+      let attemptOutcome: VideoProcessingOutcome = 'failed'
+      // Capture ownership now: a later import must not inherit earlier attempt work.
+      const measurementSessions = sessionIds.flatMap((id) => {
+        const session = getSession(id)
+        return session && !session.previewReportSnapshot ? [session] : []
+      })
+      measurementSessions.forEach((session) => {
+        session.previewAttempts.started += 1
+      })
 
       activeThumbnailJobs.value += 1
       thumbnailJobState.set(nextVideoId, 'processing')
@@ -816,6 +892,13 @@ export const useVideoStore = defineStore('videos', () => {
       void updateThumbUseCase
         .execute(video, {
           signal: abortController.signal,
+          onTiming: (timing) => {
+            if (acceptingTimings) {
+              measurementSessions.forEach((session) =>
+                recordPhaseTiming(session.previewMeasurements, timing),
+              )
+            }
+          },
           onProgress: (progress) => {
             if (
               thumbnailJobAbortControllers.get(nextVideoId) !== abortController
@@ -833,6 +916,8 @@ export const useVideoStore = defineStore('videos', () => {
           },
         })
         .then((updated) => {
+          acceptingTimings = false
+          if (abortController.signal.aborted) attemptOutcome = 'aborted'
           thumbnailJobsInterruptedForIngestion.delete(nextVideoId)
           const currentVideo = toRaw(videoMap.get(nextVideoId))
           if (!currentVideo) {
@@ -841,6 +926,7 @@ export const useVideoStore = defineStore('videos', () => {
           }
 
           if (hasReadyThumbnails(updated)) {
+            if (!abortController.signal.aborted) attemptOutcome = 'completed'
             videoMap.set(
               nextVideoId,
               mergeThumbnailUpdateIntoCurrentVideo(currentVideo, updated),
@@ -885,7 +971,9 @@ export const useVideoStore = defineStore('videos', () => {
           })
         })
         .catch((error) => {
+          acceptingTimings = false
           if (abortController.signal.aborted && isAbortError(error)) {
+            attemptOutcome = 'aborted'
             const shouldRequeue =
               thumbnailJobsInterruptedForIngestion.delete(nextVideoId) &&
               videoMap.has(nextVideoId)
@@ -935,6 +1023,10 @@ export const useVideoStore = defineStore('videos', () => {
           logger.error('Failed to update thumbnails', error)
         })
         .finally(() => {
+          acceptingTimings = false
+          measurementSessions.forEach((session) => {
+            session.previewAttempts[attemptOutcome] += 1
+          })
           if (
             thumbnailJobAbortControllers.get(nextVideoId) === abortController
           ) {
@@ -1205,6 +1297,22 @@ export const useVideoStore = defineStore('videos', () => {
       schemaVersion: 1 as const,
       sessionId: session.id,
       status: session.status,
+      measurements: {
+        version: 1 as const,
+        backend: 'dom' as const,
+        workersEnabled: false,
+        fallbackReason: null,
+        foregroundCancellationSupported: false,
+        foreground: snapshotPhases(session.foregroundMeasurements),
+        previews: snapshotPhases(session.previewMeasurements),
+        previewAttempts: {
+          ...session.previewAttempts,
+          settled:
+            session.previewAttempts.completed +
+            session.previewAttempts.failed +
+            session.previewAttempts.aborted,
+        },
+      },
       input: { ...session.input },
       timing: {
         queuedAtMs: session.queuedAtMs,

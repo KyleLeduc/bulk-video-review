@@ -71,6 +71,53 @@ describe('DiagnosticsPanel', () => {
     wrapper.unmount()
   })
 
+  test('does not build reports for phase updates while closed and refreshes on reopen', async () => {
+    let durationMs = 10
+    const { global } = createPresentationTestContext({
+      useCases: {
+        addVideosUseCase: {
+          execute: vi.fn(async function* (_items, options) {
+            options?.onTiming?.({
+              videoId: 'id',
+              phase: 'metadata',
+              durationMs,
+              outcome: 'completed',
+            })
+            yield* []
+          }),
+        },
+      },
+    })
+    vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue(
+      'probably',
+    )
+    const wrapper = mount(DiagnosticsPanel, { global })
+    const store = useVideoStore()
+    const buildReport = vi.spyOn(store, 'createDisplayedIngestionRunReport')
+    const file = new File(['v'], 'v.mp4', { type: 'video/mp4' })
+    await store.addVideosFromFiles(createMockFileList(file))
+    await nextTick()
+    expect(buildReport).not.toHaveBeenCalled()
+    useAppStateStore().toggleDiagnosticsPanel(true)
+    await nextTick()
+    expect(wrapper.get('[data-testid="phase-metadata"]').text()).toContain(
+      '10.00 ms',
+    )
+    useAppStateStore().toggleDiagnosticsPanel(false)
+    await nextTick()
+    buildReport.mockClear()
+    durationMs = 25
+    await store.addVideosFromFiles(createMockFileList(file))
+    await nextTick()
+    expect(buildReport).not.toHaveBeenCalled()
+    useAppStateStore().toggleDiagnosticsPanel(true)
+    await nextTick()
+    expect(wrapper.get('[data-testid="phase-metadata"]').text()).toContain(
+      '25.00 ms',
+    )
+    wrapper.unmount()
+  })
+
   test('shows queued import and paused thumbnail drain state', async () => {
     vi.useFakeTimers()
 
@@ -205,7 +252,13 @@ describe('DiagnosticsPanel', () => {
     const { global } = createPresentationTestContext({
       useCases: {
         addVideosUseCase: {
-          execute: vi.fn(async function* () {
+          execute: vi.fn(async function* (_items, options) {
+            options?.onTiming?.({
+              videoId: 'private-id',
+              phase: 'metadata',
+              durationMs: 12.5,
+              outcome: 'completed',
+            })
             yield {
               type: 'progress' as const,
               progress: {
@@ -251,6 +304,14 @@ describe('DiagnosticsPanel', () => {
     expect(wrapper.text()).toContain('Foreground ingestion')
     expect(wrapper.text()).toContain('Background previews')
     expect(wrapper.text()).toContain('Complete')
+    expect(wrapper.text()).toContain('DOM (workers disabled)')
+    expect(wrapper.text()).toContain(
+      'Summed operation time, not pipeline wall time',
+    )
+    expect(wrapper.find('[data-testid="phase-metadata"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="phase-metadata"]').text()).toContain(
+      '12.50 ms',
+    )
     expect(wrapper.text()).toContain('Peak active jobs')
     expect(wrapper.text()).toContain('Worker limit')
     expect(wrapper.text()).toContain('Primary ingestion workers')

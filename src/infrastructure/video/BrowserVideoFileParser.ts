@@ -3,6 +3,7 @@ import type {
   VideoMetadataExtractionResult,
 } from '@app/ports'
 import type { VideoEntity } from '@domain/entities'
+import { measureVideoProcessing } from '@app/services/videoProcessingTiming'
 import { isBrowserPlayableVideoFile } from '@/shared/video/browserPlayableVideoTypes'
 import type { IVideoFileParser } from './IVideoFileParser'
 import { FileHashGenerator } from './services/FileHashGenerator'
@@ -27,10 +28,15 @@ export class BrowserVideoFileParser implements IVideoFileParser {
     let videoElement: HTMLVideoElement | null = null
 
     try {
-      videoElement = await loadVideoElement(objectUrl, {
-        label: video.name,
-        timeoutMs: 8000,
-      })
+      videoElement = await measureVideoProcessing(
+        'metadata',
+        () =>
+          loadVideoElement(objectUrl, {
+            label: video.name,
+            timeoutMs: 8000,
+          }),
+        options?.onTiming,
+      )
       if (!videoElement) {
         return null
       }
@@ -39,7 +45,9 @@ export class BrowserVideoFileParser implements IVideoFileParser {
         ? Math.max(0, videoElement.duration)
         : 0
       const coverTimestamp = this.getCoverTimestamp(duration)
-      const thumb = await captureThumbnail(videoElement, coverTimestamp)
+      const thumb = await captureThumbnail(videoElement, coverTimestamp, {
+        onTiming: options?.onTiming,
+      })
       const id = options?.idHint ?? (await this.generateHash(video))
 
       const videoEntity: VideoEntity = {

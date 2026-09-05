@@ -2,6 +2,17 @@ const shortVideo = 'cypress/fixtures/videos/short-blue.mp4'
 const longVideo = 'cypress/fixtures/videos/long-red.mp4'
 const filePicker = 'input[data-picker-mode="files"]'
 const reportField = '[data-testid="ingestion-report-json"]'
+type ProbeWindow = Window & {
+  bvrVideoProbe: {
+    arm(): void
+    stop(): {
+      firstVisibleThumbnailMs: number | null
+      hiddenDuringRun: boolean
+      longTasks: { supported: boolean; count: number; totalMs: number }
+      animationFrames: { count: number }
+    }
+  }
+}
 
 describe('Built BVR browser smoke', () => {
   it('imports real videos, filters, reviews, restores previews, and retries failures', () => {
@@ -23,6 +34,12 @@ describe('Built BVR browser smoke', () => {
 
     // Use the real hidden input, File parser, canvas encoder and IndexedDB.
     // Duplicate selection must create only two cards.
+    cy.readFile('scripts/videoProcessingProbe.js').then((source) => {
+      cy.window().then((win) => {
+        win.eval(source)
+        ;(win as unknown as ProbeWindow).bvrVideoProbe.arm()
+      })
+    })
     cy.get(filePicker).selectFile([shortVideo, longVideo, shortVideo], {
       force: true,
     })
@@ -44,6 +61,40 @@ describe('Built BVR browser smoke', () => {
       expect(report.foreground.counts.duplicates).to.equal(1)
       expect(report.backgroundPreviews.counts.ready).to.equal(2)
       expect(report.backgroundPreviews.outputBytes).to.be.greaterThan(0)
+      expect(report.measurements.backend).to.equal('dom')
+      expect(report.measurements.workersEnabled).to.equal(false)
+      expect(report.measurements.foreground.metadata.count).to.equal(2)
+      expect(report.measurements.foreground.serialize.count).to.equal(2)
+      expect(report.measurements.previews.encode.count).to.equal(18)
+      expect(report.measurements.previewAttempts).to.deep.equal({
+        started: 2,
+        settled: 2,
+        completed: 2,
+        failed: 0,
+        aborted: 0,
+      })
+      for (const lane of ['foreground', 'previews']) {
+        for (const phase of [
+          'metadata',
+          'seek',
+          'capture',
+          'encode',
+          'persistence',
+        ]) {
+          const measurement = report.measurements[lane][phase]
+          expect(measurement.count).to.be.greaterThan(0)
+          expect(measurement.completed).to.equal(measurement.count)
+          expect(measurement.failed + measurement.aborted).to.equal(0)
+          expect(measurement.totalMs).to.be.at.least(0)
+        }
+      }
+    })
+    cy.window().then((win) => {
+      const ui = (win as unknown as ProbeWindow).bvrVideoProbe.stop()
+      expect(ui.firstVisibleThumbnailMs).to.be.a('number').and.be.greaterThan(0)
+      expect(ui.hiddenDuringRun).to.equal(false)
+      expect(ui.longTasks.supported).to.equal(true)
+      expect(ui.animationFrames.count).to.be.greaterThan(0)
     })
     cy.get('.panel > nav button').click()
 
@@ -113,6 +164,9 @@ describe('Built BVR browser smoke', () => {
       // Session counts describe jobs, not cached previews restored on import.
       expect(report.backgroundPreviews.counts.total).to.equal(0)
       expect(report.backgroundPreviews.peakActiveJobs).to.equal(0)
+      expect(report.measurements.foreground.metadata).to.equal(undefined)
+      expect(report.measurements.previews).to.deep.equal({})
+      expect(report.measurements.previewAttempts.started).to.equal(0)
     })
     cy.get('.panel > nav button').click()
     cy.contains('.card', 'short-blue.mp4')
