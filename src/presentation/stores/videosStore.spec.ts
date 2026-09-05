@@ -232,7 +232,7 @@ describe('useVideoStore', () => {
         updateThumbUseCase: {
           execute: vi.fn(
             () =>
-              new Promise((resolve) => {
+              new Promise<ParsedVideo>((resolve) => {
                 resolveUpdate = resolve
               }),
           ),
@@ -526,7 +526,7 @@ describe('useVideoStore', () => {
           updateThumbUseCase: {
             execute: vi.fn(
               () =>
-                new Promise((resolve) => {
+                new Promise<ParsedVideo>((resolve) => {
                   resolveThumbnailJob = resolve
                 }),
             ),
@@ -597,7 +597,7 @@ describe('useVideoStore', () => {
         updateThumbUseCase: {
           execute: vi.fn(
             () =>
-              new Promise(() => {
+              new Promise<ParsedVideo>(() => {
                 // Keep pending so the call itself is the assertion target.
               }),
           ),
@@ -630,7 +630,7 @@ describe('useVideoStore', () => {
           updateThumbUseCase: {
             execute: vi.fn(
               () =>
-                new Promise((resolve) => {
+                new Promise<ParsedVideo>((resolve) => {
                   finishPreview = resolve
                 }),
             ),
@@ -638,7 +638,7 @@ describe('useVideoStore', () => {
           updateVotesUseCase: {
             execute: vi.fn(
               () =>
-                new Promise((resolve) => {
+                new Promise<number>((resolve) => {
                   finishVote = resolve
                 }),
             ),
@@ -681,7 +681,7 @@ describe('useVideoStore', () => {
         updateThumbUseCase: {
           execute: vi.fn(
             () =>
-              new Promise((resolve) => {
+              new Promise<ParsedVideo>((resolve) => {
                 resolveThumbnailJob = resolve
               }),
           ),
@@ -784,7 +784,7 @@ describe('useVideoStore', () => {
           updateThumbUseCase: {
             execute: vi.fn(
               () =>
-                new Promise((resolve) => {
+                new Promise<ParsedVideo>((resolve) => {
                   resolveThumbnailJob = resolve
                 }),
             ),

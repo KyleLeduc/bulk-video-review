@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test, vi } from 'vitest'
+import type { ParsedVideo } from '@domain/entities'
 import { useVideoStore } from '@presentation/stores'
 import {
   buildParsedVideo,
@@ -123,7 +124,7 @@ describe('VideoCard', () => {
           updateThumbUseCase: {
             execute: vi.fn(
               () =>
-                new Promise(() => {
+                new Promise<ParsedVideo>(() => {
                   // Keep the job in-flight so the active state is observable.
                 }),
             ),

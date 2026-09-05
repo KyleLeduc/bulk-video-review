@@ -76,7 +76,7 @@ const createControlledExtraction = () => {
   let maxActiveCount = 0
   const pending = new Map<string, () => void>()
 
-  const extract: IVideoMetadataExtractor['extract'] = vi.fn(
+  const extract = vi.fn<IVideoMetadataExtractor['extract']>(
     (file, options) =>
       new Promise((resolve) => {
         let settled = false
@@ -364,7 +364,7 @@ describe('LinearVideoIngestionUseCase bounded concurrency', () => {
       videoEntity: buildVideoEntity({ id, title }),
       url: '',
     })
-    const extract: IVideoMetadataExtractor['extract'] = vi.fn(
+    const extract = vi.fn<IVideoMetadataExtractor['extract']>(
       (file, options) => {
         if (file.name === 'one.mp4') {
           return new Promise((_resolve, reject) => {

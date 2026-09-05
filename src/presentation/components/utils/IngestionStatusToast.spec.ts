@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { describe, expect, test, vi } from 'vitest'
+import type { ParsedVideo } from '@domain/entities'
 import { useVideoStore } from '@presentation/stores'
 import {
   buildParsedVideo,
@@ -323,7 +324,7 @@ describe('IngestionStatusToast', () => {
           updateThumbUseCase: {
             execute: vi.fn(
               (video) =>
-                new Promise((resolve) => {
+                new Promise<ParsedVideo>((resolve) => {
                   resolveThumbnailJob = () =>
                     resolve(
                       buildParsedVideo({
@@ -407,7 +408,7 @@ describe('IngestionStatusToast', () => {
         updateThumbUseCase: {
           execute: vi.fn(
             (video) =>
-              new Promise((resolve) => {
+              new Promise<ParsedVideo>((resolve) => {
                 resolveThumbnailJob = () =>
                   resolve(
                     buildParsedVideo({
@@ -522,7 +523,7 @@ describe('IngestionStatusToast', () => {
           updateThumbUseCase: {
             execute: vi.fn(
               () =>
-                new Promise((resolve) => {
+                new Promise<ParsedVideo>((resolve) => {
                   resolveThumbnailJob = resolve
                 }),
             ),
