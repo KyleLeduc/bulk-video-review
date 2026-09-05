@@ -21,6 +21,9 @@ describe.each([
       if (!path.endsWith(`node_modules/${name}`) || !entry.version) continue
 
       const parts = entry.version.split('.').map(Number)
+      // A new major needs explicit qualification, not a silently skipped guard.
+      const qualifiedMajors = name === 'form-data' ? [2, 4] : [major]
+      expect(qualifiedMajors, `${path}@${entry.version}`).toContain(parts[0])
       if (parts[0] !== major) continue
 
       expect(entry.version, path).toMatch(/^\d+\.\d+\.\d+$/)
@@ -37,17 +40,16 @@ test.each([
   ['vitest', 4, 1, 11],
   ['happy-dom', 20, 14, 0],
 ] as const)(
-  '%s uses the selected supported release or newer',
+  '%s stays on the qualified major above its selected security floor',
   (name, major, minor, patch) => {
     const version = lockfile.packages[`node_modules/${name}`].version!
     const parts = version.split('.').map(Number)
 
     expect(version).toMatch(/^\d+\.\d+\.\d+$/)
     expect(
-      parts[0] > major ||
-        (parts[0] === major &&
-          (parts[1] > minor || (parts[1] === minor && parts[2] >= patch))),
-      `${name}@${version} must be at least ${major}.${minor}.${patch}`,
+      parts[0] === major &&
+        (parts[1] > minor || (parts[1] === minor && parts[2] >= patch)),
+      `${name}@${version} must stay on major ${major}, at least ${major}.${minor}.${patch}`,
     ).toBe(true)
   },
 )
