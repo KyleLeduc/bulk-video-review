@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
+    "mediabunny": "1.55.7",
     "pinia": "^2.1.7",
     "vue": "^3.4.30"
   },

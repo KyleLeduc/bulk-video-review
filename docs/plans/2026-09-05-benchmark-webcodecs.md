@@ -1,5 +1,7 @@
 # Benchmark WebCodecs Qualification Implementation Plan
 
+**Superseded execution scope:** After the source audit, the owner approved custom-file experimentation with the memory risks disclosed. Continue with the [custom-file extraction benchmark plan](2026-09-05-custom-mediabunny-benchmark.md), not this plan's earlier hard pre-allocation stop condition. Retain this document as the original qualification contract and findings.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Qualify a pinned demuxer for bounded, correct MP4/H.264 preview extraction before exposing a new benchmark backend.

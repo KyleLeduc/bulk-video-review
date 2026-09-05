@@ -3,12 +3,14 @@ import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { benchmarkBuildPlugin } from './scripts/benchmarkBuild.mjs'
+import { mediabunnyNoticesPlugin } from './scripts/mediabunnyNotices.mjs'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     tsconfigPaths({ loose: true, configNames: ['tsconfig.app.json'] }),
+    mediabunnyNoticesPlugin(),
     benchmarkBuildPlugin(),
   ],
   base: '/',

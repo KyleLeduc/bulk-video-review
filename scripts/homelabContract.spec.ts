@@ -14,7 +14,9 @@ describe('homelab deployment contract', () => {
   test('keeps the reference-corpus smoke out of the ordinary E2E command', () => {
     const config = read('cypress.config.ts')
     expect(config).toContain("process.env.BVR_BENCHMARK_SMOKE === 'true'")
-    expect(config).toContain("['**/videoBenchmark.cy.ts']")
+    expect(config).toContain(
+      "['**/videoBenchmark.cy.ts', '**/customExtraction.cy.ts']",
+    )
     const scripts = JSON.parse(read('package.json')).scripts
     expect(scripts['test:e2e']).not.toContain('BVR_BENCHMARK_SMOKE')
     expect(scripts['test:benchmark']).toContain('BVR_BENCHMARK_SMOKE=true')

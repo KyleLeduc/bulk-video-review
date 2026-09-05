@@ -1,6 +1,10 @@
 # Video worker demuxer decision
 
-**Status:** Owner approved the proposed `mediabunny@1.55.7` benchmark qualification on 2026-09-05. The pinned-source audit and small synthetic runtime probes then **failed the read/index pre-allocation gate**, before installation. No browser/performance result or production dependency/backend acceptance is claimed. See [qualification evidence and reproduction](../testing/mediabunny-qualification.md).
+**Scope update:** The owner subsequently approved proceeding with experimental **custom-file** benchmarking despite the documented memory-limit gaps. Execute the [revised extraction-only plan](../plans/2026-09-05-custom-mediabunny-benchmark.md). The findings below remain true; they no longer block this explicitly accepted experiment, and still prevent claiming hard memory bounds or production acceptance.
+
+**Current experiment:** The pinned package is now installed privately for the custom extraction comparison. See [operator instructions and exact limits](../testing/custom-mediabunny-benchmark.md). This is not production-backend acceptance or a throughput result.
+
+**Historical audit checkpoint:** Owner approved the proposed `mediabunny@1.55.7` benchmark qualification on 2026-09-05. The pinned-source audit and small synthetic runtime probes then **failed the read/index pre-allocation gate**, before installation. The sections below retain that source-only checkpoint and its original gates; subsequent custom-file authorization is described above. See [qualification evidence and reproduction](../testing/mediabunny-qualification.md).
 
 ## Options and evidence
 

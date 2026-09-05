@@ -15,8 +15,11 @@ import {
   type BenchmarkSuite,
 } from './runVideoBenchmarkSuite'
 import type { TrialRow } from './videoBenchmarkHost'
+import CustomExtractionBenchmark from './CustomExtractionBenchmark.vue'
 
 const props = defineProps<{ build: BuildIdentity; capable: boolean }>()
+const benchmarkMode = ref('pipeline')
+const extractionActive = ref(false)
 const files = shallowRef<File[]>([])
 const inputMode = ref('reference')
 const selection = shallowRef<CustomSelection>()
@@ -256,283 +259,312 @@ onBeforeUnmount(() => {
         without the gallery.
       </p>
     </header>
-    <p class="notice">
-      Your selected videos stay in this browser; no video upload. Trials use
-      temporary benchmark databases, not your saved catalog. Keep this tab
-      visible and close competing app tabs and heavy work.
-    </p>
-    <p v-if="!capable" role="alert">
-      Use current Chrome or Edge over HTTPS (or localhost), with IndexedDB, Web
-      Locks, DataTransfer and image decoding available.
-    </p>
-    <fieldset :disabled="active">
-      <legend>Video selection</legend>
-      <label
-        >Input mode
-        <select
-          v-model="inputMode"
-          data-test="input-mode"
-          @change="resetSelection"
-        >
-          <option value="reference">Reference fixtures</option>
-          <option value="custom">Custom files</option>
-        </select>
-      </label>
-      <label
-        >{{
-          inputMode === 'custom'
-            ? 'Choose your local video files'
-            : 'Choose the prepared fixture folder'
-        }}
-        <input
-          :key="inputMode"
-          data-test="fixture-files"
-          type="file"
-          multiple
-          :webkitdirectory="inputMode === 'reference' ? '' : undefined"
-          @change="select"
-      /></label>
-      <p v-if="inputMode === 'reference'">
-        {{ reference.id }} · {{ files.length }} /
-        {{ reference.files.length }} media selected ·
-        <strong>selection-only</strong> verification.
+    <label
+      >Benchmark mode
+      <select
+        v-model="benchmarkMode"
+        data-test="benchmark-mode"
+        :disabled="active || extractionActive"
+        @change="setImages([])"
+      >
+        <option value="pipeline">Ingestion pipeline (DOM)</option>
+        <option value="extraction">
+          Custom preview extraction (DOM vs Mediabunny)
+        </option>
+      </select>
+    </label>
+    <CustomExtractionBenchmark
+      v-if="benchmarkMode === 'extraction'"
+      :build="build"
+      :capable="capable"
+      @active="extractionActive = $event"
+    />
+    <template v-else>
+      <p class="notice">
+        Your selected videos stay in this browser; no video upload. Trials use
+        temporary benchmark databases, not your saved catalog. Keep this tab
+        visible and close competing app tabs and heavy work.
       </p>
-      <p v-if="inputMode === 'reference'">
-        Names, sizes, paths and multiplicity are checked; content hashes are not
-        computed in this page. The CLI verifies full SHA-256 separately.
-        Metadata files and archives are ignored ({{ ignored }}).
+      <p v-if="!capable" role="alert">
+        Use current Chrome or Edge over HTTPS (or localhost), with IndexedDB,
+        Web Locks, DataTransfer and image decoding available.
       </p>
-      <p v-else>
-        Custom files · {{ files.length }} media selected ·
-        {{ ignored }} unsupported/non-media files ignored. Select 1–100 videos;
-        the same selection is reused for every trial. Results describe observed
-        outcomes, not the reference baseline. Names/paths and video contents are
-        not exported; the selection ID is not a content hash. The current
-        deadline is two minutes per trial, including output checks.
-      </p>
-      <p v-if="selectionError" role="alert">{{ selectionError }}</p>
-      <details v-if="inputMode === 'reference'">
-        <summary>Fixture manifest and attribution</summary>
-        <ul>
-          <li v-for="file in reference.files" :key="file.path">
-            {{ file.path }} — {{ file.bytes }} bytes
-            <small>Expected SHA-256: {{ file.sha256 }}</small>
-          </li>
-        </ul>
-        <p>
-          {{ reference.attribution.author }} ·
-          <a :href="reference.attribution.licenseUrl">{{
-            reference.attribution.license
-          }}</a
-          >. {{ reference.attribution.derivatives }}
-        </p>
-      </details>
-    </fieldset>
-    <fieldset :disabled="active">
-      <legend>Sequential suite</legend>
-      <p>Backend: DOM (existing pipeline). WebCodecs: not implemented.</p>
-      <div class="controls">
+      <fieldset :disabled="active">
+        <legend>Video selection</legend>
         <label
-          >Ingestion concurrency
-          <select v-model="foreground" data-test="foreground">
-            <option>1</option>
-            <option>2</option>
-            <option>4</option>
-            <option value="all">All (1, 2, 4)</option>
-          </select></label
-        >
+          >Input mode
+          <select
+            v-model="inputMode"
+            data-test="input-mode"
+            @change="resetSelection"
+          >
+            <option value="reference">Reference fixtures</option>
+            <option value="custom">Custom files</option>
+          </select>
+        </label>
         <label
-          >Preview concurrency
-          <select v-model="previews" data-test="previews">
-            <option>1</option>
-            <option>2</option>
-            <option value="all">All (1, 2)</option>
-          </select></label
-        >
-        <label
-          >Repetitions
+          >{{
+            inputMode === 'custom'
+              ? 'Choose your local video files'
+              : 'Choose the prepared fixture folder'
+          }}
           <input
-            v-model.number="repetitions"
-            data-test="repetitions"
-            type="number"
-            min="1"
-            max="5"
-            step="1"
+            :key="inputMode"
+            data-test="fixture-files"
+            type="file"
+            multiple
+            :webkitdirectory="inputMode === 'reference' ? '' : undefined"
+            @change="select"
         /></label>
-        <label
-          ><input v-model="includeCached" data-test="cached" type="checkbox" />
-          Follow each fresh trial with a cached trial</label
+        <p v-if="inputMode === 'reference'">
+          {{ reference.id }} · {{ files.length }} /
+          {{ reference.files.length }} media selected ·
+          <strong>selection-only</strong> verification.
+        </p>
+        <p v-if="inputMode === 'reference'">
+          Names, sizes, paths and multiplicity are checked; content hashes are
+          not computed in this page. The CLI verifies full SHA-256 separately.
+          Metadata files and archives are ignored ({{ ignored }}).
+        </p>
+        <p v-else>
+          Custom files · {{ files.length }} media selected ·
+          {{ ignored }} unsupported/non-media files ignored. Select 1–100
+          videos; the same selection is reused for every trial. Results describe
+          observed outcomes, not the reference baseline. Names/paths and video
+          contents are not exported; the selection ID is not a content hash. The
+          current deadline is two minutes per trial, including output checks.
+        </p>
+        <p v-if="selectionError" role="alert">{{ selectionError }}</p>
+        <details v-if="inputMode === 'reference'">
+          <summary>Fixture manifest and attribution</summary>
+          <ul>
+            <li v-for="file in reference.files" :key="file.path">
+              {{ file.path }} — {{ file.bytes }} bytes
+              <small>Expected SHA-256: {{ file.sha256 }}</small>
+            </li>
+          </ul>
+          <p>
+            {{ reference.attribution.author }} ·
+            <a :href="reference.attribution.licenseUrl">{{
+              reference.attribution.license
+            }}</a
+            >. {{ reference.attribution.derivatives }}
+          </p>
+        </details>
+      </fieldset>
+      <fieldset :disabled="active">
+        <legend>Sequential suite</legend>
+        <p>Backend: DOM (existing pipeline). WebCodecs: not implemented.</p>
+        <div class="controls">
+          <label
+            >Ingestion concurrency
+            <select v-model="foreground" data-test="foreground">
+              <option>1</option>
+              <option>2</option>
+              <option>4</option>
+              <option value="all">All (1, 2, 4)</option>
+            </select></label
+          >
+          <label
+            >Preview concurrency
+            <select v-model="previews" data-test="previews">
+              <option>1</option>
+              <option>2</option>
+              <option value="all">All (1, 2)</option>
+            </select></label
+          >
+          <label
+            >Repetitions
+            <input
+              v-model.number="repetitions"
+              data-test="repetitions"
+              type="number"
+              min="1"
+              max="5"
+              step="1"
+          /></label>
+          <label
+            ><input
+              v-model="includeCached"
+              data-test="cached"
+              type="checkbox"
+            />
+            Follow each fresh trial with a cached trial</label
+          >
+        </div>
+        <p>
+          Each repetition starts with a new database and trial frame: fresh app
+          storage, not a browser or OS cache reset. Cached reuses that pair’s
+          database in another new frame. Browser and OS caches remain shared, so
+          later fresh runs can be faster. This is not comparable to the old
+          full-gallery baseline.
+        </p>
+      </fieldset>
+      <div class="controls">
+        <button data-test="start" :disabled="!canStart" @click="start">
+          Start suite</button
+        ><button
+          data-test="stop"
+          :disabled="!active || stopping"
+          @click="stopping = true"
         >
+          Stop after current trial</button
+        ><button
+          data-test="copy-json"
+          :disabled="!result || active || copying"
+          @click="copyJson"
+        >
+          {{ copying ? 'Copying…' : 'Copy JSON' }}</button
+        ><button :disabled="!result || active" @click="download">
+          Download JSON
+        </button>
       </div>
-      <p>
-        Each repetition starts with a new database and trial frame: fresh app
-        storage, not a browser or OS cache reset. Cached reuses that pair’s
-        database in another new frame. Browser and OS caches remain shared, so
-        later fresh runs can be faster. This is not comparable to the old
-        full-gallery baseline.
+      <p v-if="copyStatus" role="status" data-test="copy-status">
+        {{ copyStatus }}
       </p>
-    </fieldset>
-    <div class="controls">
-      <button data-test="start" :disabled="!canStart" @click="start">
-        Start suite</button
-      ><button
-        data-test="stop"
-        :disabled="!active || stopping"
-        @click="stopping = true"
-      >
-        Stop after current trial</button
-      ><button
-        data-test="copy-json"
-        :disabled="!result || active || copying"
-        @click="copyJson"
-      >
-        {{ copying ? 'Copying…' : 'Copy JSON' }}</button
-      ><button :disabled="!result || active" @click="download">
-        Download JSON
-      </button>
-    </div>
-    <p v-if="copyStatus" role="status" data-test="copy-status">
-      {{ copyStatus }}
-    </p>
-    <p role="status" data-test="suite-status">
-      {{ status }} · {{ rows.length }} trials recorded
-      <span v-if="stopping && active"
-        >· stopping after settlement and cleanup</span
-      >
-    </p>
-    <p v-if="failure" role="alert">{{ failure }}</p>
-    <div ref="mount" data-test="trial-mount"></div>
-    <textarea
-      hidden
-      readonly
-      data-test="progress-json"
-      :data-row-count="rows.length"
-      :value="progressExport"
-    ></textarea>
-    <section v-if="rows.length">
-      <h2>Trial results</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Repeat</th>
-            <th>DOM ingestion/previews</th>
-            <th>Cache</th>
-            <th>Pipeline wall time</th>
-            <th>Outputs</th>
-            <th>Status / cleanup</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(row, index) in rows" :key="index">
-            <td>{{ row.configuration.repetition }}</td>
-            <td>
-              {{ row.configuration.foreground }}/{{
-                row.configuration.previews
-              }}
-            </td>
-            <td>
-              {{ row.configuration.cache === 'cold' ? 'fresh' : 'cached' }}
-            </td>
-            <td>{{ seconds(row.wallMs) }}</td>
-            <td>
-              {{ row.outputs?.videos ?? '—' }} videos /
-              {{ row.outputs?.frames ?? '—' }} frames
-              <small
-                v-if="inputMode === 'custom'"
-                data-test="custom-outcomes"
-                >{{ outcomes(row.report) }}</small
-              >
-            </td>
-            <td>
-              {{ row.status }} / {{ row.cleanup
-              }}<small>{{ row.errors.join('; ') }}</small>
-              <details v-if="row.report">
-                <summary>Phase totals</summary>
-                <p>
-                  Overlapping operation totals, not percentages of wall time.
-                </p>
-                <p v-for="phase in phaseTotals(row.report)" :key="phase.label">
-                  {{ phase.label }}: {{ seconds(phase.total) }}
-                </p>
-              </details>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-    <section v-if="result">
-      <h2>Suite evidence</h2>
-      <p v-if="result.mode === 'pipeline-custom-files-v1'" class="notice">
-        Custom file results — not the reference baseline. A passed trial means
-        consistent observed evidence, not that every input succeeded. Review
-        skipped/failed counts and thumbnails. Compare only runs of the same
-        retained selection and outcomes.
+      <p role="status" data-test="suite-status">
+        {{ status }} · {{ rows.length }} trials recorded
+        <span v-if="stopping && active"
+          >· stopping after settlement and cleanup</span
+        >
       </p>
-      <p v-if="evidenceErrors.length" role="alert">
-        Not a complete comparable suite:
-        {{ [...new Set(evidenceErrors)].join('; ') }}
-      </p>
-      <p v-for="summary in summaries" :key="summary.label">
-        {{ summary.label }} · {{ summary.count }} trials · median
-        {{ seconds(summary.median) }} · range {{ seconds(summary.min) }}–{{
-          seconds(summary.max)
-        }}
-      </p>
-      <p v-if="result.orphanedPairs.length" role="alert">
-        Cleanup unresolved for owned pair IDs:
-        {{ result.orphanedPairs.join(', ') }}. Stop here; no catalog wipe is
-        needed.
-      </p>
-      <details ref="jsonDetails">
-        <summary>JSON evidence (no media bytes or local file paths)</summary>
-        <textarea
-          ref="jsonText"
-          data-test="result-json"
-          readonly
-          :value="exported"
-          rows="12"
-          aria-label="Benchmark JSON evidence"
-        ></textarea>
-      </details>
-    </section>
-    <section v-if="images.length">
-      <h2>Latest completed output inspection</h2>
-      <p>
-        Nine previews per video. These images are checked after timing and
-        released before the next trial.
-      </p>
-      <div class="images">
-        <figure v-for="(image, index) in images" :key="image">
-          <img
-            :src="image"
-            :alt="`Video ${Math.floor(index / 9) + 1}, preview ${(index % 9) + 1}`"
-          />
-          <figcaption>
-            Video {{ Math.floor(index / 9) + 1 }} · {{ (index % 9) + 1 }}/9
-          </figcaption>
-        </figure>
-      </div>
-    </section>
-    <footer>
-      <p>
-        Memory / native decoder metrics: unavailable. Interaction latency:
-        unavailable. Phase timings in JSON are overlapping operation totals, not
-        percentages of wall time.
-      </p>
-      <p>
-        Build {{ build.revision ?? 'unknown' }} ·
-        {{ build.source ?? 'local' }} · dirty:
-        {{ build.dirty === null ? 'unknown' : build.dirty }}. A revision alone
-        is not CI provenance; local/dev results are not a qualified release
-        baseline.
-      </p>
-      <p>
-        Deadlines: startup 15 s · trial including post-timing checks 120 s ·
-        cleanup 10 s. Stop does not cancel foreground work. Closing the tab
-        early can leave an owned temporary database; it cannot roll back
-        accepted writes.
-      </p>
-    </footer>
+      <p v-if="failure" role="alert">{{ failure }}</p>
+      <div ref="mount" data-test="trial-mount"></div>
+      <textarea
+        hidden
+        readonly
+        data-test="progress-json"
+        :data-row-count="rows.length"
+        :value="progressExport"
+      ></textarea>
+      <section v-if="rows.length">
+        <h2>Trial results</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Repeat</th>
+              <th>DOM ingestion/previews</th>
+              <th>Cache</th>
+              <th>Pipeline wall time</th>
+              <th>Outputs</th>
+              <th>Status / cleanup</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, index) in rows" :key="index">
+              <td>{{ row.configuration.repetition }}</td>
+              <td>
+                {{ row.configuration.foreground }}/{{
+                  row.configuration.previews
+                }}
+              </td>
+              <td>
+                {{ row.configuration.cache === 'cold' ? 'fresh' : 'cached' }}
+              </td>
+              <td>{{ seconds(row.wallMs) }}</td>
+              <td>
+                {{ row.outputs?.videos ?? '—' }} videos /
+                {{ row.outputs?.frames ?? '—' }} frames
+                <small
+                  v-if="inputMode === 'custom'"
+                  data-test="custom-outcomes"
+                  >{{ outcomes(row.report) }}</small
+                >
+              </td>
+              <td>
+                {{ row.status }} / {{ row.cleanup
+                }}<small>{{ row.errors.join('; ') }}</small>
+                <details v-if="row.report">
+                  <summary>Phase totals</summary>
+                  <p>
+                    Overlapping operation totals, not percentages of wall time.
+                  </p>
+                  <p
+                    v-for="phase in phaseTotals(row.report)"
+                    :key="phase.label"
+                  >
+                    {{ phase.label }}: {{ seconds(phase.total) }}
+                  </p>
+                </details>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+      <section v-if="result">
+        <h2>Suite evidence</h2>
+        <p v-if="result.mode === 'pipeline-custom-files-v1'" class="notice">
+          Custom file results — not the reference baseline. A passed trial means
+          consistent observed evidence, not that every input succeeded. Review
+          skipped/failed counts and thumbnails. Compare only runs of the same
+          retained selection and outcomes.
+        </p>
+        <p v-if="evidenceErrors.length" role="alert">
+          Not a complete comparable suite:
+          {{ [...new Set(evidenceErrors)].join('; ') }}
+        </p>
+        <p v-for="summary in summaries" :key="summary.label">
+          {{ summary.label }} · {{ summary.count }} trials · median
+          {{ seconds(summary.median) }} · range {{ seconds(summary.min) }}–{{
+            seconds(summary.max)
+          }}
+        </p>
+        <p v-if="result.orphanedPairs.length" role="alert">
+          Cleanup unresolved for owned pair IDs:
+          {{ result.orphanedPairs.join(', ') }}. Stop here; no catalog wipe is
+          needed.
+        </p>
+        <details ref="jsonDetails">
+          <summary>JSON evidence (no media bytes or local file paths)</summary>
+          <textarea
+            ref="jsonText"
+            data-test="result-json"
+            readonly
+            :value="exported"
+            rows="12"
+            aria-label="Benchmark JSON evidence"
+          ></textarea>
+        </details>
+      </section>
+      <section v-if="images.length">
+        <h2>Latest completed output inspection</h2>
+        <p>
+          Nine previews per video. These images are checked after timing and
+          released before the next trial.
+        </p>
+        <div class="images">
+          <figure v-for="(image, index) in images" :key="image">
+            <img
+              :src="image"
+              :alt="`Video ${Math.floor(index / 9) + 1}, preview ${(index % 9) + 1}`"
+            />
+            <figcaption>
+              Video {{ Math.floor(index / 9) + 1 }} · {{ (index % 9) + 1 }}/9
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <footer>
+        <p>
+          Memory / native decoder metrics: unavailable. Interaction latency:
+          unavailable. Phase timings in JSON are overlapping operation totals,
+          not percentages of wall time.
+        </p>
+        <p>
+          Build {{ build.revision ?? 'unknown' }} ·
+          {{ build.source ?? 'local' }} · dirty:
+          {{ build.dirty === null ? 'unknown' : build.dirty }}. A revision alone
+          is not CI provenance; local/dev results are not a qualified release
+          baseline.
+        </p>
+        <p>
+          Deadlines: startup 15 s · trial including post-timing checks 120 s ·
+          cleanup 10 s. Stop does not cancel foreground work. Closing the tab
+          early can leave an owned temporary database; it cannot roll back
+          accepted writes.
+        </p>
+      </footer>
+    </template>
   </main>
 </template>
 

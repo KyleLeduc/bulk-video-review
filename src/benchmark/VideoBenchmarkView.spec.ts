@@ -18,6 +18,7 @@ describe('benchmark operator controls', () => {
   }
   async function finishedView(
     status: 'failed' | 'interrupted' = 'interrupted',
+    images: Blob[] = [],
   ) {
     vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue(
       'probably',
@@ -44,7 +45,12 @@ describe('benchmark operator controls', () => {
       errors: status === 'failed' ? ['Trial startup failed'] : [],
       orphanedPairs: [],
     }
-    vi.spyOn(suiteRunner, 'runVideoBenchmarkSuite').mockResolvedValue(suite)
+    vi.spyOn(suiteRunner, 'runVideoBenchmarkSuite').mockImplementation(
+      async (options) => {
+        options.onImages?.(images)
+        return suite
+      },
+    )
     const wrapper = mount(VideoBenchmarkView, {
       props: { build, capable: true },
     })
@@ -60,6 +66,17 @@ describe('benchmark operator controls', () => {
     return { wrapper, suite, input }
   }
 
+  test('releases pipeline samples before entering the extraction experiment', async () => {
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:pipeline-sample')
+    const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const { wrapper } = await finishedView('interrupted', [new Blob(['jpeg'])])
+    expect(wrapper.find('img').exists()).toBe(true)
+    await wrapper.get('[data-test=benchmark-mode]').setValue('extraction')
+    expect(revoke).toHaveBeenCalledWith('blob:pipeline-sample')
+    await wrapper.get('[data-test=benchmark-mode]').setValue('pipeline')
+    expect(wrapper.find('img').exists()).toBe(false)
+    wrapper.unmount()
+  })
   test.each(['failed', 'interrupted'] as const)(
     'copies exact %s evidence without changing its status',
     async (status) => {
