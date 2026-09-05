@@ -80,7 +80,7 @@ Vite 7.3 and Vitest 4.1 still receive important/security fixes. These avoid the 
 
 ### Task 6: Qualify Cypress and real browser smoke
 
-**Files:** `package.json`, `package-lock.json`, `scripts/dependencySecurity.spec.ts`, `cypress/e2e/example.cy.ts`, `cypress.config.ts` only if necessary; add precise browser evidence to `docs/testing/dependency-refresh.md`.
+**Files:** `package.json`, `package-lock.json`, `scripts/dependencySecurity.spec.ts`, `cypress/e2e/example.cy.ts`, `cypress/e2e/tsconfig.json`, generated fixtures with provenance, `cypress.config.ts` only if necessary; add precise browser evidence to `docs/testing/dependency-refresh.md`.
 
 1. Read the official Cypress 14/15/16 migration sections; inventory removed APIs in this repository. Node 22/24 and host glibc 2.39 meet Cypress 16's published install requirements. E2E-only use does not require its Vite 8 component-test dev server.
 2. Add a failing guard forbidding locked `extract-zip`; observe the old Cypress graph fail. Set Cypress `^16.0.0`, resolve its request/archive chain, clean-install and rerun the guard. Avoid forcing unsupported leaf overrides.
@@ -96,6 +96,17 @@ Sources: [Cypress migration guide](https://docs.cypress.io/app/references/migrat
 - Address any remaining security fixes in dependency-cruiser, lint/config tools and other parents with the smallest supported migration. Keep Vue/Pinia feature changes and ESLint major/flat-config migration separate unless evidence makes them prerequisites.
 - Retest clean installation, lint/types, unit/coverage, build, worktree tooling and browser flows before final integration. Retain the consolidated feature branch after integration; clean worktree/artifacts only under the approved ownership-aware closeout procedure.
 - Then follow `2026-09-04-parallel-video-processing.md`, beginning with actual Chrome/Edge timings and measurement instrumentation. No worker-speed claim or concurrency rollout before the baseline and cancellation/drain prerequisites. Demuxer selection remains its own approval gate.
+
+## Discovered browser acceptance repair
+
+Chrome's real playback smoke exposed an unhandled `play()` AbortError when
+`VideoEmbed` assigns its registry URL directly and Vue then patches the same
+reactive `src`. Keep this repair separate from dependency commits. Add a failing
+ordering regression in `VideoEmbed.spec.ts`, let Vue finish binding the source
+before autoplay, and test early unmount plus rejected play requests. Handle
+expected interruption without hiding other failures. Rerun focused playback
+tests, the full suite/build and the unchanged real Chrome/Edge workflow. Do not
+disable Cypress uncaught-exception checks or change playback assertions to pass.
 
 ## Primary references
 
@@ -114,3 +125,31 @@ Sources: [Cypress migration guide](https://docs.cypress.io/app/references/migrat
 - `npm run worktree -- help` and `npm run worktree -- ps` passed; no dev server was started. Existing bootstrap tests passed in the full suite. The migration checkout has a deliberate private install; primary Vite remains 5.3.1 and its unrelated lockfile edit/stashes were preserved.
 - Independent read-only review: no Critical or Important findings. Its minor guard-hardening finding was fixed: unknown leaf majors are rejected and tooling must remain on its qualified major. The nine guards and lint passed after that change. Canonical worktree bootstrap also passed and preserved the private install.
 - Exact Node 22 CI execution: [33935322565](https://github.com/KyleLeduc/bulk-video-review/actions/runs/33935322565) passed on `f5445edf96a5becc509ae18d454664b75b8e3e83`, including clean install/application checks, image scan and runtime smoke. Cypress/native Chrome/Edge flows and performance measurements were not run in that checkpoint. No preprod deployment.
+
+## Execution evidence — second checkpoint
+
+- Compatible remaining tooling refresh `11ae13a`: 300 tests, lint/types/build and
+  worktree checks passed; full audit 29 → 8.
+- vue-tsc migration `d7058fc`: 301 tests/coverage, lint/types/build passed;
+  install audit 8 → 5. No application type suppressions or runtime Vue changes.
+- Cypress 16 security upgrade `0f9c9a7`: clean install, 12 lockfile regressions,
+  302 unit tests, lint/types/build passed; full audit 5 → 0. Removed the archive
+  extractor chain rather than forcing an unsupported override.
+- Separate playback repair `09fb132`: real Chrome failure and failing source-order,
+  early-unmount and rejection-handling regressions preceded implementation.
+  URL binding now settles before autoplay; ownership/cleanup remains unchanged.
+- Final local checks: lint, app/Cypress types, 306 unit tests, 306 coverage tests
+  (72.88% lines), build and worktree help/status/bootstrap passed. Final 17
+  dependency/playback regressions passed after review hardening. Primary lockfile
+  edit, older shared dependency install and all eight stashes were preserved.
+- Final Chrome 152.0.7977.64 and Edge 152.0.4191.53 workflow reruns passed against
+  built assets in one isolated, digest-pinned test container. See the
+  [reproduction and acceptance boundaries](../testing/dependency-refresh.md).
+  There was no Cypress exception suppression, parser/media mock, operator-data
+  deletion, native pointer/drag acceptance or representative performance result.
+- Independent read-only review: no remaining findings after making image decode
+  assertions retryable and rejecting an empty source-call ordering comparison.
+  Publish only after all local commands have settled, then require exact Node 22
+  CI at the published SHA; retain its run link in the task ledger/handoff. No
+  merge or preprod release is implied. Resume performance work at the measurement
+  milestone, with the representative corpus still requiring user input.

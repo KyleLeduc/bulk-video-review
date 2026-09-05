@@ -4,7 +4,7 @@ Items here are planned work, not implemented behavior. Reassess versions and bro
 
 ## BVR-001 — Upgrade dependencies and modernize the toolchain
 
-**Status:** In progress on `chore/dependency-security-refresh`; first security batches implemented, not yet integrated or deployed. **Priority:** High; remaining security exposure needs follow-up.
+**Status:** Security refresh and Chrome/Edge smoke implemented on `chore/dependency-security-refresh`; not yet integrated or deployed. Broader modernization remains open. **Priority:** High; integrate the verified security refresh.
 
 **Benefit:** Keep the app supported and reduce dependency/security risk without losing the current filter, ingestion, preview, or worktree behavior.
 
@@ -12,18 +12,18 @@ Start from current `master`. The retired `upgradeDeps` branch (`49da187`) was a 
 
 ### 2026-09-04 checkpoint
 
-The [dependency refresh plan](plans/2026-09-04-dependency-security-refresh.md) records a compatible transitive refresh and a coordinated Vite 7.3.6 / Vitest 4.1.11 migration. Vue/Pinia behavior, browser build targets and production persistence contracts are unchanged. Promise types in existing test mocks were made explicit for Vitest's newer inference; assertions were not weakened.
+The [dependency refresh plan](plans/2026-09-04-dependency-security-refresh.md) and [qualification evidence](testing/dependency-refresh.md) record compatible transitive fixes, Vite 7.3.6 / Vitest 4.1.11, vue-tsc 3.3.11 and Cypress 16.0.0. Vue/Pinia versions, browser build targets and persistence contracts are unchanged. Real browser acceptance also exposed a source-binding/playback race; its small repair and regression tests are a separate commit from dependency changes.
 
 | npm audit scope | Before | After these batches |
 |---|---|---|
-| All dependency entries | 39: 5 critical, 21 high, 12 moderate, 1 low | 29: 0 critical, 15 high, 13 moderate, 1 low |
+| All dependency entries | 39: 5 critical, 21 high, 12 moderate, 1 low | 0 findings |
 | Production dependencies only | Not separately captured | 0 findings |
 
-These are affected package entries, not GitHub's separate advisory-alert count. The deployed image does not contain `node_modules`, but build/test vulnerabilities still matter. The remaining 29 findings are unresolved, not accepted exceptions.
+These are affected package entries, not GitHub's separate advisory-alert count. The deployed image does not contain `node_modules`, but build/test vulnerabilities still matter. Zero is a point-in-time audit result, not a blanket security guarantee or proof that default-branch alerts have closed.
 
-Owner: repository maintenance/BVR-001. Next batches must cover Cypress's `extract-zip`, request/uuid/qs chain; vue-tsc's obsolete Vue 2 compiler chain; tsx's older esbuild; and compatible security patches in the remaining build/lint tools. Reassess parent versions and advisories when each batch starts. Native Chrome/Edge acceptance remains open; no working configured Chrome executable or representative video corpus was available at this checkpoint.
+Owner: repository maintenance/BVR-001. The vulnerable Cypress/archive/request, obsolete Vue 2 compiler, tsx/esbuild and remaining compatible tooling chains were remediated without forced leaf overrides. Follow-up modernization includes ESLint flat config and coordinated framework/type/lint maintenance, selected from current support needs rather than the retired branch. Headless real Chrome and Edge smoke passed in a disposable official browser-test container. Human pointer/drag feel and representative performance measurements remain open.
 
-Local checks on Node 24.19.0: private clean install, lint, type-check, 299 unit tests, the same 299 tests with V8 coverage, production build, and worktree CLI help/status passed. CI Node 22 and reviewer results are recorded in the implementation plan when available. This is not completion of the broader modernization or browser acceptance.
+Local checks on Node 24.19.0: private clean install, lint, app/Cypress types, 306 unit tests, the same 306 tests with V8 coverage, production build, and worktree CLI help/status/bootstrap passed. Chrome/Edge on Node 24.20.0 exercised real imports, duplicate selection, previews, range filtering, voting/pinning, playback/seek, reload/reselection persistence and invalid-file retry classification. Independent review found no remaining issues. Exact published Node 22 CI remains the integration gate; infrastructure smoke does not replace browser acceptance.
 
 ### Scope
 
@@ -36,11 +36,11 @@ Local checks on Node 24.19.0: private clean install, lint, type-check, 299 unit 
 
 ### Acceptance
 
-- [ ] Document before/after dependency and advisory inventories, resolved findings, and justified remaining risks with owners/follow-ups.
+- [x] Document before/after dependency and advisory inventories, resolved findings, and justified remaining risks with owners/follow-ups.
 - [ ] A clean `npm ci` works on the selected local/devcontainer and CI Node/npm versions; manifest and lockfile agree.
-- [ ] `npm run lint`, `npm run type-check`, `npm run test:unit`, `npm run test:ci`, and `npm run build` pass, sequentially.
-- [ ] `npm run test:e2e` passes against the built app; Chrome and Edge browser checks cover filters, imports, duplicate/retry handling, preview persistence, voting/pinning, and playback.
-- [ ] `npm run worktree -- help` and isolated worktree bootstrap/status checks pass. Ordinary worktrees retain shared dependencies; a dependency-migration worktree may intentionally use a private install to protect the primary checkout. No second development container.
+- [x] `npm run lint`, `npm run type-check`, `npm run test:unit`, `npm run test:ci`, and `npm run build` pass, sequentially.
+- [x] `npm run test:e2e` passes against the built app; Chrome and Edge browser checks cover filters, imports, duplicate/retry handling, preview persistence, voting/pinning, and playback. This is automated headless smoke, not human pointer/drag acceptance.
+- [x] `npm run worktree -- help` and isolated worktree bootstrap/status checks pass. Ordinary worktrees retain shared dependencies; a dependency-migration worktree may intentionally use a private install to protect the primary checkout. No second development container.
 - [ ] Required CI/security checks pass; a separately authorized immutable preprod release passes the existing smoke runbook. Browser acceptance remains distinct from infrastructure smoke.
 
 ## BVR-002 — Parallel video ingestion and thumbnail processing
