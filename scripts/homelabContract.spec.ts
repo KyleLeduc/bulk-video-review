@@ -11,6 +11,14 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const read = (path: string) => readFileSync(resolve(root, path), 'utf8')
 
 describe('homelab deployment contract', () => {
+  test('keeps the reference-corpus smoke out of the ordinary E2E command', () => {
+    const config = read('cypress.config.ts')
+    expect(config).toContain("process.env.BVR_BENCHMARK_SMOKE === 'true'")
+    expect(config).toContain("['**/videoBenchmark.cy.ts']")
+    const scripts = JSON.parse(read('package.json')).scripts
+    expect(scripts['test:e2e']).not.toContain('BVR_BENCHMARK_SMOKE')
+    expect(scripts['test:benchmark']).toContain('BVR_BENCHMARK_SMOKE=true')
+  })
   test('fingerprints sorted emitted names and contents without hashing itself', () => {
     const assets = [
       ['assets/a.js', 'first'],

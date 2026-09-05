@@ -13,8 +13,7 @@ fetch('/benchmark/capabilities', { cache: 'no-store' })
         navigator.locks && window.indexedDB && window.crypto?.randomUUID,
       ) &&
       typeof DataTransfer === 'function' &&
-      typeof createImageBitmap === 'function' &&
-      /Chrome\/|Edg\//.test(navigator.userAgent)
+      typeof createImageBitmap === 'function'
     createApp(View, { build: capabilities.build, capable }).mount('#benchmark')
   })
   .catch(() => {

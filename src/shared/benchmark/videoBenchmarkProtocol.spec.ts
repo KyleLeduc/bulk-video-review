@@ -3,6 +3,7 @@ import {
   enumerateTrialPairs,
   orderFixtureFiles,
   validatePipelineSuite as validateSuite,
+  validPreviewTimestamps,
 } from './videoBenchmarkProtocol'
 import reference from './referenceFixtures.json'
 const validatePipelineSuite = (suite: unknown) =>
@@ -106,6 +107,12 @@ const configurations = [
 ]
 
 describe('benchmark protocol', () => {
+  test('preserves the real DOM pipeline integer-second targets, including repeated short-video targets', () => {
+    expect(validPreviewTimestamps([0, 1, 2, 3, 4, 4, 5, 6, 7], 8)).toBe(true)
+    expect(validPreviewTimestamps([0, 1, 2, 3, 4, 5, 4, 6, 7], 8)).toBe(false)
+    expect(validPreviewTimestamps([0, 1, 2, 3, 4, 4, 5, 6, 8], 8)).toBe(false)
+    expect(validPreviewTimestamps([0, 1], 8)).toBe(false)
+  })
   test('rotates whole configurations between repetitions without reordering a pair', () => {
     expect(enumerateTrialPairs(configurations, 2)).toEqual([
       { ...configurations[0], repetition: 1 },
@@ -219,6 +226,8 @@ describe('benchmark protocol', () => {
     mode: 'pipeline-no-gallery-v1',
     status: 'completed',
     cleanup: 'complete',
+    errors: [],
+    orphanedPairs: [],
     settings: {
       configurations: [configurations[1]],
       repetitions: 1,
@@ -256,10 +265,32 @@ describe('benchmark protocol', () => {
     expect(validatePipelineSuite(completeSuite())).toEqual([])
   })
 
+  test('allows explicitly unqualified development summaries without qualifying CLI evidence', () => {
+    const suite = completeSuite()
+    const build = {
+      ...suite.identity.build,
+      assetsSha256: null,
+      source: 'dev-unqualified',
+    }
+    const dev = {
+      ...suite,
+      identity: { ...suite.identity, build },
+      rows: suite.rows.map((row) => ({ ...row, build })),
+    }
+    expect(validateSuite(dev, reference).length).toBeGreaterThan(0)
+    expect(
+      validateSuite(dev, reference, { allowDevelopmentBuild: true }),
+    ).toEqual([])
+  })
+
   test('retains all incomplete, duplicate, hidden, invalid-output and mixed-build evidence', () => {
     const suite = completeSuite()
     const mutations = [
       { ...suite, status: 'interrupted' },
+      { ...suite, errors: ['Unresolved failure'] },
+      { ...suite, errors: undefined },
+      { ...suite, orphanedPairs: ['owned-pair'] },
+      { ...suite, orphanedPairs: undefined },
       { ...suite, cleanup: 'failed' },
       { ...suite, rows: [] },
       { ...suite, rows: [...suite.rows, ...suite.rows] },

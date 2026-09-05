@@ -43,7 +43,11 @@ const canStart = computed(
     !active.value,
 )
 const evidenceErrors = computed(() =>
-  result.value ? validatePipelineSuite(result.value, reference) : [],
+  result.value
+    ? validatePipelineSuite(result.value, reference, {
+        allowDevelopmentBuild: true,
+      })
+    : [],
 )
 const status = computed(() =>
   active.value
@@ -53,6 +57,8 @@ const status = computed(() =>
 const exported = computed(() =>
   result.value ? JSON.stringify(result.value, null, 2) : '',
 )
+// Snapshot only completed rows, outside the timed trial. Cleanup may still be pending.
+const progressExport = computed(() => JSON.stringify(rows.value))
 const summaries = computed(() => {
   if (!result.value || evidenceErrors.value.length) return []
   const groups = new Map<string, number[]>()
@@ -67,6 +73,23 @@ const summaries = computed(() => {
 })
 const seconds = (value: number | null) =>
   value === null ? 'unavailable' : `${(value / 1000).toFixed(3)} s`
+
+function phaseTotals(report: unknown) {
+  const measurements = (
+    report as { measurements?: Record<string, unknown> } | null
+  )?.measurements
+  return ['foreground', 'previews'].flatMap((lane) => {
+    const phases = measurements?.[lane]
+    if (!phases || typeof phases !== 'object') return []
+    return Object.entries(phases).map(([phase, value]) => ({
+      label: `${lane} / ${phase}`,
+      total:
+        typeof value?.totalMs === 'number' && Number.isFinite(value.totalMs)
+          ? value.totalMs
+          : null,
+    }))
+  })
+}
 
 function select(event: Event) {
   if (active.value) return
@@ -116,7 +139,9 @@ async function start() {
     })
     if (
       result.value.status === 'completed' &&
-      validatePipelineSuite(result.value, reference).length
+      validatePipelineSuite(result.value, reference, {
+        allowDevelopmentBuild: true,
+      }).length
     )
       result.value = {
         ...result.value,
@@ -278,6 +303,13 @@ onBeforeUnmount(() => {
     </p>
     <p v-if="failure" role="alert">{{ failure }}</p>
     <div ref="mount" data-test="trial-mount"></div>
+    <textarea
+      hidden
+      readonly
+      data-test="progress-json"
+      :data-row-count="rows.length"
+      :value="progressExport"
+    ></textarea>
     <section v-if="rows.length">
       <h2>Trial results</h2>
       <table>
@@ -310,6 +342,15 @@ onBeforeUnmount(() => {
             <td>
               {{ row.status }} / {{ row.cleanup
               }}<small>{{ row.errors.join('; ') }}</small>
+              <details v-if="row.report">
+                <summary>Phase totals</summary>
+                <p>
+                  Overlapping operation totals, not percentages of wall time.
+                </p>
+                <p v-for="phase in phaseTotals(row.report)" :key="phase.label">
+                  {{ phase.label }}: {{ seconds(phase.total) }}
+                </p>
+              </details>
             </td>
           </tr>
         </tbody>

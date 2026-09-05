@@ -24,6 +24,7 @@ import {
   validateMeasurements,
   summarize,
   validateReport,
+  validatePipelineSuite,
 } from '../src/shared/benchmark/videoBenchmarkProtocol.js'
 export {
   validateTerminalReport,
@@ -153,6 +154,9 @@ export function qualifyObservations(report, interactions, memory) {
 }
 
 export function validateOptions(options) {
+  const view = options.view ?? 'gallery'
+  if (!['gallery', 'pipeline'].includes(view))
+    throw new Error('Unsupported view')
   if (!Object.hasOwn(browsers, options.browser))
     throw new Error('Unsupported browser')
   for (const name of ['corpus', 'output'])
@@ -167,9 +171,13 @@ export function validateOptions(options) {
   )
     throw new Error('App URL must use loopback')
   const repetitions = Number(options.repetitions ?? 5)
-  if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 20)
+  if (
+    !Number.isInteger(repetitions) ||
+    repetitions < 1 ||
+    repetitions > (view === 'pipeline' ? 5 : 20)
+  )
     throw new Error('Invalid repetitions')
-  return { ...options, repetitions }
+  return { ...options, repetitions, view }
 }
 
 export function isTerminalToast(toast, cache, supported) {
@@ -529,6 +537,40 @@ function periodic(operation, intervalMs) {
   }
 }
 
+function startMemorySampling(browserProtocol) {
+  const memory = { intervalMs: 500, samples: [], missedProcesses: 0 }
+  const stopMemory = periodic(async () => {
+    const startedAtMs = Date.now()
+    const { processInfo } = await browserProtocol.send(
+      'SystemInfo.getProcessInfo',
+    )
+    let totalRssKiB = 0
+    let processCount = 0
+    for (const process of processInfo) {
+      if (!Number.isInteger(process.id) || process.id <= 0)
+        throw new Error('Invalid browser process identity')
+      try {
+        const status = await readFile(`/proc/${process.id}/status`, 'utf8')
+        const rss = status.match(/^VmRSS:\s+(\d+) kB$/m)
+        if (rss) {
+          totalRssKiB += Number(rss[1])
+          processCount++
+        }
+      } catch (error) {
+        if (error.code === 'ENOENT') memory.missedProcesses++
+        else throw error
+      }
+    }
+    memory.samples.push({
+      startedAtMs,
+      atMs: Date.now(),
+      totalRssKiB,
+      processCount,
+    })
+  }, memory.intervalMs)
+  return { memory, stopMemory }
+}
+
 async function measureRun(
   session,
   configuration,
@@ -590,36 +632,7 @@ async function measureRun(
     nodeId: root.nodeId,
     selector: 'input[data-picker-mode="files"]',
   })
-  const memory = { intervalMs: 500, samples: [], missedProcesses: 0 }
-  const stopMemory = periodic(async () => {
-    const startedAtMs = Date.now()
-    const { processInfo } = await browserProtocol.send(
-      'SystemInfo.getProcessInfo',
-    )
-    let totalRssKiB = 0
-    let processCount = 0
-    for (const process of processInfo) {
-      if (!Number.isInteger(process.id) || process.id <= 0)
-        throw new Error('Invalid browser process identity')
-      try {
-        const status = await readFile(`/proc/${process.id}/status`, 'utf8')
-        const rss = status.match(/^VmRSS:\s+(\d+) kB$/m)
-        if (rss) {
-          totalRssKiB += Number(rss[1])
-          processCount++
-        }
-      } catch (error) {
-        if (error.code === 'ENOENT') memory.missedProcesses++
-        else throw error
-      }
-    }
-    memory.samples.push({
-      startedAtMs,
-      atMs: Date.now(),
-      totalRssKiB,
-      processCount,
-    })
-  }, memory.intervalMs)
+  const { memory, stopMemory } = startMemorySampling(browserProtocol)
   let inputCount = 0
   const stopInputs = periodic(async () => {
     const key = inputCount++ % 2 === 0 ? 'ArrowLeft' : 'ArrowRight'
@@ -733,11 +746,43 @@ async function hashFile(path) {
   return hash.digest('hex')
 }
 
-export async function verifyServedBuild(root, url) {
+export async function verifyCorpusFiles(files, expected) {
+  for (let index = 0; index < files.length; index++) {
+    if ((await stat(files[index])).size !== expected[index].bytes)
+      throw new Error(`Corpus size mismatch at index ${index}`)
+    if ((await hashFile(files[index])) !== expected[index].sha256)
+      throw new Error(`Corpus hash mismatch at index ${index}`)
+  }
+}
+
+export function validatePipelineRunnerSettings(settings, repetitions) {
+  const configuration = settings?.configurations?.[0]
+  return settings?.repetitions === repetitions &&
+    settings.includeCached === true &&
+    settings.configurations.length === 1 &&
+    configuration.backend === 'dom' &&
+    configuration.foreground === 2 &&
+    configuration.previews === 1
+    ? []
+    : ['Page settings differ from requested DOM 2/1 fresh/cached pairs']
+}
+
+async function runtimeResources() {
+  const sharedMemory = await statfs('/dev/shm')
+  return {
+    cpuMax: (await readFile('/sys/fs/cgroup/cpu.max', 'utf8')).trim(),
+    memoryMax: (await readFile('/sys/fs/cgroup/memory.max', 'utf8')).trim(),
+    shmBytes: sharedMemory.bsize * sharedMemory.blocks,
+  }
+}
+
+export async function verifyServedBuild(root, url, includeBenchmark = false) {
   const entries = []
   const walk = async (directory) => {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       const path = join(directory, entry.name)
+      if (!includeBenchmark && directory === root && entry.name === 'benchmark')
+        continue
       if (entry.isDirectory()) await walk(path)
       else if (entry.isFile()) {
         const relative = path.slice(root.length + 1)
@@ -768,10 +813,243 @@ export async function verifyServedBuild(root, url) {
     .digest('hex')
 }
 
+async function runPipelinePage(options, manifest, files) {
+  const reference = JSON.parse(
+    await readFile(
+      new URL(
+        '../src/shared/benchmark/referenceFixtures.json',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  )
+  if (
+    manifest.id !== reference.id ||
+    JSON.stringify(manifest.files) !== JSON.stringify(reference.files) ||
+    JSON.stringify(manifest.expected) !== JSON.stringify(reference.expected)
+  )
+    throw new Error('Pipeline view requires the fixed reference manifest')
+  const buildSha256 = await verifyServedBuild(
+    resolve('dist'),
+    options.url,
+    true,
+  )
+  const capabilityResponse = await fetch(
+    new URL('/benchmark/capabilities', options.url),
+    { signal: AbortSignal.timeout(10000), redirect: 'error' },
+  )
+  const capability = capabilityResponse.ok
+    ? await capabilityResponse.json()
+    : null
+  if (capability?.enabled !== true || capability.protocolVersion !== 2)
+    throw new Error('Pipeline view is not enabled')
+  if (options.revision && capability.build.revision !== options.revision)
+    throw new Error('Requested revision does not match served benchmark build')
+  const runnerSha256 = await hashFile(fileURLToPath(import.meta.url))
+  const resources = await runtimeResources()
+  const output = await open(options.output, 'wx', 0o600)
+  const controller = new AbortController()
+  let session
+  let stopMemory
+  const runner = {
+    mode: options.pilot ? 'pilot' : 'measured',
+    browser: options.browser,
+    browserVersion: null,
+    buildSha256,
+    resources,
+    node: process.version,
+    os: `${platform()} ${release()} ${arch()}`,
+    viewport: { width: 1440, height: 1000 },
+    orderProtocol: 'page-owned-rotating-pairs-v1',
+    appUrl: options.url,
+    runnerSha256,
+    corpusFiles: reference.files.map(({ path, sha256, bytes }) => ({
+      path,
+      sha256,
+      bytes,
+    })),
+    verification:
+      'streaming SHA-256 and file sizes verified before browser launch',
+    memory: null,
+    sampleErrors: [],
+    memoryLimitations:
+      'Separate whole-browser sampled summed RSS; shared pages may be counted more than once. Not isolated decoder memory or per-trial latency.',
+  }
+  let result = {
+    protocolVersion: 2,
+    mode: 'pipeline-no-gallery-v1',
+    status: 'failed',
+    cleanup: 'failed',
+    rows: [],
+    errors: [],
+    runner,
+    fixture: { id: reference.id, verification: 'sha256-verified' },
+    identity: { build: capability.build },
+  }
+  const shutdown = installShutdown(process, controller, () => session?.close())
+  try {
+    session = await launch(options.browser, controller.signal)
+    const { page, browserProtocol } = session
+    const browserVersion = await browserProtocol.send('Browser.getVersion')
+    runner.browserVersion = browserVersion
+    await page.send('Page.navigate', {
+      url: new URL('/benchmark/', options.url).href,
+    })
+    await waitFor(
+      () =>
+        evaluate(page, () =>
+          Boolean(document.querySelector('[data-test=start]')),
+        ),
+      'benchmark controls',
+    )
+    await evaluate(
+      page,
+      (repetitions) => {
+        for (const [name, value] of [
+          ['foreground', '2'],
+          ['previews', '1'],
+        ]) {
+          const select = document.querySelector(`[data-test=${name}]`)
+          select.value = value
+          select.dispatchEvent(new Event('change', { bubbles: true }))
+        }
+        const cached = document.querySelector('[data-test=cached]')
+        cached.checked = true
+        cached.dispatchEvent(new Event('change', { bubbles: true }))
+        const input = document.querySelector('[data-test=repetitions]')
+        input.value = String(repetitions)
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+        // CDP selects exact manifest paths; avoid directory enumeration/copies.
+        document
+          .querySelector('[data-test=fixture-files]')
+          .removeAttribute('webkitdirectory')
+      },
+      options.pilot ? 1 : options.repetitions,
+    )
+    const { root } = await page.send('DOM.getDocument')
+    const { nodeId } = await page.send('DOM.querySelector', {
+      nodeId: root.nodeId,
+      selector: '[data-test=fixture-files]',
+    })
+    await page.send('DOM.setFileInputFiles', { nodeId, files })
+    await waitFor(
+      () =>
+        evaluate(
+          page,
+          () => !document.querySelector('[data-test=start]').disabled,
+        ),
+      'fixed fixture preflight',
+    )
+    const sampling = startMemorySampling(browserProtocol)
+    runner.memory = sampling.memory
+    stopMemory = sampling.stopMemory
+    await evaluate(page, () =>
+      document.querySelector('[data-test=start]').click(),
+    )
+    const saved = await waitFor(
+      async () => {
+        controller.signal.throwIfAborted()
+        const snapshot = await evaluate(
+          page,
+          (knownRows) => {
+            const json = document.querySelector(
+              '[data-test=result-json]',
+            )?.value
+            const state = document.querySelector(
+              '[data-test=suite-status]',
+            )?.textContent
+            if (state?.startsWith('failed') && !json)
+              throw new Error(
+                document.querySelector('[role=alert]')?.textContent ??
+                  'Page failed',
+              )
+            const progress = document.querySelector('[data-test=progress-json]')
+            return {
+              rows:
+                Number(progress?.dataset.rowCount) > knownRows
+                  ? progress.value
+                  : null,
+              settled:
+                state && !state.startsWith('running') && json ? json : null,
+            }
+          },
+          result.rows.length,
+        )
+        if (snapshot.rows) result.rows = JSON.parse(snapshot.rows)
+        return snapshot.settled ? JSON.parse(snapshot.settled) : null
+      },
+      'page suite settlement',
+      (options.pilot ? 1 : options.repetitions) * 2 * 145000 + 30000,
+    )
+    result = { ...saved, runner }
+    const sampleErrors = await stopMemory()
+    stopMemory = null
+    runner.sampleErrors = sampleErrors
+    result.fixture.verification = 'sha256-verified'
+    const errors = validatePipelineSuite(result, reference)
+    errors.push(
+      ...validatePipelineRunnerSettings(
+        result.settings,
+        options.pilot ? 1 : options.repetitions,
+      ),
+    )
+    if (
+      JSON.stringify(result.identity.build) !== JSON.stringify(capability.build)
+    )
+      errors.push('Page/build identity mismatch')
+    if (
+      !(
+        options.browser === 'edge'
+          ? /^Edg\/\d+\.\d+\.\d+\.\d+$/
+          : /^Chrome\/\d+\.\d+\.\d+\.\d+$/
+      ).test(browserVersion.product) ||
+      result.identity.userAgent !== browserVersion.userAgent ||
+      (options.browser === 'edge') !==
+        result.identity.userAgent.includes('Edg/')
+    )
+      errors.push('Browser product mismatch')
+    if (sampleErrors.length) errors.push('Browser process sampling failed')
+    if (errors.length) {
+      result.status = 'failed'
+      result.errors.push(...errors)
+      throw new Error('Invalid page suite; evidence retained')
+    }
+    console.log(
+      `${options.browser} pipeline: ${result.rows.length} complete fresh/cached rows`,
+    )
+  } catch (error) {
+    result.status = 'failed'
+    result.errors.push(error.message)
+    throw error
+  } finally {
+    shutdown.dispose()
+    try {
+      try {
+        if (stopMemory) await stopMemory()
+      } finally {
+        try {
+          await shutdown.settled()
+        } finally {
+          await session?.close()
+        }
+      }
+    } catch (error) {
+      result.cleanup = 'failed'
+      result.errors.push(error.message)
+      process.exitCode = 1
+    } finally {
+      await output.write(JSON.stringify(result, null, 2))
+      await output.sync()
+      await output.close()
+    }
+  }
+}
+
 async function main() {
   const { values } = parseArgs({
     options: {
       browser: { type: 'string' },
+      view: { type: 'string', default: 'gallery' },
       corpus: { type: 'string' },
       output: { type: 'string' },
       url: { type: 'string', default: 'http://127.0.0.1:4173' },
@@ -790,15 +1068,13 @@ async function main() {
     options.corpus,
     manifest.files.map((file) => file.path),
   )
-  for (let index = 0; index < files.length; index++) {
-    if ((await hashFile(files[index])) !== manifest.files[index].sha256)
-      throw new Error(`Corpus hash mismatch at index ${index}`)
-  }
+  await verifyCorpusFiles(files, manifest.files)
+  if (options.view === 'pipeline')
+    return runPipelinePage(options, manifest, files)
   const expected = {
     ...manifest.expected,
     acceptedBytes: manifest.files.reduce((sum, file) => sum + file.bytes, 0),
   }
-  const sharedMemory = await statfs('/dev/shm')
   const identity = {
     corpusId: manifest.id,
     corpusManifestSha256: createHash('sha256')
@@ -811,11 +1087,7 @@ async function main() {
       fileURLToPath(new URL('./videoProcessingProbe.js', import.meta.url)),
     ),
     appUrl: options.url,
-    resources: {
-      cpuMax: (await readFile('/sys/fs/cgroup/cpu.max', 'utf8')).trim(),
-      memoryMax: (await readFile('/sys/fs/cgroup/memory.max', 'utf8')).trim(),
-      shmBytes: sharedMemory.bsize * sharedMemory.blocks,
-    },
+    resources: await runtimeResources(),
     node: process.version,
     os: `${platform()} ${release()} ${arch()}`,
     mode: options.pilot ? 'pilot' : 'measured',

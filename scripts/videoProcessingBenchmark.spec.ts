@@ -21,6 +21,8 @@ import {
   installShutdown,
   validateEvidenceSet,
   validateTerminalReport,
+  verifyCorpusFiles,
+  validatePipelineRunnerSettings,
 } from './videoProcessingBenchmark.mjs'
 
 const temporaryDirectories: string[] = []
@@ -30,11 +32,77 @@ afterEach(async () => {
 })
 
 describe('reference benchmark evidence', () => {
+  it('rejects page default drift from the requested five fresh/cached DOM 2/1 pairs', () => {
+    const settings = {
+      configurations: [{ backend: 'dom', foreground: 2, previews: 1 }],
+      repetitions: 5,
+      includeCached: true,
+    }
+    expect(validatePipelineRunnerSettings(settings, 5)).toEqual([])
+    expect(
+      validatePipelineRunnerSettings({ ...settings, includeCached: false }, 5),
+    ).not.toEqual([])
+    expect(
+      validatePipelineRunnerSettings({ ...settings, repetitions: 1 }, 5),
+    ).not.toEqual([])
+    expect(
+      validatePipelineRunnerSettings(
+        {
+          ...settings,
+          configurations: [{ backend: 'dom', foreground: 4, previews: 1 }],
+        },
+        5,
+      ),
+    ).not.toEqual([])
+  })
+  it('verifies actual fixture bytes before browser admission', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'bvr-corpus-hash-'))
+    temporaryDirectories.push(root)
+    const path = join(root, 'clip.mp4')
+    await writeFile(path, 'abc')
+    const expected = [
+      {
+        bytes: 3,
+        sha256:
+          'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+      },
+    ]
+    await expect(verifyCorpusFiles([path], expected)).resolves.toBeUndefined()
+    await writeFile(path, 'abcd')
+    await expect(verifyCorpusFiles([path], expected)).rejects.toThrow(
+      'size mismatch',
+    )
+    await writeFile(path, 'abd')
+    await expect(verifyCorpusFiles([path], expected)).rejects.toThrow(
+      'hash mismatch',
+    )
+  })
   it('uses identical pure report validators for the page and legacy runner', () => {
     expect(validateTerminalReport).toBe(sharedProtocol.validateTerminalReport)
     expect(validateMeasurements).toBe(sharedProtocol.validateMeasurements)
     expect(validateReport).toBe(sharedProtocol.validateReport)
     expect(summarize).toBe(sharedProtocol.summarize)
+  })
+  it('keeps gallery as the legacy default and requires explicit bounded pipeline mode', () => {
+    const options = {
+      browser: 'chrome',
+      corpus: '/fixtures',
+      output: '/results/run.json',
+      url: 'http://127.0.0.1:4173',
+    }
+    expect(validateOptions(options).view).toBe('gallery')
+    expect(validateOptions({ ...options, view: 'pipeline' }).view).toBe(
+      'pipeline',
+    )
+    expect(() => validateOptions({ ...options, view: 'unknown' })).toThrow(
+      /view/,
+    )
+    expect(() =>
+      validateOptions({ ...options, view: 'pipeline', repetitions: 6 }),
+    ).toThrow(/repetitions/)
+    expect(validateOptions({ ...options, repetitions: 20 }).repetitions).toBe(
+      20,
+    )
   })
   it('rejects nonterminal, misclassified and nonfinite/misordered reports', () => {
     const report = {
@@ -308,6 +376,8 @@ describe('reference benchmark evidence', () => {
     const root = await mkdtemp(join(tmpdir(), 'bvr-build-test-'))
     temporaryDirectories.push(root)
     await writeFile(join(root, 'index.html'), 'built-app')
+    await mkdir(join(root, 'benchmark'))
+    await writeFile(join(root, 'benchmark', 'index.html'), 'benchmark-app')
     let content = 'built-app'
     const server = createServer((_request, response) => response.end(content))
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
@@ -315,6 +385,9 @@ describe('reference benchmark evidence', () => {
     try {
       const url = `http://127.0.0.1:${address.port}/`
       expect(await verifyServedBuild(root, url)).toMatch(/^[a-f0-9]{64}$/)
+      await expect(verifyServedBuild(root, url, true)).rejects.toThrow(
+        'Served build mismatch: benchmark/index.html',
+      )
       content = 'stale-app'
       await expect(verifyServedBuild(root, url)).rejects.toThrow(
         'Served build mismatch',

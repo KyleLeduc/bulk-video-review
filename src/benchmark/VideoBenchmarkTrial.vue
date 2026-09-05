@@ -9,6 +9,7 @@ import {
   validateMeasurements,
   validateReport,
   validateTerminalReport,
+  validPreviewTimestamps,
   type TrialConfiguration,
   type BuildIdentity,
 } from '../shared/benchmark/videoBenchmarkProtocol'
@@ -76,60 +77,76 @@ async function run(files: File[]): Promise<TrialResult> {
       errors.push('Missing or malformed terminal report')
     }
     const outputErrors: string[] = []
-    const persisted = await props.services.videoQueryAdapter.getAllVideos()
     const previews = new VideoPreviewRepository(props.connection)
     const images: Blob[] = []
     let frames = 0
     let imageBytes = 0
-    if (
-      persisted.length !== expected.supported ||
-      store.allVideos.length !== expected.supported
-    )
-      outputErrors.push('Persisted video count mismatch')
-    for (const video of store.allVideos) {
-      const saved = persisted.find((item) => item.id === video.id)
+    let persistedCount = 0
+    try {
+      const persisted = await props.services.videoQueryAdapter.getAllVideos()
+      persistedCount = persisted.length
       if (
-        !saved ||
-        saved.thumb !== video.thumb ||
-        saved.duration !== video.duration ||
-        saved.votes !== 0 ||
-        !Number.isFinite(video.duration) ||
-        video.duration <= 0
+        persisted.length !== expected.supported ||
+        store.allVideos.length !== expected.supported
       )
-        outputErrors.push('Persisted metadata mismatch')
-      if (!saved?.thumb.startsWith('data:image/'))
-        outputErrors.push('Missing persisted primary thumbnail')
-      const storedFrames = await previews.getFrames(video.id)
-      if (storedFrames.length !== 9 || video.previewFrames.length !== 9)
-        outputErrors.push('Persisted preview count mismatch')
-      let previousTime = -1
-      for (const frame of storedFrames) {
-        frames++
+        outputErrors.push('Persisted video count mismatch')
+      for (const video of store.allVideos) {
+        const saved = persisted.find((item) => item.id === video.id)
         if (
-          !Number.isFinite(frame.timestampSeconds) ||
-          frame.timestampSeconds <= previousTime ||
-          frame.timestampSeconds > video.duration ||
-          frame.width <= 0 ||
-          frame.height <= 0 ||
-          !(frame.blob instanceof Blob) ||
-          !frame.blob.size
+          !saved ||
+          saved.thumb !== video.thumb ||
+          saved.duration !== video.duration ||
+          saved.votes !== 0 ||
+          !Number.isFinite(video.duration) ||
+          video.duration <= 0
         )
-          outputErrors.push('Invalid preview descriptor')
-        previousTime = frame.timestampSeconds
-        try {
-          const bitmap = await createImageBitmap(frame.blob)
+          outputErrors.push('Persisted metadata mismatch')
+        if (!saved?.thumb.startsWith('data:image/jpeg;base64,'))
+          outputErrors.push('Invalid persisted JPEG primary thumbnail')
+        const storedFrames = await previews.getFrames(video.id)
+        if (storedFrames.length !== 9 || video.previewFrames.length !== 9)
+          outputErrors.push('Persisted preview count mismatch')
+        if (
+          !validPreviewTimestamps(
+            storedFrames.map((frame) => frame.timestampSeconds),
+            video.duration,
+          )
+        )
+          outputErrors.push(
+            'Preview timestamps differ from DOM selection targets',
+          )
+        for (const frame of storedFrames) {
+          frames++
+          if (
+            !Number.isFinite(frame.timestampSeconds) ||
+            frame.timestampSeconds > video.duration ||
+            frame.width <= 0 ||
+            frame.height <= 0 ||
+            !(frame.blob instanceof Blob) ||
+            frame.blob.type !== 'image/jpeg' ||
+            !frame.blob.size
+          )
+            outputErrors.push('Invalid preview descriptor')
           try {
-            if (bitmap.width !== frame.width || bitmap.height !== frame.height)
-              outputErrors.push('Decoded preview dimensions mismatch')
-          } finally {
-            bitmap.close()
+            const bitmap = await createImageBitmap(frame.blob)
+            try {
+              if (
+                bitmap.width !== frame.width ||
+                bitmap.height !== frame.height
+              )
+                outputErrors.push('Decoded preview dimensions mismatch')
+            } finally {
+              bitmap.close()
+            }
+          } catch {
+            outputErrors.push('Preview image failed to decode')
           }
-        } catch {
-          outputErrors.push('Preview image failed to decode')
+          imageBytes += frame.blob.size
+          if (imageBytes <= 16 * 1024 * 1024) images.push(frame.blob)
         }
-        imageBytes += frame.blob.size
-        if (imageBytes <= 16 * 1024 * 1024) images.push(frame.blob)
       }
+    } catch {
+      outputErrors.push('Persisted output inspection failed')
     }
     if (frames !== expected.supported * 9)
       outputErrors.push('Total preview count mismatch')
@@ -155,7 +172,7 @@ async function run(files: File[]): Promise<TrialResult> {
         report,
         outputs: {
           valid: outputErrors.length === 0,
-          videos: persisted.length,
+          videos: persistedCount,
           frames,
           errors: outputErrors,
         },
@@ -176,5 +193,9 @@ function close() {
 defineExpose({ run, close })
 </script>
 <template>
-  <p role="status">{{ label }}</p>
+  <p role="status">
+    Repeat {{ configuration.repetition }} · DOM
+    {{ configuration.foreground }}/{{ configuration.previews }} ·
+    {{ configuration.cache === 'cold' ? 'fresh' : 'cached' }} · {{ label }}
+  </p>
 </template>

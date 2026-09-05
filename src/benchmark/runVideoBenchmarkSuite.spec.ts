@@ -1,9 +1,14 @@
-import { describe, expect, test, vi } from 'vitest'
-import {
-  runVideoBenchmarkSuite,
-  type SuiteOptions,
-  type SuiteDependencies,
-} from './runVideoBenchmarkSuite'
+import { afterEach, describe, expect, test, vi } from 'vitest'
+import type { SuiteOptions, SuiteDependencies } from './runVideoBenchmarkSuite'
+const runVideoBenchmarkSuite = async (
+  options: SuiteOptions,
+  dependencies: SuiteDependencies,
+) =>
+  (await import('./runVideoBenchmarkSuite')).runVideoBenchmarkSuite(
+    options,
+    dependencies,
+  )
+afterEach(() => vi.resetModules())
 import type { HostOptions, TrialResult } from './videoBenchmarkHost'
 
 const deferred = () => {
@@ -66,6 +71,22 @@ const setup = () => {
 }
 
 describe('serial benchmark suite', () => {
+  test.each(['onImages', 'onRow'] as const)(
+    'retains evidence and halts safely if %s fails',
+    async (callback) => {
+      const { options, dependencies } = setup()
+      let calls = 0
+      options[callback] = () => {
+        if (++calls > (callback === 'onImages' ? 1 : 0))
+          throw new Error('UI failed')
+      }
+      const result = await runVideoBenchmarkSuite(options, dependencies)
+      expect(result.status).toBe('failed')
+      expect(result.rows).toHaveLength(1)
+      expect(result.rows[0].status).toBe('failed')
+      expect(dependencies.deletePair).toHaveBeenCalledOnce()
+    },
+  )
   test('retains a failed trial and closes its host before deleting its database', async () => {
     const { options, dependencies, log } = setup()
     dependencies.createHost = async () => ({
@@ -147,6 +168,9 @@ describe('serial benchmark suite', () => {
     expect(result.orphanedPairs).toHaveLength(1)
     expect(result.rows).toHaveLength(2)
     expect(result.status).toBe('failed')
+    await expect(runVideoBenchmarkSuite(options, dependencies)).rejects.toThrow(
+      /reload/i,
+    )
   })
   test('awaits deferred cleanup and rejects a second concurrent Start', async () => {
     const { options, dependencies } = setup()

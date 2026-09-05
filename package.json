@@ -16,6 +16,7 @@
     "test:unit": "vitest run src scripts --exclude '.worktrees/**'",
     "test:ci": "vitest run src scripts --exclude '.worktrees/**' --coverage",
     "test:e2e": "start-server-and-test preview :4173 'cypress run --e2e'",
+    "test:benchmark": "BVR_BENCHMARK_SMOKE=true cypress run --e2e --spec cypress/e2e/videoBenchmark.cy.ts",
     "test:e2e:dev": "start-server-and-test 'vite dev --port 4173' :4173 'cypress open --e2e'",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",

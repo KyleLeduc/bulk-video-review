@@ -41,6 +41,7 @@ export interface BenchmarkSuite {
   orphanedPairs: string[]
 }
 let active = false
+let cleanupUncertain = false
 const defaults: SuiteDependencies = {
   createHost: createTrialHost,
   deletePair: (pairId) => DatabaseConnection.deleteBenchmark(pairId),
@@ -59,6 +60,10 @@ export async function runVideoBenchmarkSuite(
   options: SuiteOptions,
   dependencies = defaults,
 ): Promise<BenchmarkSuite> {
+  if (cleanupUncertain)
+    throw new Error(
+      'Cleanup is uncertain; reload this page before starting a new suite',
+    )
   if (active) throw new Error('A benchmark is already active')
   const settings = {
     configurations: options.configurations.map((value) => ({ ...value })),
@@ -105,7 +110,6 @@ export async function runVideoBenchmarkSuite(
               suite.status = 'interrupted'
               break
             }
-            options.onImages?.([])
             const configuration = { ...pair, cache }
             let host: TrialHost | null = null
             let hidden = document.hidden
@@ -125,6 +129,7 @@ export async function runVideoBenchmarkSuite(
               errors: [],
             }
             try {
+              options.onImages?.([])
               host = await dependencies.createHost({
                 suiteId,
                 pairId,
@@ -142,6 +147,7 @@ export async function runVideoBenchmarkSuite(
               }
               options.onImages?.(result.images)
             } catch (error) {
+              row.status = 'failed'
               row.errors.push(
                 error instanceof Error ? error.message : 'Trial failed',
               )
@@ -151,13 +157,19 @@ export async function runVideoBenchmarkSuite(
                 await host?.close()
                 row.cleanup = 'complete'
               } catch {
+                cleanupUncertain = true
                 row.cleanup = 'failed'
                 row.status = 'failed'
                 row.errors.push('Host cleanup failed or exceeded deadline')
               }
             }
             suite.rows.push(row)
-            options.onRow?.(row)
+            try {
+              options.onRow?.(row)
+            } catch {
+              row.status = 'failed'
+              row.errors.push('Result display failed; evidence retained')
+            }
             if (row.status !== 'passed') {
               suite.status = 'failed'
               break
@@ -176,6 +188,7 @@ export async function runVideoBenchmarkSuite(
               }),
             ])
           } catch {
+            cleanupUncertain = true
             suite.status = 'failed'
             suite.cleanup = 'failed'
             suite.orphanedPairs.push(pairId)

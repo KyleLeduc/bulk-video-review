@@ -3,6 +3,10 @@ export interface Configuration {
   foreground: number
   previews: number
 }
+export function validPreviewTimestamps(
+  timestamps: number[],
+  duration: number,
+): boolean
 export interface TrialPair extends Configuration {
   repetition: number
 }
@@ -38,6 +42,7 @@ export function validatePipelineSuite(
       duplicates: number
     }
   },
+  options?: { allowDevelopmentBuild?: boolean },
 ): string[]
 export function validateTerminalReport(
   report: unknown,

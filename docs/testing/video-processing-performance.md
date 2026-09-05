@@ -1,5 +1,40 @@
 # Video processing measurements
 
+## Isolated benchmark page — 2026-09-05
+
+`feat/video-benchmark-view` adds `/benchmark/` and fresh per-trial iframe hosts, reusing the existing DOM parser, store, use cases and repositories. No decoder, worker, new dependency or scheduling default is introduced. The historical full-gallery record below remains frozen; the new `pipeline-no-gallery-v1` / protocol v2 results are a separate baseline, **not a speedup claim**.
+
+### Native preprod smoke
+
+1. Open `https://bvr.preprod.home.arpa/benchmark/` in current Chrome or Edge after the release is enabled. Keep the tab visible, close competing heavy work, and retain the same browser/machine/power conditions.
+2. Select the prepared `bbb-sunflower-reference-v1` folder (the same public reference corpus used below). Expected selection: 10 media entries, 7 supported videos, 2 invalid entries and 1 duplicate. Metadata/archive files are ignored; missing/extra media or wrong sizes fail preflight. The page checks names, sizes, paths and multiplicity, **not content hashes**. It never uploads videos.
+3. Leave DOM ingestion **2**, previews **1**, repetitions **5**, and cached trials enabled. Start; expect ten serial trial rows, each with 7 videos / 63 persisted, decodable JPEG previews. Inspect phase totals and latest thumbnails, including portrait/rotation and timestamp selection. A fresh trial means fresh database and host, not a cold browser/OS cache.
+4. Download JSON. Failed, hidden-tab, incomplete, mixed-identity or unresolved-cleanup results are retained but excluded from comparable summaries. Memory/native decoder and interaction latency are unavailable in the page; overlapping phase totals are not percentages of wall time.
+5. Return to the normal review page and confirm existing votes/thumbnails remain. **Do not wipe the catalog.** Benchmark databases use exact generated `BVRBenchmark-v1-<UUID>` names; only the owned pair is deleted after host closure. Stop waits for the current trial. Uncertain cleanup halts admission and requires reload; unresolved pair IDs are reported, never swept.
+
+The prepared corpus is retained on the devbox under the ignored `20260904-184155-dependencies-and-performance/reference-corpus` task-evidence folder. Copy that public fixture folder to the browser machine when needed; no operator media is required. Attribution and fixture hashes are visible in the page and tracked in `src/shared/benchmark/referenceFixtures.json`; media is not bundled in the app.
+
+### Built local runtime and opt-in automation
+
+```sh
+npm run build
+BVR_BENCHMARK_ENABLED=true HOST=127.0.0.1 PORT=4173 node scripts/productionServer.mjs
+# Separate terminal, inside the prepared Linux browser environment:
+node scripts/videoProcessingBenchmark.mjs --view pipeline --browser chrome \
+  --corpus /corpus --output /evidence/chrome-pipeline.json \
+  --url http://127.0.0.1:4173 --repetitions 5 --revision <full-built-source-sha>
+```
+
+Run Edge separately with a new output path; use `--pilot` for a separate one-pair rehearsal. The CLI explicitly sets and validates DOM 2/1 fresh/cached pairs, delegates ordering to the page, verifies actual fixture sizes and streaming SHA-256 before browser launch, and checks served assets against local `dist`. It captures pre-launch runner/resource identity, browser product and page UA, with whole-browser sampled summed RSS recorded separately. Summed RSS may double-count shared pages and is not native decoder memory. A failed/interrupted runner retains provenance and the last observed completed-row snapshot; uncatchable process failure can still require task-container cleanup. Output creation is exclusive and never overwrites earlier evidence.
+
+`npm run test:benchmark -- --browser chrome` (then Edge) is explicitly opt-in and requires the enabled built runtime plus the prepared corpus mounted at `/corpus`. Ordinary `npm run test:e2e` excludes this reference-only spec and retains the normal gallery smoke. Cypress's frame rewriting is disabled to preserve the actual benchmark parent/source checks; [Cypress documents this option for valid code affected by rewriting](https://docs.cypress.io/app/references/configuration). The tests use disposable profiles, prove exact benchmark IndexedDB names, and retain a sentinel in the normal catalog.
+
+Without exact runtime `BVR_BENCHMARK_ENABLED=true`, reserved benchmark routes return 404 before SPA fallback. The capability response and HTML are no-store. The same immutable image serves enabled preprod and disabled deployments; homelab's fixed BVR Compose template owns live enablement. Local Vite development is also usable when enabled, but its summaries are explicitly unqualified and cannot pass the strict built-artifact CLI gate. A source SHA alone does not establish CI provenance.
+
+Local qualification, exact CI/publication and live deployment are recorded separately at the final checkpoint. Native appearance, pointer/keyboard feel and representative personal workload acceptance remain user checks.
+
+## Historical full-gallery measurement record
+
 Status: measurement-only implementation on `feat/video-processing-measurements`, based on security-refresh `922eac2`. The fixed public-reference matrix is complete: **120 validated Chrome/Edge runs** on app `00b7646`. Awaited DOM seeking dominates; no worker implementation, demonstrated worker speedup, merge or preprod deployment. Personal-workload and native human acceptance remain separate open gates. Runner publication/CI is a separate checkpoint from the measured app revision.
 
 ## What the report measures

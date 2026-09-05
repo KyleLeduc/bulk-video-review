@@ -66,13 +66,35 @@ export function orderFixtureFiles(files, manifest) {
 }
 
 /** Returns reasons a saved v2 suite cannot be treated as a complete comparison. */
-export function validatePipelineSuite(suite, manifest) {
+export function validPreviewTimestamps(timestamps, duration) {
+  return (
+    Number.isFinite(duration) &&
+    duration > 0 &&
+    timestamps.length === 9 &&
+    timestamps.every(
+      (time, index) => time === Math.floor((duration / 10) * (index + 1)),
+    )
+  )
+}
+
+export function validatePipelineSuite(
+  suite,
+  manifest,
+  { allowDevelopmentBuild = false } = {},
+) {
   const errors = []
   try {
     if (suite?.protocolVersion !== 2 || suite.mode !== 'pipeline-no-gallery-v1')
       return ['Unsupported benchmark envelope']
     if (suite.status !== 'completed' || suite.cleanup !== 'complete')
       errors.push('Suite incomplete')
+    if (
+      !Array.isArray(suite.errors) ||
+      suite.errors.length ||
+      !Array.isArray(suite.orphanedPairs) ||
+      suite.orphanedPairs.length
+    )
+      errors.push('Unresolved suite errors or cleanup')
     if (!manifest?.expected || suite.fixture?.id !== manifest.id)
       return ['Unrecognized fixed fixture']
     const fixtureExpected = {
@@ -100,7 +122,12 @@ export function validatePipelineSuite(suite, manifest) {
     if (
       !build ||
       !suite.identity?.userAgent ||
-      !/^[a-f0-9]{64}$/.test(build.assetsSha256)
+      (!/^[a-f0-9]{64}$/.test(build.assetsSha256) &&
+        !(
+          allowDevelopmentBuild &&
+          build.source === 'dev-unqualified' &&
+          build.assetsSha256 === null
+        ))
     )
       errors.push('Missing build/browser identity')
     if (suite.rows.length !== expected.length)
