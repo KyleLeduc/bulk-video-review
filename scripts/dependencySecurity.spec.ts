@@ -39,6 +39,7 @@ test.each([
   ['vite', 7, 3, 6],
   ['vitest', 4, 1, 11],
   ['happy-dom', 20, 14, 0],
+  ['tsx', 4, 23, 13],
 ] as const)(
   '%s stays on the qualified major above its selected security floor',
   (name, major, minor, patch) => {

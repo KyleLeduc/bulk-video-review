@@ -60,6 +60,37 @@ Vite 7.3 and Vitest 4.1 still receive important/security fixes. These avoid the 
 
 ## Following batches
 
+### Task 4: Refresh remaining compatible security paths
+
+**Files:** `package-lock.json`, `scripts/dependencySecurity.spec.ts`, this plan and `docs/backlog.md`.
+
+1. Capture the full audit at `f5445ed`: expected 29 affected entries, zero critical. Add a failing guard requiring tsx major 4 at least 4.23.13; run `npm exec -- vitest run scripts/dependencySecurity.spec.ts --maxWorkers=2 --exclude '.worktrees/**'` and observe the old tsx version fail.
+2. Refresh only named vulnerable compatible paths: `npm update --package-lock-only --ignore-scripts ajv axios brace-expansion cross-spawn dependency-cruiser editorconfig flatted follow-redirects glob immutable joi js-cookie js-yaml lodash micromatch minimatch picomatch postcss-selector-parser tmp tsx`.
+3. Inspect direct-version changes and parent ranges; do not accept unrelated Vue/Pinia or major upgrades. Clean-install privately with `npm ci --ignore-scripts`, rerun the guard, lint/types/full suite/build and worktree CLI checks sequentially. Record any residual parent-constrained findings.
+4. Commit reviewed compatible fixes with `chore: remediate remaining compatible tooling dependencies`. Keep broader lint/framework modernization separate from security remediation.
+
+### Task 5: Remove the obsolete Vue 2 type-check compiler chain
+
+**Files:** `package.json`, `package-lock.json`, `scripts/dependencySecurity.spec.ts`; adjust source only if a concrete new diagnostic exposes a real issue.
+
+1. Add a failing guard that no locked package path ends in `node_modules/vue-template-compiler`; verify it fails on the current vue-tsc 2.0.22 graph.
+2. Set vue-tsc `^3.3.11`, whose published TypeScript peer is `>=5.0.0`; retain current TypeScript initially. Regenerate the lockfile, inspect the language-tools graph, clean-install privately and rerun the guard/type-check.
+3. Diagnose any errors without suppressing checks or loosening contracts. Run lint, all unit/coverage tests and build sequentially; record fresh audit findings.
+4. Commit as `chore: update Vue type-check tooling` after @verification-before-completion.
+
+### Task 6: Qualify Cypress and real browser smoke
+
+**Files:** `package.json`, `package-lock.json`, `scripts/dependencySecurity.spec.ts`, `cypress/e2e/example.cy.ts`, `cypress.config.ts` only if necessary; add precise browser evidence to `docs/testing/dependency-refresh.md`.
+
+1. Read the official Cypress 14/15/16 migration sections; inventory removed APIs in this repository. Node 22/24 and host glibc 2.39 meet Cypress 16's published install requirements. E2E-only use does not require its Vite 8 component-test dev server.
+2. Add a failing guard forbidding locked `extract-zip`; observe the old Cypress graph fail. Set Cypress `^16.0.0`, resolve its request/archive chain, clean-install and rerun the guard. Avoid forcing unsupported leaf overrides.
+3. Prepare a real Chrome browser and Cypress binary in task-owned temporary/cache paths; verify exact versions and shared-library requirements. Do not replace an existing browser/profile, alter global browser settings, launch another development container or clear operator catalogs. If setup requires unavailable authority, document it and continue safe independent work.
+4. Run the existing built-app Cypress test to expose its stale starter-page assertion, then replace it with assertions of actual BVR navigation/filter/import controls and relevant existing workflows. Do not modify app behavior simply to satisfy smoke. Use a disposable browser profile/catalog and clearly identify generated test fixtures versus the still-requested representative performance corpus.
+5. Run the real built-app Cypress suite in Chrome and Edge when available, then full lint/types/unit/coverage/build and npm audit sequentially. Keep unavailable browser and native-performance acceptance explicitly open.
+6. Request a bounded read-only review, record results, publish the branch and wait for exact Node 22 CI. No preprod deployment. Report the execution checkpoint before continuing the performance plan.
+
+Sources: [Cypress migration guide](https://docs.cypress.io/app/references/migration-guide), [Cypress system requirements](https://docs.cypress.io/app/get-started/install-cypress), [Vue language-tools releases](https://github.com/vuejs/language-tools/releases), and current npm package manifests checked on 2026-09-04.
+
 - Qualify Cypress 16 and its current Node/browser requirements separately to remove `extract-zip`; run the actual built-app Cypress suite, not just unit mocks.
 - Upgrade vue-tsc and its language-core family to remove the obsolete Vue 2 compiler. Keep TypeScript, Vue types and template checking coherent; do not disable diagnostics to pass.
 - Address any remaining security fixes in dependency-cruiser, lint/config tools and other parents with the smallest supported migration. Keep Vue/Pinia feature changes and ESLint major/flat-config migration separate unless evidence makes them prerequisites.
@@ -82,4 +113,4 @@ Vite 7.3 and Vitest 4.1 still receive important/security fixes. These avoid the 
 - Full npm audit: 29 affected entries (0 critical, 15 high, 13 moderate, 1 low). Separate `npm audit --omit=dev --json`: zero findings. Remaining chains are recorded under BVR-001; neither result means all security work is complete.
 - `npm run worktree -- help` and `npm run worktree -- ps` passed; no dev server was started. Existing bootstrap tests passed in the full suite. The migration checkout has a deliberate private install; primary Vite remains 5.3.1 and its unrelated lockfile edit/stashes were preserved.
 - Independent read-only review: no Critical or Important findings. Its minor guard-hardening finding was fixed: unknown leaf majors are rejected and tooling must remain on its qualified major. The nine guards and lint passed after that change. Canonical worktree bootstrap also passed and preserved the private install.
-- Exact Node 22 CI execution: pending publication; record the run/commit in the task ledger. Cypress/native Chrome/Edge flows and performance measurements: not run. No preprod deployment.
+- Exact Node 22 CI execution: [33935322565](https://github.com/KyleLeduc/bulk-video-review/actions/runs/33935322565) passed on `f5445edf96a5becc509ae18d454664b75b8e3e83`, including clean install/application checks, image scan and runtime smoke. Cypress/native Chrome/Edge flows and performance measurements were not run in that checkpoint. No preprod deployment.
