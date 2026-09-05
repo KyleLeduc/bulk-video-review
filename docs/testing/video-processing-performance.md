@@ -66,6 +66,47 @@ The paired platform branch `feat/bvr-benchmark-preprod` / `951a12f` adds only th
 
 Exact CI/publication and live deployment are recorded separately in the task handoff/ledger. Native appearance, pointer/keyboard feel and representative personal workload acceptance remain user checks. Do not integrate/squash the feature until that acceptance is returned.
 
+## Native custom DOM concurrency — 2026-09-05
+
+Four owner-supplied JSON suites establish a repeatable **DOM** baseline for the next extraction experiment. These are native Windows-desktop Chrome 151.0.0.0 results, with a reported 16-logical-processor hint, using the same retained 20-file selection and order. Selection identity and sizes match across the reports, but selection-only verification is not a content-hash guarantee. No raw private JSON, selection UUID, ordered sizes, exact input bytes, file names/paths or media are copied into this record.
+
+All four report protocol 2, `pipeline-custom-files-v1`, revision `95d6bcd876b5a903c31895d00e9d2e66cab5373e`, build source `build-argument`, `dirty: null`, and assets SHA-256 `e7a51ea1117b41e63c76939bc16f2f78deb9f45d50ac88a2f52de9ff3898090c`. This identifies the reported build, not independent proof of checkout cleanliness or present live deployment. The browser UA does not distinguish Windows 10 from 11. Native Edge, input codecs and native decoder memory are not established by these reports.
+
+The owner changed only existing manual job limits: ingestion remained 2, while previews followed **1 → 2 → 1 → 2**. Workers were disabled in every row. Each suite requested five fresh/cached pairs. Fresh means new application database and host, with shared browser/OS caches; cached rows intentionally reuse persisted output without media processing.
+
+| Suite, in execution order | Ingestion / previews | Fresh wall seconds, repetitions 1–5 | Suite outcome | All-five fresh median |
+|---|---|---|---|---|
+| A1 | 2 / 1 | 21.9551, 16.6653, 12.8235, 11.0700, 10.9811 | 10/10 rows passed | 12.8235 s |
+| B1 | 2 / 2 | 14.3587, 9.4593, 9.4244, 9.3761, 9.5189 | 10/10 rows passed | 9.4593 s |
+| A2 | 2 / 1 | 21.0867, 15.5394, 11.0447, 10.9473, **47.6485 invalid** | Failed; eight passed rows, then failed fresh #5; cached #5 not run | Not qualified |
+| B2 | 2 / 2 | 13.9635, 9.5421, 9.4524, 9.4011, 9.4632 | 10/10 rows passed | 9.4632 s |
+
+Every valid fresh row created 20 new videos with zero existing/duplicate/skipped videos and completed all 20 preview attempts / 180 frames. Persisted outputs passed the harness's checks at 480×270, with 3,074,342 aggregate preview bytes. This is count, target-label and decodability evidence, not independent pixel/frame-identity validation. Cached rows retained those outputs with 20 existing videos and zero new preview attempts: A1 6.2–11.9 ms, B1 7.3–9.3 ms, A2's four completed cached rows 5.8–9.0 ms, B2 6.2–13.8 ms. All reported cleanup complete with no orphaned pairs, including A2.
+
+### First use, later fresh work and interpretation
+
+The first fresh trial remained substantially slower in every suite. All rows above are retained; no warmup rows were silently removed. For the following **post-hoc descriptive plateau check**, A1 uses repetitions 4–5, B1/B2 use 2–5, and A2 uses only 3–4 diagnostically. These differently selected subsets are not a prespecified backend speedup benchmark:
+
+- A1 late-fresh mean: **11.0256 s**. A2's valid 3–4 mean: **10.9960 s**, but the failed A2 suite is excluded from qualified suite comparisons.
+- B1 repetitions 2–5 mean: **9.4447 s** (9.3761–9.5189). B2: **9.4647 s** (9.4011–9.5421), a **0.21%** difference between repeat 2/2 suites.
+- B2's later mean is **14.16% less elapsed time** than A1's late mean, about 1.56 seconds saved for this selection. This describes the observed setting difference, not a universal default, causal cache proof or a WebCodecs/code-change speedup.
+- Foreground processing settles near 1.2 seconds in both settings. B2's later preview wall mean is **8.0925 s**, versus A1's final-two **9.6635 s**. Preview seeking remains the largest accumulated phase.
+- With two preview jobs, later mean seek duration is roughly **75.6 ms per seek**, versus A1's final-two **39.8 ms**. More overlap coincided with lower later-run wall time despite longer individual waits. That is consistent with shared-resource contention, but these aggregate reports cannot identify the responsible browser/decoder/I/O resource. Summed overlapping phase durations must not be divided by wall time as percentages.
+
+The equal fresh work counts and completed cleanup do not indicate persisted thumbnails leaking across fresh pairs. Repeated processing gets faster somewhere outside that reuse path, but the reports cannot isolate browser caching, OS caching or another warm-state effect. The A/B/A/B pattern supports a repeatable 2/2 baseline for this workload, not perfectly randomized/cache-controlled causality.
+
+### Retained invalid sample: A2 repetition 5
+
+This row took 47.6485 seconds and has `hidden: true` / `Document became hidden`. The owner reported probably alt-tabbing. Foreground ingestion still created all 20 videos in 1.2378 seconds; **preview metadata/loading** had 17 completions and three failures, accumulating 37.3061 seconds (maximum 10.9992 seconds). All 153 attempted preview seeks/captures/encodes completed, leaving 153 of 180 frames and failure stage `loading`.
+
+The missing three nine-frame sets explain the count/target mismatch checks without establishing a new seek-selection bug. Backgrounding is a plausible contributor, not a proven cause of each failure. The pipeline's `status: completed` means settled; it does not override the failed row/suite or invalid output. Keep this failure visible, exclude the suite from qualified summaries and do not include 47.6485 seconds in a valid-throughput average. Cleanup succeeded; no catalog wipe is warranted.
+
+### Decision and remaining acceptance
+
+No more identical DOM reruns are needed to start the next investigation. Keep DOM 2/1 as the historical control and DOM 2/2 as the repeatable native comparison setting; retain both and change no production defaults. Move to the [benchmark-only WebCodecs preview design](../plans/2026-09-05-benchmark-webcodecs-design.md), beginning with the explicit [demuxer approval/qualification gate](../decisions/video-worker-demuxer.md).
+
+The earlier owner smoke reported responsive loading/filter updates and persistence of thumbnails/votes after reload. These JSON suites add representative-workload timing/count evidence; they do not replace precise frame-image validation, native Edge qualification, measured interaction latency or decoder-memory checks. Normal-app worker enablement and final integration remain separate gates. The historical reference datasets below are unchanged.
+
 ## Historical full-gallery measurement record
 
 Status: measurement-only implementation on `feat/video-processing-measurements`, based on security-refresh `922eac2`. The fixed public-reference matrix is complete: **120 validated Chrome/Edge runs** on app `00b7646`. Awaited DOM seeking dominates; no worker implementation, demonstrated worker speedup, merge or preprod deployment. Personal-workload and native human acceptance remain separate open gates. Runner publication/CI is a separate checkpoint from the measured app revision.
