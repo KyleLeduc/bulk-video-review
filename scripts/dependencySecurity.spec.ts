@@ -68,3 +68,11 @@ test('pins Vitest and its coverage provider to the same selected release', () =>
   expect(manifest.devDependencies.vitest).toBe(version)
   expect(manifest.devDependencies['@vitest/coverage-v8']).toBe(version)
 })
+
+test('does not install the obsolete Vue 2 template compiler', () => {
+  expect(
+    Object.keys(lockfile.packages).filter((path) =>
+      path.endsWith('node_modules/vue-template-compiler'),
+    ),
+  ).toEqual([])
+})
