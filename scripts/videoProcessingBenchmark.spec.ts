@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createServer } from 'node:http'
 import { EventEmitter } from 'node:events'
+import * as sharedProtocol from '../src/shared/benchmark/videoBenchmarkProtocol.js'
 import {
   enumerateCases,
   summarize,
@@ -29,6 +30,12 @@ afterEach(async () => {
 })
 
 describe('reference benchmark evidence', () => {
+  it('uses identical pure report validators for the page and legacy runner', () => {
+    expect(validateTerminalReport).toBe(sharedProtocol.validateTerminalReport)
+    expect(validateMeasurements).toBe(sharedProtocol.validateMeasurements)
+    expect(validateReport).toBe(sharedProtocol.validateReport)
+    expect(summarize).toBe(sharedProtocol.summarize)
+  })
   it('rejects nonterminal, misclassified and nonfinite/misordered reports', () => {
     const report = {
       status: 'completed',

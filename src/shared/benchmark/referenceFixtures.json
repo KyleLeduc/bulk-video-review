@@ -1,0 +1,69 @@
+{
+  "id": "bbb-sunflower-reference-v1",
+  "expected": {
+    "selected": 10,
+    "accepted": 10,
+    "supported": 7,
+    "invalid": 2,
+    "duplicates": 1
+  },
+  "files": [
+    {
+      "path": "source/bbb_sunflower_2160p_30fps_normal.mp4",
+      "bytes": 633016449,
+      "sha256": "37f0ff251a606c2dcfa26c19fe6bf843234b4e7a8889cfab50bc26f644e55520"
+    },
+    {
+      "path": "clips/short-720.mp4",
+      "bytes": 1242889,
+      "sha256": "4cdb422bf5e3d0c9f4d2201d8a99c6a3b6dd1f0c9af62ef8941345eb433a2113"
+    },
+    {
+      "path": "clips/medium-1080.mp4",
+      "bytes": 14313548,
+      "sha256": "a7dbfd584dc97dd4dfb785f05aa5bbcce1aab1951796e039daa69dd6162ecb67"
+    },
+    {
+      "path": "clips/portrait.mp4",
+      "bytes": 865724,
+      "sha256": "2f6caab487e2e223f6b0f91a2b0bb099fb485ff9ef99e6cfe9df2f74ac891fcd"
+    },
+    {
+      "path": "clips/rotation-90.mp4",
+      "bytes": 1242889,
+      "sha256": "6e6135b985d2ae1ff1146c3a845fcabc8104d2237c6dd87b9d9c743a22eca4e8"
+    },
+    {
+      "path": "clips/variable-frame-rate.mp4",
+      "bytes": 1485883,
+      "sha256": "ae68e5422c813cfa4aee27cbbaa761541dc0b7f334ceb6005c5f38d259b1ad0f"
+    },
+    {
+      "path": "clips/alternate-vp9.webm",
+      "bytes": 693139,
+      "sha256": "5f41e23463dbdd702e664eeb07e860d75fc738e28340da54a5731e12455079bd"
+    },
+    {
+      "path": "clips/unsupported-mpeg4.mp4",
+      "bytes": 109114,
+      "sha256": "52dce0aa13d8c4219c29b913e0d5b6d4625495374a0a19528fcb8b939c74f666"
+    },
+    {
+      "path": "clips/malformed.mp4",
+      "bytes": 69,
+      "sha256": "67c4fe2d83da196de8b5197a5b126074f76e96907605e65569dc617bf923ec9e"
+    },
+    {
+      "path": "duplicate/short-720.mp4",
+      "bytes": 1242889,
+      "sha256": "4cdb422bf5e3d0c9f4d2201d8a99c6a3b6dd1f0c9af62ef8941345eb433a2113"
+    }
+  ],
+  "attribution": {
+    "author": "Blender Foundation 2008; Janus Bager Kristensen 2013",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+    "source": "https://download.blender.org/demo/movies/BBB/",
+    "derivatives": "Cuts, resizing, cropping, rotation, selective frame dropping and alternate encoding. Malformed file is test text."
+  }
+}
