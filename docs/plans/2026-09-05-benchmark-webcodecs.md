@@ -13,10 +13,16 @@
 ## Entry and stop conditions
 
 - Read the [design](2026-09-05-benchmark-webcodecs-design.md), [dependency decision](../decisions/video-worker-demuxer.md) and [native evidence](../testing/video-processing-performance.md#native-custom-dom-concurrency--2026-09-05).
-- **Owner dependency approval is pending. Do not execute installation or runtime implementation yet.** Approval qualifies this experiment, not normal-app enablement or a merge/deploy instruction.
+- **Owner approved Mediabunny benchmarking on 2026-09-05**, accepting the proposed `1.55.7` candidate. Approval qualifies this experiment, not normal-app enablement or a merge/deploy instruction.
 - Reuse `feat/video-benchmark-view`; run `npm run worktree -- bootstrap .worktrees/feat-video-benchmark-view` from the primary checkout. Inspect shared `node_modules` target and active users before a deliberate private install. Preserve the root's unrelated AGENTS/devcontainer changes and other worktrees.
 - Use @test-driven-development for code, @verification-before-completion for every checkpoint and @requesting-code-review for the source/worker boundaries. Root owns the shared environment; serialize heavyweight checks. No write-heavy delegation.
 - This is the **library qualification** plan. The design sketches subsequent real-pipeline integration, but those edits wait for the spike's measured API/resource findings. Do not label the extraction-only spike's timing as comparable to the 9.45-second full-pipeline baseline.
+
+## Execution checkpoint — 2026-09-05
+
+Task 1's pinned-source audit reached the explicit resource stop condition **before installation**. Small [reproducible metadata-only probes](../testing/mediabunny-qualification.md) confirm that compact MP4 timing entries expand into per-sample presentation indexes without further reads, and the library allocates a requested-range buffer before invoking the proposed callback guard. The pinned public API exposes neither the required pre-allocation range admission nor a pre-expansion sample/index budget. Source-cache and callback range limits therefore do not satisfy the approved allocation requirements.
+
+The only added executable is `scripts/qualifyMediabunnyIndex.mjs`, an offline, fixed-synthetic-input audit probe loading a separately verified package archive. It is not an app adapter or browser route. No package/lock change, private install, extraction worker, new benchmark backend or deployment was made. Tasks 1's install/packaging steps and 2–4 are deferred at this gate, not completed. Resume only after an explicit decision on an upstream/library admission limit or a revised experiment scope; do not patch library internals, write a second MP4 parser, weaken limits or install an alternative implicitly.
 
 ## Task 1: Pin and audit the approved package
 

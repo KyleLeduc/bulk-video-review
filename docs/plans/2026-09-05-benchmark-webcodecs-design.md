@@ -1,12 +1,12 @@
 # Benchmark WebCodecs preview experiment
 
-**Status:** Proposed next increment; dependency approval and runtime qualification pending. Native DOM measurements are documented, not a WebCodecs result. No package, worker, application default or deployment has changed.
+**Status:** Owner approved the Mediabunny experiment on 2026-09-05. The pinned `1.55.7` source audit then stopped at the read/index pre-allocation bounds; see the [qualification evidence](../testing/mediabunny-qualification.md). Browser/performance qualification remains pending. No installed dependency, worker, application default or deployment has changed.
 
 ## Why this increment
 
 The [native custom A/B/A/B measurements](../testing/video-processing-performance.md#native-custom-dom-concurrency--2026-09-05) reproduce a roughly 9.45-second later-fresh DOM 2/2 pipeline, versus roughly 11 seconds at 2/1. Seeking remains the largest accumulated preview phase. More overlapping DOM jobs coincided with lower later-run wall time, but not halved completion time. The next experiment should address frame extraction rather than assume image encoding or worker count alone will solve throughput.
 
-Recommended approach: qualify **Mediabunny 1.55.7**, then use it in a benchmark-only module worker for MP4/H.264 previews. Alternatives are MP4Box.js with more application-owned decoder coordination, or a dependency-free DOM-only investigation. The [dependency decision](../decisions/video-worker-demuxer.md) compares these and records the outstanding approval. Do not revive the retired video lab or add FFmpeg/WASM.
+Proposed approach: qualify **Mediabunny 1.55.7**, then use it in a benchmark-only module worker for MP4/H.264 previews. The first audit did not meet the index-allocation gate; this design's bounds are unchanged. Alternatives are MP4Box.js with more application-owned decoder coordination, or a dependency-free DOM-only investigation. The [dependency decision](../decisions/video-worker-demuxer.md) compares these and records approval and the audit outcome. Do not revive the retired video lab or add FFmpeg/WASM.
 
 This narrows the [earlier worker design](2026-09-04-parallel-video-processing-design.md): preview extraction first, not foreground metadata/covers or a general worker framework. That document's product lifecycle requirements remain prerequisites for eventual normal-app enablement.
 
