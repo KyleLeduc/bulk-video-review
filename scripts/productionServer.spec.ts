@@ -7,7 +7,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
-type ProductionServerFactory = (options: { distRoot: string }) => Server
+type ProductionServerFactory = (options: {
+  distRoot: string
+  benchmarkEnabled?: boolean
+}) => Server
 
 const loadServerFactory = async (): Promise<ProductionServerFactory> => {
   const moduleUrl = new URL('./productionServer.mjs', import.meta.url)
@@ -28,6 +31,17 @@ describe('production static server', () => {
     distRoot = join(temporaryRoot, 'dist')
     mkdirSync(distRoot)
     mkdirSync(join(distRoot, 'assets'))
+    mkdirSync(join(distRoot, 'benchmark'))
+    writeFileSync(join(distRoot, 'benchmark/index.html'), '<h1>Benchmark</h1>')
+    writeFileSync(join(distRoot, 'benchmark/run.html'), '<h1>Trial</h1>')
+    writeFileSync(
+      join(distRoot, 'benchmark/build-identity.json'),
+      JSON.stringify({
+        revision: 'a'.repeat(40),
+        assetsSha256: 'b'.repeat(64),
+        dirty: false,
+      }),
+    )
     writeFileSync(join(distRoot, 'index.html'), '<h1>BVR</h1>')
     writeFileSync(join(distRoot, 'assets', 'app.js'), 'console.log("bvr")')
     writeFileSync(join(distRoot, 'favicon.ico'), 'icon')
@@ -156,5 +170,56 @@ describe('production static server', () => {
 
     expect(response.status).toBe(405)
     expect(response.headers.allow).toBe('GET, HEAD')
+  })
+
+  test.each([
+    '/benchmark',
+    '/benchmark/',
+    '/benchmark/index.html',
+    '/benchmark/run.html',
+    '/benchmark/capabilities',
+    '/benchmark/build-identity.json',
+    '/benchmark/unknown',
+    '/benchmark/x/../index.html',
+  ])(
+    'reserves %s with default-off GET and HEAD instead of SPA fallback',
+    async (path) => {
+      expect((await rawRequest(path)).status).toBe(404)
+      expect((await rawRequest(path, 'HEAD')).status).toBe(404)
+    },
+  )
+
+  test('explicit enablement serves only known entries and no-store capabilities', async () => {
+    server!.close()
+    await once(server!, 'close')
+    server = (await loadServerFactory())({ distRoot, benchmarkEnabled: true })
+    server.listen(Number(new URL(origin).port), '127.0.0.1')
+    await once(server, 'listening')
+    for (const path of [
+      '/benchmark',
+      '/benchmark/',
+      '/benchmark/index.html',
+      '/benchmark/run.html',
+    ]) {
+      const response = await rawRequest(path)
+      expect(response.status).toBe(200)
+      expect(response.headers['cache-control']).toBe('no-store')
+      expect(response.headers['content-type']).toContain('text/html')
+    }
+    const capability = await rawRequest('/benchmark/capabilities')
+    expect(JSON.parse(capability.body)).toMatchObject({
+      enabled: true,
+      protocolVersion: 2,
+      build: { assetsSha256: 'b'.repeat(64) },
+    })
+    expect(capability.headers['cache-control']).toBe('no-store')
+    for (const path of [
+      '/benchmark/unknown',
+      '/benchmark/x/../index.html',
+      '/benchmark/%2e%2e%2findex.html',
+    ])
+      expect((await rawRequest(path)).status).toBe(404)
+    expect((await rawRequest('/benchmark/%ZZ')).status).toBe(400)
+    expect((await rawRequest('/')).body).toBe('<h1>BVR</h1>')
   })
 })

@@ -5,11 +5,33 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
 import viteConfig from '../vite.config'
+import { fingerprintAssets } from './benchmarkBuild.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const read = (path: string) => readFileSync(resolve(root, path), 'utf8')
 
 describe('homelab deployment contract', () => {
+  test('fingerprints sorted emitted names and contents without hashing itself', () => {
+    const assets = [
+      ['assets/a.js', 'first'],
+      ['benchmark/index.html', 'second'],
+    ]
+    const digest = fingerprintAssets(assets)
+    expect(digest).toMatch(/^[a-f0-9]{64}$/)
+    expect(fingerprintAssets([...assets].reverse())).toBe(digest)
+    expect(
+      fingerprintAssets([
+        ...assets,
+        ['benchmark/build-identity.json', 'ignored'],
+      ]),
+    ).toBe(digest)
+    expect(fingerprintAssets([['renamed.js', 'first'], assets[1]])).not.toBe(
+      digest,
+    )
+    expect(fingerprintAssets([['assets/a.js', 'changed'], assets[1]])).not.toBe(
+      digest,
+    )
+  })
   test('declares a stateless AMD64 application contract', () => {
     const deployment = read('.homelab/deployment.yml')
 
@@ -43,7 +65,10 @@ describe('homelab deployment contract', () => {
       /^FROM node:22-bookworm-slim@sha256:[0-9a-f]{64} AS runtime/m,
     )
     expect(dockerfile).toContain('npm ci --ignore-scripts')
-    expect(dockerfile).toContain('RUN npm run build')
+    expect(dockerfile).toContain(
+      'RUN BVR_BUILD_REVISION="$VCS_REF" npm run build',
+    )
+    expect(dockerfile.split(' AS runtime')[0]).toContain('ARG VCS_REF')
     expect(dockerfile).toContain('ARG VCS_REF')
     expect(dockerfile).toContain(
       'org.opencontainers.image.revision="${VCS_REF}"',
@@ -77,7 +102,9 @@ describe('homelab deployment contract', () => {
     expect(compose).toContain('internal: true')
     expect(compose).toContain("fetch('http://127.0.0.1:3000/health/ready')")
     expect(compose).not.toMatch(/^volumes:/m)
-    expect(compose).not.toMatch(/^\s+environment:/m)
+    expect(compose.match(/^    environment:\n(?:      .+\n)+/gm)).toEqual([
+      '    environment:\n      BVR_BENCHMARK_ENABLED: ${BVR_BENCHMARK_ENABLED:-false}\n',
+    ])
   })
 
   test('replaces GitHub Pages with a root-path production build', () => {

@@ -27,13 +27,15 @@ describe('benchmark protocol', () => {
     },
   )
 
-  test.each([
-    [],
-    [configurations[0], configurations[0]],
-    [{ backend: 'webcodecs', foreground: 2, previews: 1 }],
-    [{ backend: 'dom', foreground: 3, previews: 1 }],
-    [{ backend: 'dom', foreground: 2, previews: 4 }],
-  ])('rejects absent, duplicated and unavailable configurations', (values) => {
+  test.each(
+    [
+      [],
+      [configurations[0], configurations[0]],
+      [{ backend: 'webcodecs', foreground: 2, previews: 1 }],
+      [{ backend: 'dom', foreground: 3, previews: 1 }],
+      [{ backend: 'dom', foreground: 2, previews: 4 }],
+    ].map((values) => [values] as const),
+  )('rejects absent, duplicated and unavailable configurations', (values) => {
     expect(() => enumerateTrialPairs(values, 1)).toThrow()
   })
 
@@ -79,11 +81,13 @@ describe('benchmark protocol', () => {
     expect(() => orderFixtureFiles([wrong, b, duplicate], manifest)).toThrow()
   })
 
-  test.each([
-    [one(), two()],
-    [one(), two(), one(), one()],
-    [one(), new File(['wrong'], 'two.mp4'), one()],
-  ])('rejects missing, extra and wrong-sized selections', (files) => {
+  test.each(
+    [
+      [one(), two()],
+      [one(), two(), one(), one()],
+      [one(), new File(['wrong'], 'two.mp4'), one()],
+    ].map((files) => [files] as const),
+  )('rejects missing, extra and wrong-sized selections', (files) => {
     expect(() => orderFixtureFiles(files, manifest)).toThrow()
   })
 

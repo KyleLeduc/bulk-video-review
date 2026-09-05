@@ -2,15 +2,20 @@
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import { benchmarkBuildPlugin } from './scripts/benchmarkBuild.mjs'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     tsconfigPaths({ loose: true, configNames: ['tsconfig.app.json'] }),
+    benchmarkBuildPlugin(),
   ],
   base: '/',
   build: {
+    rollupOptions: {
+      input: ['index.html', 'benchmark/index.html', 'benchmark/run.html'],
+    },
     // Preserve Vite 5's browser targets during this tooling-only migration.
     target: ['chrome87', 'edge88', 'firefox78', 'safari14'],
   },

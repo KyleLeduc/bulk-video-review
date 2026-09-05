@@ -4,6 +4,8 @@ services:
   app:
     image: ${BVR_IMAGE:?set BVR_IMAGE to an immutable registry digest}
     restart: unless-stopped
+    environment:
+      BVR_BENCHMARK_ENABLED: ${BVR_BENCHMARK_ENABLED:-false}
     ports:
       - '127.0.0.1:18081:3000'
     read_only: true

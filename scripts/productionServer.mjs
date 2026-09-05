@@ -45,7 +45,10 @@ const isFile = async (path) => {
   }
 }
 
-export const createProductionServer = ({ distRoot }) => {
+export const createProductionServer = ({
+  distRoot,
+  benchmarkEnabled = false,
+}) => {
   if (typeof distRoot !== 'string' || distRoot.length === 0) {
     throw new TypeError('distRoot must be a non-empty string')
   }
@@ -86,9 +89,46 @@ export const createProductionServer = ({ distRoot }) => {
     }
 
     try {
-      const requestUrl = new URL(request.url ?? '/', 'http://localhost')
-      const pathname = decodeURIComponent(requestUrl.pathname)
-      const relativePath = pathname === '/' ? 'index.html' : pathname.slice(1)
+      // Inspect before URL normalization so reserved traversal cannot become an SPA route.
+      const pathname = decodeURIComponent((request.url ?? '/').split('?')[0])
+      const benchmark =
+        pathname === '/benchmark' || pathname.startsWith('/benchmark/')
+      if (benchmark) {
+        const known = [
+          '/benchmark',
+          '/benchmark/',
+          '/benchmark/index.html',
+          '/benchmark/run.html',
+          '/benchmark/build-identity.json',
+          '/benchmark/capabilities',
+        ]
+        if (benchmarkEnabled !== true || !known.includes(pathname)) {
+          sendJson(request, response, 404, { status: 'not-found' })
+          return
+        }
+        if (pathname === '/benchmark/capabilities') {
+          const identityPath = resolve(
+            resolvedDistRoot,
+            'benchmark/build-identity.json',
+          )
+          if (!(await isFile(identityPath))) {
+            sendJson(request, response, 503, { status: 'benchmark-not-ready' })
+            return
+          }
+          sendJson(request, response, 200, {
+            enabled: true,
+            protocolVersion: 2,
+            build: JSON.parse(await readFile(identityPath, 'utf8')),
+          })
+          return
+        }
+      }
+      const relativePath =
+        pathname === '/'
+          ? 'index.html'
+          : ['/benchmark', '/benchmark/'].includes(pathname)
+            ? 'benchmark/index.html'
+            : pathname.slice(1)
       let filePath = resolve(resolvedDistRoot, relativePath)
       const staysInsideRoot =
         filePath === resolvedDistRoot ||
@@ -100,7 +140,7 @@ export const createProductionServer = ({ distRoot }) => {
       }
 
       if (!(await isFile(filePath))) {
-        if (extname(pathname) !== '') {
+        if (benchmark || extname(pathname) !== '') {
           sendJson(request, response, 404, { status: 'not-found' })
           return
         }
@@ -114,8 +154,9 @@ export const createProductionServer = ({ distRoot }) => {
 
       const content = await readFile(filePath)
       const extension = extname(filePath).toLowerCase()
-      const cacheControl =
-        filePath === indexPath
+      const cacheControl = benchmark
+        ? 'no-store'
+        : filePath === indexPath
           ? 'no-cache'
           : pathname.startsWith('/assets/')
             ? 'public, max-age=31536000, immutable'
@@ -148,7 +189,10 @@ if (isEntrypoint) {
   const port = Number.parseInt(process.env.PORT ?? '3000', 10)
   const host = process.env.HOST ?? '0.0.0.0'
   const distRoot = resolve(process.env.DIST_ROOT ?? 'dist')
-  const server = createProductionServer({ distRoot })
+  const server = createProductionServer({
+    distRoot,
+    benchmarkEnabled: process.env.BVR_BENCHMARK_ENABLED === 'true',
+  })
 
   server.listen(port, host, () => {
     console.log(`Bulk Video Review listening on ${host}:${port}`)
