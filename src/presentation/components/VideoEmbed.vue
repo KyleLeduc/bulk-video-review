@@ -71,6 +71,7 @@ import type { ParsedVideo } from '@domain/entities'
 import {
   computed,
   inject,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   reactive,
@@ -279,6 +280,19 @@ const handleVolumeChange = (e: Event) => {
   }
 }
 
+const startPlayback = async () => {
+  const video = videoFrame.value
+  if (!video) return
+
+  try {
+    await video.play()
+  } catch (error) {
+    // A pause or source disposal can interrupt an outstanding play request.
+    if (error instanceof DOMException && error.name === 'AbortError') return
+    console.warn('[VideoEmbed] Failed to start playback', error)
+  }
+}
+
 const controls = {
   toggleMute: () => {
     if (!videoFrame.value) {
@@ -299,7 +313,7 @@ const controls = {
       return
     }
 
-    void videoFrame.value.play()
+    void startPlayback()
   },
 
   skip: (duration: number) => {
@@ -323,29 +337,25 @@ const controls = {
 
 defineExpose({ controls, state, loopingState })
 
-onMounted(() => {
-  let updatedSource = false
-
+onMounted(async () => {
   if (sessionRegistry && !props.video.url) {
     const acquired = sessionRegistry.acquireObjectUrl(props.video.id)
     if (acquired) {
       playbackUrl.value = acquired
       acquiredFromRegistry.value = true
-      updatedSource = true
     }
   }
 
-  if (videoFrame.value) {
-    if (updatedSource && playbackUrl.value) {
-      videoFrame.value.src = playbackUrl.value
-    }
+  // Let Vue bind src once before play(); a later source assignment aborts it.
+  await nextTick()
 
+  if (videoFrame.value) {
     state.isMuted = props.options.muted
     videoFrame.value.volume = props.options.volume
     videoFrame.value.muted = props.options.muted
 
     if (props.options.playing) {
-      void videoFrame.value.play()
+      void startPlayback()
     }
   }
 })
