@@ -2,6 +2,8 @@
 
 See [`AGENTS.md`](AGENTS.md) for contributor guidelines.
 
+Planned product and maintenance work is tracked in the [backlog](docs/backlog.md).
+
 ## Video File Extraction Diagrams
 
 Generated from the Structurizr DSL in `docs/structurizr/` (defaults to `video-file-extraction.dsl` unless you set `STRUCTURIZR_WORKSPACE`). Outputs land in `docs/structurizr/diagrams/*.png`:
