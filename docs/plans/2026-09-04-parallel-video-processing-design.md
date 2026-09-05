@@ -2,6 +2,8 @@
 
 **Status:** Proposed; planning only. Chrome/Edge-first priority is confirmed. Backend choice, initial budgets, performance targets, and any new demuxing dependency require validation during implementation.
 
+**2026-09-05 sequencing update:** The user approved a [separate dev/preprod benchmark view](2026-09-05-video-benchmark-view-design.md) as the next increment, followed by a bounded seek/frame-extraction experiment. That order supersedes the encoding-first sequencing below; these worker lifecycle, fallback and correctness requirements still apply before product enablement. No worker implementation or demuxer selection is implied.
+
 **Baseline:** `master` at `7c6be95`, 2026-09-04. Builds on the [ingestion/preview design](2026-08-22-ingestion-preview-pipeline-design.md) and [foreground concurrency design](2026-08-22-primary-ingestion-concurrency-observability-design.md), without replacing their ownership and scheduling guarantees.
 
 ## Outcome and scope

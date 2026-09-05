@@ -46,6 +46,8 @@ Local checks on Node 24.19.0: private clean install, lint, app/Cypress types, 30
 
 ## BVR-002 — Parallel video ingestion and thumbnail processing
 
+**Next increment, approved 2026-09-05:** Build the separate dev/preprod [video benchmark view](plans/2026-09-05-video-benchmark-view-design.md) using the [implementation plan](plans/2026-09-05-video-benchmark-view.md), then qualify a bounded seek/frame-extraction experiment. Reuse fixed fixtures, real processing code and CLI validation; isolate every benchmark database from the operator catalog. This supersedes the earlier encoding-worker-first sequence. The checkpoint below describes the original reference publication, not current live deployment state; the benchmark page and WebCodecs are not implemented.
+
 **Status:** Measurement-only implementation on `feat/video-processing-measurements`, stacked on the verified dependency-security branch. The full public-reference matrix is complete: 120 validated Chrome/Edge runs, five cold/warm pairs for every configuration. Awaited DOM seeking dominates both processing lanes; encoding alone is not the main throughput cost. No worker implementation, integration or deployment. Personal-workload and native interaction/decoder-memory acceptance remain open.
 
 **Benefit:** Import batches and generate previews faster while keeping filtering, scrolling, voting, and playback responsive.

@@ -12,6 +12,8 @@
 
 ## Execution boundaries
 
+**2026-09-05 sequencing update:** Execute the approved [benchmark-view plan](2026-09-05-video-benchmark-view.md) first. The next throughput checkpoint is then a bounded seek/frame-extraction experiment; do not build the entire image-worker milestone as its prerequisite. The tasks below remain reference requirements for later product integration, especially cancellation, memory and fallback safety.
+
 This is a proposed plan, not an implementation record. Read the [design](2026-09-04-parallel-video-processing-design.md) first. Browser priority is confirmed; proposed budgets and acceptance targets remain baseline-gated. A demuxer choice is deliberately a checkpoint, not an invented dependency/API. Expand the qualified Phase C backend into library-specific red/green tasks after that decision.
 
 Use @using-git-worktrees, @test-driven-development, @verification-before-completion, and @requesting-code-review during implementation. Create isolation with `npm run worktree -- add feat/parallel-video-processing`; bootstrap existing worktrees with `npm run worktree -- bootstrap <path>`. Reuse root dependencies and one development container. Run heavyweight commands sequentially. The current task only writes documentation, so it does not create a disposable implementation checkout.
