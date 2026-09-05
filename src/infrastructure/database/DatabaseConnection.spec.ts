@@ -23,6 +23,80 @@ const importFreshConnection = async (
 }
 
 describe('DatabaseConnection', () => {
+  const pairId = '12345678-1234-4123-8123-123456789abc'
+
+  test('keeps production and each benchmark connection distinct with constrained names', async () => {
+    const open = vi.fn(() => createOpenRequest())
+    const production = await importFreshConnection(open)
+    const { DatabaseConnection } = await import('./DatabaseConnection')
+    const benchmark = DatabaseConnection.forBenchmark(pairId)
+    expect(benchmark).not.toBe(production)
+    expect(DatabaseConnection.forBenchmark(pairId)).not.toBe(benchmark)
+    void production.connect()
+    void benchmark.connect()
+    expect(open.mock.calls).toEqual([
+      ['VideoMetaDataDB', 4],
+      [`BVRBenchmark-v1-${pairId}`, 4],
+    ])
+    for (const invalid of [
+      'VideoMetaDataDB',
+      '../x',
+      '',
+      '12345678-1234-1123-8123-123456789abc',
+    ]) {
+      expect(() => DatabaseConnection.forBenchmark(invalid)).toThrow(/UUID/)
+      await expect(DatabaseConnection.deleteBenchmark(invalid)).rejects.toThrow(
+        /UUID/,
+      )
+    }
+  })
+
+  test('disposal rejects a pending open and closes a late handle permanently', async () => {
+    const request = createOpenRequest()
+    const connection = await importFreshConnection(vi.fn(() => request))
+    const pending = expect(connection.connect()).rejects.toThrow(/disposed/i)
+    connection.close()
+    await pending
+    const database = { close: vi.fn() } as unknown as IDBDatabase
+    resolveOpenRequest(request, database)
+    expect(database.close).toHaveBeenCalledOnce()
+    await expect(connection.connect()).rejects.toThrow(/disposed/i)
+  })
+
+  test('closes an established handle and never reopens it', async () => {
+    const request = createOpenRequest()
+    const connection = await importFreshConnection(vi.fn(() => request))
+    const database = { close: vi.fn() } as unknown as IDBDatabase
+    const pending = connection.connect()
+    resolveOpenRequest(request, database)
+    await pending
+    connection.close()
+    connection.close()
+    expect(database.close).toHaveBeenCalledOnce()
+    await expect(connection.connect()).rejects.toThrow(/disposed/i)
+  })
+
+  test('deletes only the owned UUID name and surfaces blocked deletion', async () => {
+    await importFreshConnection(vi.fn())
+    const { DatabaseConnection } = await import('./DatabaseConnection')
+    const request = createOpenRequest()
+    const deleteDatabase = vi.fn(() => request)
+    vi.stubGlobal('indexedDB', { deleteDatabase })
+    const deletion = DatabaseConnection.deleteBenchmark(pairId.toUpperCase())
+    expect(deleteDatabase).toHaveBeenCalledExactlyOnceWith(
+      `BVRBenchmark-v1-${pairId}`,
+    )
+    request.onsuccess?.call(request, new Event('success'))
+    await expect(deletion).resolves.toBeUndefined()
+    const blocked = expect(
+      DatabaseConnection.deleteBenchmark(pairId),
+    ).rejects.toThrow(/blocked/i)
+    request.onblocked?.call(
+      request,
+      new Event('blocked') as IDBVersionChangeEvent,
+    )
+    await blocked
+  })
   afterEach(() => {
     vi.unstubAllGlobals()
     vi.restoreAllMocks()

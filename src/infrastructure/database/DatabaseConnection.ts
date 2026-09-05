@@ -1,5 +1,15 @@
 import { handleMigrations } from './migrations'
 
+const benchmarkDatabaseName = (pairId: string): string => {
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      pairId,
+    )
+  )
+    throw new TypeError('Expected a benchmark pair UUID')
+  return `BVRBenchmark-v1-${pairId.toLowerCase()}`
+}
+
 class DatabaseConnection {
   private static instance: DatabaseConnection
   private dbName = 'VideoMetaDataDB'
@@ -7,8 +17,43 @@ class DatabaseConnection {
   private db: IDBDatabase | null = null
   private connectionPromise: Promise<IDBDatabase> | null = null
   private activeConnectionAttempt: symbol | null = null
+  private disposed = false
+  private rejectPending: ((error: Error) => void) | null = null
 
   private constructor() {}
+
+  public static forBenchmark(pairId: string): DatabaseConnection {
+    const connection = new DatabaseConnection()
+    connection.dbName = benchmarkDatabaseName(pairId)
+    return connection
+  }
+
+  public static async deleteBenchmark(pairId: string): Promise<void> {
+    const name = benchmarkDatabaseName(pairId)
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.deleteDatabase(name)
+      request.onsuccess = () => resolve()
+      request.onerror = () =>
+        reject(
+          new Error(
+            `Benchmark database deletion failed: ${request.error?.message ?? 'unknown error'}`,
+          ),
+        )
+      request.onblocked = () =>
+        reject(new Error(`Benchmark database deletion blocked: ${name}`))
+    })
+  }
+
+  /** Permanently retires this connection, including any pending open. */
+  public close(): void {
+    this.disposed = true
+    this.rejectPending?.(new Error('Database connection disposed'))
+    this.rejectPending = null
+    this.activeConnectionAttempt = null
+    this.db?.close()
+    this.db = null
+    this.connectionPromise = null
+  }
 
   public static getInstance(): DatabaseConnection {
     if (!DatabaseConnection.instance) {
@@ -18,6 +63,7 @@ class DatabaseConnection {
   }
 
   public async connect(): Promise<IDBDatabase> {
+    if (this.disposed) throw new Error('Database connection disposed')
     if (this.db) {
       return this.db
     }
@@ -44,6 +90,7 @@ class DatabaseConnection {
         if (this.activeConnectionAttempt === attempt) {
           this.activeConnectionAttempt = null
           this.connectionPromise = null
+          this.rejectPending = null
         }
       }
 
@@ -56,8 +103,13 @@ class DatabaseConnection {
         clearAttempt()
         reject(error)
       }
+      this.rejectPending = rejectAttempt
 
       request.onupgradeneeded = (event) => {
+        if (this.disposed) {
+          request.transaction?.abort()
+          return
+        }
         handleMigrations(request, event.oldVersion)
       }
 
@@ -70,6 +122,7 @@ class DatabaseConnection {
 
         settled = true
         this.activeConnectionAttempt = null
+        this.rejectPending = null
         database.onversionchange = () => {
           database.close()
           if (this.db === database) {
