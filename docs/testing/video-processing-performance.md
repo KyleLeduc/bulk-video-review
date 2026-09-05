@@ -31,7 +31,22 @@ Run Edge separately with a new output path; use `--pilot` for a separate one-pai
 
 Without exact runtime `BVR_BENCHMARK_ENABLED=true`, reserved benchmark routes return 404 before SPA fallback. The capability response and HTML are no-store. The same immutable image serves enabled preprod and disabled deployments; homelab's fixed BVR Compose template owns live enablement. Local Vite development is also usable when enabled, but its summaries are explicitly unqualified and cannot pass the strict built-artifact CLI gate. A source SHA alone does not establish CI provenance.
 
-Local qualification, exact CI/publication and live deployment are recorded separately at the final checkpoint. Native appearance, pointer/keyboard feel and representative personal workload acceptance remain user checks.
+### Qualification checkpoint
+
+Measured application/runner revision: `a8afa835ec2529465463f7a89c37baf6b8ae71bd`, clean local build, asset fingerprint `4b87d451a3c603393987d54509383479dc01f69953761bb05f548253919a606f`. Local checks passed: lint, app/Cypress types, 404 tests in 50 files, the same 404 with V8 coverage, and production build. Independent read-only review findings were corrected and covered by regressions. Both browsers passed actual isolated storage/stop/output smoke and the existing gallery smoke. Final frozen-build benchmark reruns passed in Chrome (75s) and Edge (67s); live release remains a separate gate.
+
+The 20-row reference collection passed complete settings, report, output, provenance and cleanup revalidation: five adjacent fresh/cached pairs per browser at DOM 2/1. Every trial retained 7 videos and 63 checked JPEG previews; valid cached entries performed no new media work. Chrome 152.0.7977.64 and Edge 152.0.4191.53 ran sequentially in the same pinned browser image, Node 24.20.0, 4 CPU / 4 GiB RAM / 1 GiB shared memory, 1440×1000 viewport, with external networking disconnected. Fixture bytes were stream-hashed before each suite. OS/browser caches were not reset between pairs. This is a new harness baseline, not a causal browser comparison or a speedup over the historical gallery baseline.
+
+| Browser | Fresh wall median (range), 5 trials | Cached wall median (range), 5 trials |
+|---|---|---|
+| Chrome | 22.170 s (21.664–26.825 s) | 25.9 ms (22.0–31.9 ms) |
+| Edge | 24.118 s (23.104–27.756 s) | 31.8 ms (25.6–44.7 ms) |
+
+Raw suites, pilots, failures, summary validation and screenshots are retained in ignored task run `20260905-043216-video-benchmark-view`; the original 120-row dataset is untouched. The first dirty Chrome pilot was excluded because the harness incorrectly rejected repeated integer-second preview targets on the short VP9 fixture. The assertion now follows the existing generator's exact floor-to-second targets; generation logic was not changed. Later pilots passed and were not included in the measured dataset. Cypress frame-rewriting/setup failures are also retained separately.
+
+The paired platform branch `feat/bvr-benchmark-preprod` / `951a12f` adds only the runtime flag and scoped support. Its full validation passed (304 repository tests, 18 DNS tests, lint/syntax/Tofu/catalog/control-plane checks). The accepted dry run uses explicit worktree `ANSIBLE_CONFIG` and `--tags bulk_video_review_runtime_config --limit preprod-01`, changing only the BVR Compose environment. It does not reinstall the newer live controller or publish unrelated local platform master commits.
+
+Exact CI/publication and live deployment are recorded separately in the task handoff/ledger. Native appearance, pointer/keyboard feel and representative personal workload acceptance remain user checks. Do not integrate/squash the feature until that acceptance is returned.
 
 ## Historical full-gallery measurement record
 
