@@ -1,0 +1,13 @@
+# Custom benchmark files design
+
+User approved adding a separate Custom files mode to repeat their own local videos while retaining database isolation and separating results from the fixed reference baseline.
+
+Keep Reference fixtures as the default. Add Custom files using a native multiple-file picker (no directory-only restriction); use the app's existing playable-type detection and show ignored selections. Keep the selected File objects in order for every fresh/cached trial; changing mode clears selection/results/URLs. Support1–100 media files with the existing concurrency/repetition limits and120-second per-trial deadline, displayed explicitly.
+
+Alternatives considered: removing the reference guard would silently invalidate its fixed output assertions; requiring users to author fixture manifests adds avoidable setup. An explicit custom mode preserves the strict baseline while supporting immediate real-workload testing.
+
+Custom suites use protocol2 with a distinct `pipeline-custom-files-v1` mode and opaque selection UUID plus ordered byte sizes. No local filenames/paths or media hashes enter exported custom identity. Repeated suites can use the same retained selection ID; reselecting creates a new ID, so matching sizes alone is never a content-equivalence claim. CLI remains reference-only and rejects custom evidence by default.
+
+Reuse the real store/composition, constrained benchmark DBs, locks, serial host lifecycle and cleanup. Pass immutable selection metadata through parent/host and validate count/type/sizes before constructing services. Custom validation checks terminal state, input totals, bounded concurrency, finite timing/phase aggregates and actual persisted outputs; it does not impose7videos/63frames or infer known codec support. Report created/existing/skipped/failed/duplicates and preview failures. A completed custom trial means consistent observed evidence, not that every input succeeded; skipped/failed inputs remain visible and output/processing failures exclude throughput summaries. Cached results must retain successful prior outputs; reference validators remain strict and unchanged.
+
+No ingestion algorithm, scheduler, schema, decoder, dependency, platform configuration or normal-gallery behavior change. Files stay in the browser; exports remain local. Validate with targeted regressions, actual custom Chrome/Edge fresh/cached/stop/catalog-sentinel smoke, reference regression, full app checks and independent read-only review. Publish the unsquashed feature SHA, require its CI and deploy to existing enabled preprod, preserving rollback. Stop at native acceptance.
