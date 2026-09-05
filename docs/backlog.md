@@ -23,7 +23,7 @@ These are affected package entries, not GitHub's separate advisory-alert count. 
 
 Owner: repository maintenance/BVR-001. The vulnerable Cypress/archive/request, obsolete Vue 2 compiler, tsx/esbuild and remaining compatible tooling chains were remediated without forced leaf overrides. Follow-up modernization includes ESLint flat config and coordinated framework/type/lint maintenance, selected from current support needs rather than the retired branch. Headless real Chrome and Edge smoke passed in a disposable official browser-test container. Human pointer/drag feel and representative performance measurements remain open.
 
-Local checks on Node 24.19.0: private clean install, lint, app/Cypress types, 306 unit tests, the same 306 tests with V8 coverage, production build, and worktree CLI help/status/bootstrap passed. Chrome/Edge on Node 24.20.0 exercised real imports, duplicate selection, previews, range filtering, voting/pinning, playback/seek, reload/reselection persistence and invalid-file retry classification. Independent review found no remaining issues. Exact published Node 22 CI remains the integration gate; infrastructure smoke does not replace browser acceptance.
+Local checks on Node 24.19.0: private clean install, lint, app/Cypress types, 306 unit tests, the same 306 tests with V8 coverage, production build, and worktree CLI help/status/bootstrap passed. Chrome/Edge on Node 24.20.0 exercised real imports, duplicate selection, previews, range filtering, voting/pinning, playback/seek, reload/reselection persistence and invalid-file retry classification. Independent review found no remaining issues. [Exact published Node 22 CI](https://github.com/KyleLeduc/bulk-video-review/actions/runs/33937629494) passed on `922eac2`, including clean install/application checks, Compose validation and production image build/scan/runtime smoke. No preprod deployment; infrastructure smoke does not replace browser acceptance.
 
 ### Scope
 
@@ -37,15 +37,16 @@ Local checks on Node 24.19.0: private clean install, lint, app/Cypress types, 30
 ### Acceptance
 
 - [x] Document before/after dependency and advisory inventories, resolved findings, and justified remaining risks with owners/follow-ups.
-- [ ] A clean `npm ci` works on the selected local/devcontainer and CI Node/npm versions; manifest and lockfile agree.
+- [x] A clean `npm ci` works on the selected local/devcontainer and CI Node/npm versions; manifest and lockfile agree.
 - [x] `npm run lint`, `npm run type-check`, `npm run test:unit`, `npm run test:ci`, and `npm run build` pass, sequentially.
 - [x] `npm run test:e2e` passes against the built app; Chrome and Edge browser checks cover filters, imports, duplicate/retry handling, preview persistence, voting/pinning, and playback. This is automated headless smoke, not human pointer/drag acceptance.
 - [x] `npm run worktree -- help` and isolated worktree bootstrap/status checks pass. Ordinary worktrees retain shared dependencies; a dependency-migration worktree may intentionally use a private install to protect the primary checkout. No second development container.
-- [ ] Required CI/security checks pass; a separately authorized immutable preprod release passes the existing smoke runbook. Browser acceptance remains distinct from infrastructure smoke.
+- [x] Required CI/security checks pass on the exact published dependency commit.
+- [ ] A separately authorized immutable preprod release passes the existing smoke runbook. Browser acceptance remains distinct from infrastructure smoke.
 
 ## BVR-002 — Parallel video ingestion and thumbnail processing
 
-**Status:** Measurement-only implementation on `feat/video-processing-measurements`, stacked on the verified dependency-security branch. No worker implementation, integration or deployment. Representative native Chrome/Edge baseline remains pending the user's permitted local video corpus.
+**Status:** Measurement-only implementation on `feat/video-processing-measurements`, stacked on the verified dependency-security branch. The full public-reference matrix is complete: 120 validated Chrome/Edge runs, five cold/warm pairs for every configuration. Awaited DOM seeking dominates both processing lanes; encoding alone is not the main throughput cost. No worker implementation, integration or deployment. Personal-workload and native interaction/decoder-memory acceptance remain open.
 
 **Benefit:** Import batches and generate previews faster while keeping filtering, scrolling, voting, and playback responsive.
 
@@ -58,4 +59,6 @@ Local checks on Node 24.19.0: private clean install, lint, app/Cypress types, 30
 
 See the [design](plans/2026-09-04-parallel-video-processing-design.md) and [implementation plan](plans/2026-09-04-parallel-video-processing.md). The dependency refresh is separately deliverable; only a demonstrated tooling/security prerequisite should block the first worker phase.
 
-The [measurement task expansion](plans/2026-09-04-video-processing-measurements.md) and [measurement protocol/evidence](testing/video-processing-performance.md) cover actual phase timings, session/attempt attribution and the opt-in browser UI probe. Synthetic real Chrome/Edge smoke qualifies instrumentation, not throughput, p95 interactions or native memory. Keep the baseline gate open before introducing workers.
+The [measurement task expansion](plans/2026-09-04-video-processing-measurements.md), [reference baseline plan](plans/2026-09-04-video-reference-baseline.md) and [measurement protocol/evidence](testing/video-processing-performance.md) cover actual phase timings, session/attempt attribution, the opt-in UI probe and the public reference matrix. [Instrumentation CI](https://github.com/KyleLeduc/bulk-video-review/actions/runs/33939820707) passed on `00b7646`. Synthetic smoke qualifies instrumentation only. Reference throughput, proxy responsiveness/RSS observations and native acceptance are separate evidence levels; keep unmet gates explicit before introducing workers.
+
+The reference matrix found cold pipeline medians of 23.814–27.810s in Chrome and 25.196–27.737s in Edge for this fixed 654 MB selection. More concurrency was not monotonically faster; no automatic defaults changed. Keep bounded image workers focused on demonstrable responsiveness, and investigate seeking/frame extraction separately for throughput. Detailed spread, sampled-memory limitations and all pilot exclusions are in the evidence record.
