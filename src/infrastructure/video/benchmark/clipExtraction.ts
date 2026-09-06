@@ -6,6 +6,13 @@ import {
 
 export const CLIP_SECONDS = 3
 export const CLIP_FPS = 10
+export const CLIP_FRAME_RATES = [10, 20, 24, 30] as const
+export type ClipFrameRate = (typeof CLIP_FRAME_RATES)[number]
+export function validateClipFrameRate(value: unknown): ClipFrameRate {
+  if (!CLIP_FRAME_RATES.includes(value as ClipFrameRate))
+    throw new ExtractionError('invalid-metadata')
+  return value as ClipFrameRate
+}
 export const CLIP_READ_BYTES = 1024 * 1024 * 1024
 export const MAX_CLIP_BYTES = 2 * 1024 * 1024
 export type ClipWindow = { start: number; end: number }

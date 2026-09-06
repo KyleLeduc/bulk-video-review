@@ -1,14 +1,33 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import { onMounted, onBeforeUnmount } from 'vue'
 import DiagnosticsPanel from '@presentation/components/utils/DiagnosticsPanel.vue'
 import IngestionStatusToast from '@presentation/components/utils/IngestionStatusToast.vue'
 import FilterPanel from '@presentation/components/layout/FilterPanel.vue'
 import NavBar from '@presentation/views/NavBar.vue'
 import VideoGallery from '@presentation/views/VideoGallery.vue'
-import { useAppStateStore } from '@presentation/stores'
+import { useAppStateStore, useVideoStore } from '@presentation/stores'
 
 const appStateStore = useAppStateStore()
 const { isFilterPanelOpen } = storeToRefs(appStateStore)
+const videoStore = useVideoStore()
+const syncPreviewActivity = () => {
+  videoStore.setPreviewProcessingPaused(document.hidden || !document.hasFocus())
+}
+const pausePreviews = () => videoStore.setPreviewProcessingPaused(true)
+
+// Normal-app policy only: isolated benchmark hosts retain their own lifecycle.
+onMounted(() => {
+  syncPreviewActivity()
+  document.addEventListener('visibilitychange', syncPreviewActivity)
+  window.addEventListener('blur', pausePreviews)
+  window.addEventListener('focus', syncPreviewActivity)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', syncPreviewActivity)
+  window.removeEventListener('blur', pausePreviews)
+  window.removeEventListener('focus', syncPreviewActivity)
+})
 </script>
 
 <template>

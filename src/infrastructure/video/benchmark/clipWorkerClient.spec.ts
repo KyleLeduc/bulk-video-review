@@ -25,6 +25,27 @@ function setup() {
   return worker
 }
 const file = new File(['private'], 'private.mp4')
+it.each([10, 20, 24, 30] as const)(
+  'sends the chosen %i FPS to the worker',
+  async (fps) => {
+    const worker = setup()
+    const controller = new AbortController()
+    const promise = extractClipsWithWorker(file, controller.signal, fps)
+    expect(worker.postMessage).toHaveBeenCalledWith({ file, frameRate: fps })
+    controller.abort()
+    await expect(promise).rejects.toMatchObject({ name: 'AbortError' })
+  },
+)
+it.each([0, 60, NaN, '24', null])(
+  'rejects invalid frame rate %s before dispatch',
+  async (fps) => {
+    const worker = setup()
+    await expect(
+      extractClipsWithWorker(file, new AbortController().signal, fps as never),
+    ).rejects.toThrow('invalid-metadata')
+    expect(worker.postMessage).not.toHaveBeenCalled()
+  },
+)
 it('validates clips and terminates the disposable worker', async () => {
   const worker = setup()
   const promise = extractClipsWithWorker(file, new AbortController().signal)

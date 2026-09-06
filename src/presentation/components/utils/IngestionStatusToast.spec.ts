@@ -329,7 +329,10 @@ describe('IngestionStatusToast', () => {
                     resolve(
                       buildParsedVideo({
                         ...video,
-                        thumbUrls: ['thumb-1', 'thumb-2'],
+                        thumbUrls: Array.from(
+                          { length: 9 },
+                          (_, index) => 'thumb-' + (index + 1),
+                        ),
                       }),
                     )
                 }),
@@ -413,7 +416,10 @@ describe('IngestionStatusToast', () => {
                   resolve(
                     buildParsedVideo({
                       ...video,
-                      thumbUrls: ['thumb-1', 'thumb-2'],
+                      thumbUrls: Array.from(
+                        { length: 9 },
+                        (_, index) => 'thumb-' + (index + 1),
+                      ),
                     }),
                   )
               }),
@@ -567,7 +573,10 @@ describe('IngestionStatusToast', () => {
       resolveThumbnailJob?.(
         buildParsedVideo({
           id: 'id-1',
-          thumbUrls: ['thumb-1', 'thumb-2'],
+          thumbUrls: Array.from(
+            { length: 9 },
+            (_, index) => 'thumb-' + (index + 1),
+          ),
         }),
       )
     } finally {

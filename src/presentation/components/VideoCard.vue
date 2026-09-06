@@ -154,6 +154,7 @@
 </template>
 
 <script setup lang="ts">
+import { hasCompletePreviews } from '@app/services/previewCompleteness'
 import type { ParsedVideo } from '@domain/entities'
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
@@ -308,7 +309,7 @@ const beginHoverWarmupProgressAnimation = () => {
   if (
     hoverWarmupProgressIntervalId.value !== null ||
     isThumbnailJobActive.value ||
-    displayPreviewFrames.value.length > 1
+    hasCompletePreviews(props.video)
   ) {
     return
   }
@@ -341,7 +342,7 @@ const startThumbRotation = () => {
 
   if (
     hoverWarmupTimeoutId.value === null &&
-    displayPreviewFrames.value.length <= 1 &&
+    !hasCompletePreviews(props.video) &&
     !isThumbnailJobActive.value
   ) {
     beginHoverWarmupProgressAnimation()

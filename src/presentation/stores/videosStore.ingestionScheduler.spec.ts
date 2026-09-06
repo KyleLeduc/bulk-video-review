@@ -376,7 +376,10 @@ describe('useVideoStore ingestion scheduler', () => {
     resolvePreview?.(
       buildParsedVideo({
         id: 'id-1',
-        thumbUrls: ['thumb-1', 'thumb-2'],
+        thumbUrls: Array.from(
+          { length: 9 },
+          (_, index) => 'thumb-' + (index + 1),
+        ),
       }),
     )
     await flushPromises()
@@ -495,7 +498,10 @@ describe('useVideoStore ingestion scheduler', () => {
     resolveResumedPreview?.(
       buildParsedVideo({
         id: 'id-1',
-        thumbUrls: ['thumb-1', 'thumb-2'],
+        thumbUrls: Array.from(
+          { length: 9 },
+          (_, index) => 'thumb-' + (index + 1),
+        ),
       }),
     )
     await flushPromises()
@@ -580,7 +586,10 @@ describe('useVideoStore ingestion scheduler', () => {
               return Promise.resolve(
                 buildParsedVideo({
                   ...video,
-                  thumbUrls: ['thumb-1', 'thumb-2'],
+                  thumbUrls: Array.from(
+                    { length: 9 },
+                    (_, index) => 'thumb-' + (index + 1),
+                  ),
                 }),
               )
             },
@@ -702,7 +711,10 @@ describe('useVideoStore ingestion scheduler', () => {
                   ? video
                   : buildParsedVideo({
                       ...video,
-                      thumbUrls: ['thumb-1', 'thumb-2'],
+                      thumbUrls: Array.from(
+                        { length: 9 },
+                        (_, index) => 'thumb-' + (index + 1),
+                      ),
                     }),
               )
             },
@@ -852,7 +864,10 @@ describe('useVideoStore ingestion scheduler', () => {
     pending[0]?.resolve(
       buildParsedVideo({
         ...pending[0].video,
-        thumbUrls: ['thumb-1', 'thumb-2'],
+        thumbUrls: Array.from(
+          { length: 9 },
+          (_, index) => 'thumb-' + (index + 1),
+        ),
       }),
     )
     await flushPromises()
@@ -864,7 +879,10 @@ describe('useVideoStore ingestion scheduler', () => {
     pending[1]?.resolve(
       buildParsedVideo({
         ...pending[1].video,
-        thumbUrls: ['thumb-1', 'thumb-2'],
+        thumbUrls: Array.from(
+          { length: 9 },
+          (_, index) => 'thumb-' + (index + 1),
+        ),
       }),
     )
     await flushPromises()
@@ -876,7 +894,10 @@ describe('useVideoStore ingestion scheduler', () => {
     pending[2]?.resolve(
       buildParsedVideo({
         ...pending[2].video,
-        thumbUrls: ['thumb-1', 'thumb-2'],
+        thumbUrls: Array.from(
+          { length: 9 },
+          (_, index) => 'thumb-' + (index + 1),
+        ),
       }),
     )
     await flushPromises()

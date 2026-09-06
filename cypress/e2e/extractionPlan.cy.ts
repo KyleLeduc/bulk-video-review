@@ -28,7 +28,7 @@ describe('Automatic plan and motion preview smoke', () => {
           expect(entry.report.settings.previewCount).to.equal(9)
         }
       })
-    cy.get('[data-test=plan-preset]').select('clips-3s-v1')
+    cy.get('[data-test=plan-preset]').select('clips-quality-v1')
     cy.get('[data-test=plan-start]').click()
     cy.get('[data-test=extraction-start]').should('be.disabled')
     cy.get('[data-test=plan-json]', { timeout: 120000 })
@@ -38,6 +38,12 @@ describe('Automatic plan and motion preview smoke', () => {
         const plan = JSON.parse(json)
         expect(plan.status).to.equal('completed')
         expect(plan.hidden).to.equal(false)
+        expect(
+          plan.results.map(
+            (entry: { report: { settings: { frameRate: number } } }) =>
+              entry.report.settings.frameRate,
+          ),
+        ).to.deep.equal([10, 20, 24, 30])
         const report = plan.results[0].report
         expect(report.mode).to.equal('clip-extraction-custom-v1')
         expect(report.settings.clipSeconds).to.equal(3)
@@ -64,23 +70,20 @@ describe('Automatic plan and motion preview smoke', () => {
           expect(json).not.to.contain(secret)
       })
     cy.get('[data-test=clip-samples] video')
-      .should('have.length', 10)
+      .should('have.length', 1)
       .each((video) => {
         cy.wrap(video).should((element) => {
           const media = element[0] as HTMLVideoElement
           expect(media.error).to.equal(null)
           expect(media.videoWidth).to.be.within(2, 320)
           expect(media.duration).to.be.closeTo(3, 0.15)
-          expect(media.loop).to.equal(true)
+          expect(media.loop).to.equal(false)
           expect(media.muted).to.equal(true)
-          expect(media.autoplay).to.equal(false)
+          expect(media.autoplay).to.equal(true)
+          expect(media.controls).to.equal(false)
+          expect(media.tabIndex).to.equal(-1)
+          expect(getComputedStyle(media).pointerEvents).to.equal('none')
         })
-      })
-    cy.get('[data-test=clip-samples] video')
-      .first()
-      .then((element) => {
-        const media = element[0] as HTMLVideoElement
-        return media.play()
       })
     cy.get('[data-test=clip-samples] video')
       .first()
@@ -89,17 +92,27 @@ describe('Automatic plan and motion preview smoke', () => {
           0,
         ),
       )
-    cy.get('[data-test=clip-samples] video')
-      .first()
-      .then((element) => {
+    cy.contains('[data-test=clip-samples] figcaption', 'Clip 2 / 10')
+    // Advance the retained array to its last clip and verify wrapping.
+    for (let index = 2; index < 10; index++)
+      cy.get('[data-test=clip-samples] video').trigger('ended', { force: true })
+    cy.contains('[data-test=clip-samples] figcaption', 'Clip 10 / 10')
+    cy.get('[data-test=clip-samples] video').trigger('ended', { force: true })
+    cy.contains('[data-test=clip-samples] figcaption', 'Clip 1 / 10')
+    for (const [index, fps] of [10, 20, 24, 30].entries()) {
+      cy.get('[data-test=clip-variant]').select(String(index))
+      cy.contains('[data-test=clip-samples] h4', `${fps} FPS`)
+      cy.get('[data-test=clip-samples] video').should((element) => {
         const media = element[0] as HTMLVideoElement
-        media.currentTime = media.duration - 0.1
+        expect(media.error).to.equal(null)
+        expect(media.currentTime).to.be.greaterThan(0)
       })
-    cy.get('[data-test=clip-samples] video')
-      .first()
-      .should((element) =>
-        expect((element[0] as HTMLVideoElement).currentTime).to.be.lessThan(1),
-      )
+    }
+    cy.get('[data-test=clip-playback]').click()
+    cy.get('[data-test=clip-playback]').should('contain', 'Resume')
+    cy.get('[data-test=clip-samples] video').should((element) =>
+      expect((element[0] as HTMLVideoElement).paused).to.equal(true),
+    )
     cy.window().then((win) => {
       cy.stub(win.navigator.clipboard, 'writeText').rejects(new Error('Denied'))
     })
@@ -107,7 +120,7 @@ describe('Automatic plan and motion preview smoke', () => {
     cy.get('[data-test=plan-json]').should('have.focus')
     cy.get('[data-test=plan-download]').click()
     cy.readFile(
-      `${Cypress.config('downloadsFolder')}/bvr-clips-3s-v1-results.json`,
+      `${Cypress.config('downloadsFolder')}/bvr-clips-quality-v1-results.json`,
     )
       .its('status')
       .should('equal', 'completed')

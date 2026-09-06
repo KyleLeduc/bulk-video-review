@@ -14,7 +14,7 @@ import {
   boundedClipBuffer,
   clipDimensions,
   clipWindows,
-  CLIP_FPS,
+  validateClipFrameRate,
   MAX_CLIP_BYTES,
   validateClipOutput,
   type ClipOutput,
@@ -28,12 +28,15 @@ import {
 } from './previewExtraction'
 
 // One file per disposable worker; the client terminates it on cancellation/deadline.
-self.onmessage = async (event: MessageEvent<{ file: File }>) => {
+self.onmessage = async (
+  event: MessageEvent<{ file: File; frameRate: unknown }>,
+) => {
   const started = performance.now()
   let input: Input | undefined
   let conversion: Conversion | undefined
   let reply: { ok: true; output: ClipOutput } | { ok: false; reason: string }
   try {
+    const frameRate = validateClipFrameRate(event.data?.frameRate)
     if (
       typeof VideoEncoder === 'undefined' ||
       typeof VideoDecoder === 'undefined' ||
@@ -112,7 +115,7 @@ self.onmessage = async (event: MessageEvent<{ file: File }>) => {
         video: {
           ...dimensions,
           fit: 'contain',
-          frameRate: CLIP_FPS,
+          frameRate,
           codec,
           bitrate: 250000,
           forceTranscode: true,

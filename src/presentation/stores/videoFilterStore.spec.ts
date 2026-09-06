@@ -612,7 +612,10 @@ describe('useVideoFilterStore', () => {
         updateThumbUseCase: {
           execute: vi.fn(async (video) => ({
             ...video,
-            thumbUrls: ['preview-1', 'preview-2'],
+            thumbUrls: Array.from(
+              { length: 9 },
+              (_, index) => `preview-${index}`,
+            ),
           })),
         },
       },

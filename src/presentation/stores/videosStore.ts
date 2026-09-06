@@ -16,6 +16,10 @@ import type {
   VideoProcessingOutcome,
 } from '@app/ports'
 import { isBrowserPlayableVideoFile } from '@/shared/video/browserPlayableVideoTypes'
+import {
+  DEFAULT_PREVIEW_FRAME_COUNT,
+  hasCompletePreviews,
+} from '@app/services/previewCompleteness'
 import type { VideoImportItem } from '@domain/valueObjects'
 import {
   ADD_VIDEOS_USE_CASE_KEY,
@@ -186,8 +190,7 @@ const MAX_THUMBNAIL_CONCURRENCY = 4
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max)
 
-const hasReadyThumbnails = (video: ParsedVideo) =>
-  video.previewFrames.length > 1 || video.thumbUrls.length > 1
+const hasReadyThumbnails = hasCompletePreviews
 
 const isAbortError = (error: unknown) =>
   (error as { name?: unknown } | null)?.name === 'AbortError'
@@ -257,7 +260,7 @@ export const useVideoStore = defineStore('videos', () => {
     new Map<string, ThumbnailJobDiagnostic>(),
   )
   const thumbnailJobAbortControllers = new Map<string, AbortController>()
-  const thumbnailJobsInterruptedForIngestion = new Set<string>()
+  const thumbnailJobsAwaitingResume = new Set<string>()
 
   let thumbnailPumpTimer: number | null = null
   let nextIngestionSessionId = 1
@@ -353,9 +356,12 @@ export const useVideoStore = defineStore('videos', () => {
   const displayedIngestionSession = computed(() =>
     getSession(displayedSessionId.value),
   )
+  const isPreviewProcessingPaused = ref(false)
   const isThumbnailDrainPaused = computed(
     () =>
-      activeIngestionSessionId.value !== null || queuedIngestionCount.value > 0,
+      isPreviewProcessingPaused.value ||
+      activeIngestionSessionId.value !== null ||
+      queuedIngestionCount.value > 0,
   )
 
   const thumbnailQueueSummary = computed(() => {
@@ -649,13 +655,13 @@ export const useVideoStore = defineStore('videos', () => {
     thumbnailJobPromises.delete(videoId)
   }
 
-  const interruptActiveThumbnailJobsForIngestion = () => {
+  const interruptActiveThumbnailJobs = () => {
     thumbnailJobAbortControllers.forEach((controller, videoId) => {
       if (controller.signal.aborted) {
         return
       }
 
-      thumbnailJobsInterruptedForIngestion.add(videoId)
+      thumbnailJobsAwaitingResume.add(videoId)
       controller.abort()
     })
   }
@@ -724,7 +730,7 @@ export const useVideoStore = defineStore('videos', () => {
 
   const clearThumbnailTracking = (videoId: string) => {
     const controller = thumbnailJobAbortControllers.get(videoId)
-    thumbnailJobsInterruptedForIngestion.delete(videoId)
+    thumbnailJobsAwaitingResume.delete(videoId)
     thumbnailJobAbortControllers.delete(videoId)
     controller?.abort()
 
@@ -782,7 +788,9 @@ export const useVideoStore = defineStore('videos', () => {
       })) {
         if (item.type === 'video') {
           addVideos([item.video])
-          deferredThumbnailQueue.push(item.video)
+          deferredThumbnailQueue.push(
+            toRaw(videoMap.get(item.video.id)) ?? item.video,
+          )
         } else {
           session.progress = item.progress
           syncDisplayedSession(session.id)
@@ -864,6 +872,8 @@ export const useVideoStore = defineStore('videos', () => {
       }
 
       const abortController = new AbortController()
+      const ownsAttempt = () =>
+        thumbnailJobAbortControllers.get(nextVideoId) === abortController
       const startedAtMs = Date.now()
       let shouldSettleJob = true
       let acceptingTimings = true
@@ -885,7 +895,7 @@ export const useVideoStore = defineStore('videos', () => {
         stage: 'loading',
         startedAtMs,
         completedFrames: 0,
-        totalFrames: 0,
+        totalFrames: DEFAULT_PREVIEW_FRAME_COUNT,
       })
       refreshThumbnailSessions(sessionIds)
 
@@ -900,9 +910,7 @@ export const useVideoStore = defineStore('videos', () => {
             }
           },
           onProgress: (progress) => {
-            if (
-              thumbnailJobAbortControllers.get(nextVideoId) !== abortController
-            ) {
+            if (!ownsAttempt() || abortController.signal.aborted) {
               return
             }
 
@@ -917,8 +925,10 @@ export const useVideoStore = defineStore('videos', () => {
         })
         .then((updated) => {
           acceptingTimings = false
-          if (abortController.signal.aborted) attemptOutcome = 'aborted'
-          thumbnailJobsInterruptedForIngestion.delete(nextVideoId)
+          if (!ownsAttempt()) return
+          // A cancelled adapter may still resolve. Never publish that stale result.
+          abortController.signal.throwIfAborted()
+          thumbnailJobsAwaitingResume.delete(nextVideoId)
           const currentVideo = toRaw(videoMap.get(nextVideoId))
           if (!currentVideo) {
             clearThumbnailTracking(nextVideoId)
@@ -945,7 +955,7 @@ export const useVideoStore = defineStore('videos', () => {
               completedAtMs,
               elapsedMs: completedAtMs - startedAtMs,
               completedFrames,
-              totalFrames: completedFrames,
+              totalFrames: DEFAULT_PREVIEW_FRAME_COUNT,
               outputBytes: frames.reduce(
                 (total, frame) => total + frame.blob.size,
                 0,
@@ -966,16 +976,17 @@ export const useVideoStore = defineStore('videos', () => {
             completedAtMs,
             elapsedMs: completedAtMs - startedAtMs,
             completedFrames: updated.previewFrames.length,
-            totalFrames: updated.previewFrames.length,
-            error: 'Preview generation returned fewer than two frames',
+            totalFrames: DEFAULT_PREVIEW_FRAME_COUNT,
+            error: `Preview generation did not return the expected ${DEFAULT_PREVIEW_FRAME_COUNT} frames`,
           })
         })
         .catch((error) => {
           acceptingTimings = false
+          if (!ownsAttempt()) return
           if (abortController.signal.aborted && isAbortError(error)) {
             attemptOutcome = 'aborted'
             const shouldRequeue =
-              thumbnailJobsInterruptedForIngestion.delete(nextVideoId) &&
+              thumbnailJobsAwaitingResume.delete(nextVideoId) &&
               videoMap.has(nextVideoId)
 
             if (shouldRequeue) {
@@ -1000,7 +1011,7 @@ export const useVideoStore = defineStore('videos', () => {
             return
           }
 
-          thumbnailJobsInterruptedForIngestion.delete(nextVideoId)
+          thumbnailJobsAwaitingResume.delete(nextVideoId)
           if (!videoMap.has(nextVideoId)) {
             clearThumbnailTracking(nextVideoId)
             return
@@ -1024,18 +1035,15 @@ export const useVideoStore = defineStore('videos', () => {
         })
         .finally(() => {
           acceptingTimings = false
+          if (abortController.signal.aborted) attemptOutcome = 'aborted'
           measurementSessions.forEach((session) => {
             session.previewAttempts[attemptOutcome] += 1
           })
-          if (
-            thumbnailJobAbortControllers.get(nextVideoId) === abortController
-          ) {
+          if (ownsAttempt()) {
             thumbnailJobAbortControllers.delete(nextVideoId)
+            if (shouldSettleJob) settleThumbnailJob(nextVideoId)
           }
           activeThumbnailJobs.value = Math.max(activeThumbnailJobs.value - 1, 0)
-          if (shouldSettleJob) {
-            settleThumbnailJob(nextVideoId)
-          }
           refreshThumbnailSessions(sessionIds)
           startNextQueuedIngestion()
           pumpThumbnailQueue()
@@ -1135,11 +1143,29 @@ export const useVideoStore = defineStore('videos', () => {
     videos.forEach((video) => {
       const existing = toRaw(videoMap.get(video.id))
       if (existing) {
+        if (!hasReadyThumbnails(existing) && hasReadyThumbnails(video)) {
+          videoMap.set(video.id, {
+            ...existing,
+            previewFrames: video.previewFrames,
+            thumbUrls: video.thumbUrls,
+          })
+        }
         return
       }
 
       videoMap.set(video.id, video)
     })
+  }
+
+  function setPreviewProcessingPaused(paused: boolean) {
+    if (paused === isPreviewProcessingPaused.value) return
+    isPreviewProcessingPaused.value = paused
+    if (paused) {
+      clearThumbnailPumpTimer()
+      interruptActiveThumbnailJobs()
+    } else {
+      scheduleThumbnailPump(true)
+    }
   }
 
   function removeVideo(videoId: string) {
@@ -1214,7 +1240,7 @@ export const useVideoStore = defineStore('videos', () => {
         reject,
       })
 
-      interruptActiveThumbnailJobsForIngestion()
+      interruptActiveThumbnailJobs()
       startNextQueuedIngestion()
     })
   }
@@ -1396,6 +1422,8 @@ export const useVideoStore = defineStore('videos', () => {
     displayedIngestionSession,
     queuedIngestionCount,
     isThumbnailDrainPaused,
+    isPreviewProcessingPaused,
+    setPreviewProcessingPaused,
     thumbnailConcurrencyOverride,
     autoThumbnailConcurrency,
     effectiveThumbnailConcurrency,

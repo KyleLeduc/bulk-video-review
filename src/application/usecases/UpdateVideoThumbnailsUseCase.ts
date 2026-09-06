@@ -1,5 +1,9 @@
 import type { ParsedVideo } from '@domain/entities'
 import { measureVideoProcessing } from '@app/services/videoProcessingTiming'
+import {
+  hasCompletePreviews,
+  previewFrameTarget,
+} from '@app/services/previewCompleteness'
 import type {
   IVideoThumbnailGenerator,
   IEventPublisher,
@@ -26,7 +30,8 @@ export class UpdateVideoThumbnailsUseCase {
     options?: VideoPreviewGenerationOptions,
   ): Promise<ParsedVideo> {
     options?.signal?.throwIfAborted()
-    if (video.previewFrames.length > 1) {
+    const expectedFrames = previewFrameTarget(options?.count)
+    if (hasCompletePreviews(video, expectedFrames)) {
       return video
     }
 
@@ -51,7 +56,7 @@ export class UpdateVideoThumbnailsUseCase {
     }
 
     options?.signal?.throwIfAborted()
-    if (previewFrames.length < 2) {
+    if (expectedFrames <= 0 || previewFrames.length !== expectedFrames) {
       return video
     }
 
@@ -68,7 +73,7 @@ export class UpdateVideoThumbnailsUseCase {
     options?.onProgress?.({
       stage: 'persisting',
       completedFrames: previewFrames.length,
-      totalFrames: previewFrames.length,
+      totalFrames: expectedFrames,
     })
 
     options?.signal?.throwIfAborted()

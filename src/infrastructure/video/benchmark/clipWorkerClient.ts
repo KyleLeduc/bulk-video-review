@@ -3,17 +3,25 @@ import {
   ExtractionError,
   workerFailure,
 } from './previewExtraction'
-import { validateClipOutput, type ClipOutput } from './clipExtraction'
+import {
+  CLIP_FPS,
+  validateClipFrameRate,
+  validateClipOutput,
+  type ClipFrameRate,
+  type ClipOutput,
+} from './clipExtraction'
 
 export function extractClipsWithWorker(
   file: File,
   signal: AbortSignal,
+  frameRate: ClipFrameRate = CLIP_FPS,
 ): Promise<ClipOutput> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
       reject(new DOMException('Cancelled', 'AbortError'))
       return
     }
+    validateClipFrameRate(frameRate)
     let worker: Worker
     try {
       worker = new Worker(
@@ -53,7 +61,7 @@ export function extractClipsWithWorker(
       }
     }
     try {
-      worker.postMessage({ file })
+      worker.postMessage({ file, frameRate })
     } catch {
       finish(undefined, new ExtractionError('extraction-failed'))
     }

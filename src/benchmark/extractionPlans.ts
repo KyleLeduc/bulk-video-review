@@ -1,9 +1,14 @@
 import type { PreviewCount } from '../infrastructure/video/benchmark/previewExtraction'
+import {
+  CLIP_FRAME_RATES,
+  type ClipFrameRate,
+} from '../infrastructure/video/benchmark/clipExtraction'
 
 export type ExtractionPreset =
   | 'confirmation-v1'
   | 'still-matrix-v1'
   | 'clips-3s-v1'
+  | 'clips-quality-v1'
 export type PlanStep = { id: string; pass: number } & (
   | {
       workload: 'stills'
@@ -11,9 +16,24 @@ export type PlanStep = { id: string; pass: number } & (
       jobs: 2 | 4
       previewCount: PreviewCount
     }
-  | { workload: 'clips'; execution: 'mediabunny'; jobs: 1 }
+  | {
+      workload: 'clips'
+      execution: 'mediabunny'
+      jobs: 1
+      frameRate?: ClipFrameRate
+    }
 )
+export type ClipPlanStep = Extract<PlanStep, { workload: 'clips' }>
 export function planSteps(preset: ExtractionPreset): PlanStep[] {
+  if (preset === 'clips-quality-v1')
+    return CLIP_FRAME_RATES.map((frameRate) => ({
+      id: `clips-3s-${frameRate}fps`,
+      pass: 1,
+      workload: 'clips',
+      execution: 'mediabunny',
+      jobs: 1,
+      frameRate,
+    }))
   if (preset === 'clips-3s-v1')
     return [
       {

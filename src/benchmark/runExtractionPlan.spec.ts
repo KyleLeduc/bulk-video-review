@@ -47,6 +47,55 @@ function setup() {
   return { order, request }
 }
 describe('versioned extraction plans', () => {
+  it('runs and labels all four clip quality variants before publishing any samples', async () => {
+    setup()
+    const extract = vi
+      .spyOn(clips, 'extractClipsWithWorker')
+      .mockResolvedValue({
+        clips: [
+          {
+            blob: new Blob(['private'], { type: 'video/mp4' }),
+            start: 0,
+            duration: 3,
+          },
+        ],
+        width: 320,
+        height: 180,
+        codec: 'avc',
+        readBytes: 4,
+        readCalls: 1,
+        metrics: {
+          setupMs: 1,
+          conversionMs: 2,
+          firstClipMs: 3,
+          totalMs: 4,
+          readMs: 1,
+          readMaxMs: 1,
+        },
+      })
+    const samples = vi.fn<
+      NonNullable<Parameters<typeof runExtractionPlan>[0]['onClipSample']>
+    >(() => expect(extract).toHaveBeenCalledTimes(4))
+    const result = await runExtractionPlan({
+      ...options(),
+      preset: 'clips-quality-v1',
+      onClipSample: samples,
+    })
+    expect(result.status).toBe('completed')
+    expect(extract.mock.calls.map((call) => call[2])).toEqual([10, 20, 24, 30])
+    expect(
+      result.results.map((entry) =>
+        entry.report.mode === 'clip-extraction-custom-v1'
+          ? entry.report.settings.frameRate
+          : null,
+      ),
+    ).toEqual([10, 20, 24, 30])
+    expect(samples).toHaveBeenCalledTimes(4)
+    expect(samples.mock.calls.map((call) => call[1].frameRate)).toEqual([
+      10, 20, 24, 30,
+    ])
+    expect(JSON.stringify(result)).not.toMatch(/private|"blob":|"start":/)
+  })
   it('covers the full matrix with balanced reversed passes', () => {
     const steps = planSteps('still-matrix-v1')
     expect(steps).toHaveLength(16)
@@ -172,7 +221,10 @@ describe('versioned extraction plans', () => {
       'passed',
       'failed',
     ])
-    expect(sample).toHaveBeenCalledWith({ file: 1, output })
+    expect(sample).toHaveBeenCalledWith(
+      { file: 1, output },
+      planSteps('clips-3s-v1')[0],
+    )
     expect(JSON.stringify(result)).not.toMatch(
       /secret|"start":|"duration":|"blob":/,
     )

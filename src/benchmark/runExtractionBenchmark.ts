@@ -18,6 +18,7 @@ import { extractWithWorker } from '../infrastructure/video/benchmark/previewWork
 import type { BenchmarkReaderMode } from '../infrastructure/video/benchmark/benchmarkFileReader'
 import {
   planSteps,
+  type ClipPlanStep,
   type ExtractionPreset,
   type PlanStep,
 } from './extractionPlans'
@@ -427,7 +428,7 @@ type PlanOptions = Pick<
 > & {
   preset: ExtractionPreset
   onStep?: (result: PlanResult, index: number) => void
-  onClipSample?: (sample: ClipSample) => void
+  onClipSample?: (sample: ClipSample, step: ClipPlanStep) => void
 }
 
 export async function runExtractionPlan(
@@ -485,7 +486,9 @@ export async function runExtractionPlan(
         }
       }
       let samples: ExtractionSample[] = []
-      let clipSample: ClipSample | undefined
+      // Quality plans retain at most four variants, each already bounded to
+      // 16 MiB encoded output. Samples never enter the exported report.
+      const clipSamples: { sample: ClipSample; step: ClipPlanStep }[] = []
       try {
         for (const [index, step] of steps.entries()) {
           if (controller.signal.aborted) break
@@ -517,8 +520,11 @@ export async function runExtractionPlan(
                   })
                 : await runClipBenchmark({
                     ...common,
+                    frameRate: step.frameRate,
                     onSample: (value) => {
-                      clipSample = value
+                      if (clipSamples.length >= 4)
+                        throw new Error('Sample limit')
+                      clipSamples.push({ sample: value, step })
                     },
                   })
             const entry = { step, report: result }
@@ -536,7 +542,8 @@ export async function runExtractionPlan(
         report.wallMs = performance.now() - started
         if (!controller.signal.aborted) {
           if (samples.length) notify(() => options.onSamples?.(samples))
-          if (clipSample) notify(() => options.onClipSample?.(clipSample!))
+          for (const { sample, step } of clipSamples)
+            notify(() => options.onClipSample?.(sample, step))
         }
         report.status = controller.signal.aborted
           ? 'interrupted'

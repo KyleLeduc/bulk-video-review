@@ -84,7 +84,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
   vi.resetModules()
 })
-async function run() {
+async function run(frameRate: unknown) {
   state.now = 0
   const postMessage = vi.fn()
   const worker = {
@@ -100,32 +100,44 @@ async function run() {
   vi.spyOn(performance, 'now').mockImplementation(() => state.now)
   await import('./clipExtraction.worker')
   await worker.onmessage?.({
-    data: { file: new File(['mp4'], 'private.mp4') },
+    data: { file: new File(['mp4'], 'private.mp4'), frameRate },
   } as MessageEvent)
   return postMessage.mock.calls[0][0]
 }
-it('measures total worker time through asynchronous cleanup and strips source tags/audio', async () => {
-  state.encoderAvailable = true
-  const reply = await run()
-  expect(reply.ok).toBe(true)
-  expect(reply.output.metrics.firstClipMs).toBe(10)
-  expect(reply.output.metrics.totalMs).toBe(50)
-  expect(state.options).toMatchObject({
-    tags: {},
-    audio: { discard: true },
-    trim: { start: 0, end: 3 },
-    video: { frameRate: 10, forceTranscode: true },
-  })
-})
+it.each([10, 20, 24, 30])(
+  'uses %i FPS, measures cleanup and strips source tags/audio',
+  async (frameRate) => {
+    state.encoderAvailable = true
+    const reply = await run(frameRate)
+    expect(reply.ok).toBe(true)
+    expect(reply.output.metrics.firstClipMs).toBe(10)
+    expect(reply.output.metrics.totalMs).toBe(50)
+    expect(state.options).toMatchObject({
+      tags: {},
+      audio: { discard: true },
+      trim: { start: 0, end: 3 },
+      video: { frameRate, forceTranscode: true },
+    })
+  },
+)
+it.each([undefined, 0, 60, '24'])(
+  'rejects invalid FPS %s without conversion',
+  async (frameRate) => {
+    state.options = undefined
+    const reply = await run(frameRate)
+    expect(reply).toEqual({ ok: false, reason: 'invalid-metadata' })
+    expect(state.options).toBeUndefined()
+  },
+)
 it('reports unsupported when no candidate encoder is available', async () => {
   state.encoderAvailable = false
-  const reply = await run()
+  const reply = await run(10)
   expect(reply).toEqual({ ok: false, reason: 'unsupported' })
 })
 it('selects VP8 and a WebM container when AVC encoding is unavailable', async () => {
   state.encoderAvailable = true
   state.avcAvailable = false
-  const reply = await run()
+  const reply = await run(10)
   expect(reply.ok).toBe(true)
   expect(reply.output.codec).toBe('vp8')
   expect(reply.output.clips[0].blob.type).toBe('video/webm')

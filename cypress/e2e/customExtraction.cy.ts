@@ -8,6 +8,7 @@ describe('Custom extraction built-runtime smoke', () => {
     ])
     cy.get('[data-test=extraction-start]').should('be.disabled')
     cy.get('[data-test=memory-ack]').check()
+    cy.get('[data-test=manual-extraction] > summary').click()
     cy.get('[data-test=extraction-repetitions]').clear()
     cy.get('[data-test=extraction-repetitions]').type('2')
     cy.get('[data-test=extraction-start]').click()

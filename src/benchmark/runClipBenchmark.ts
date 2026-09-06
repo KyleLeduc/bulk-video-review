@@ -5,6 +5,8 @@ import {
   CLIP_SECONDS,
   MAX_CLIP_BYTES,
   type ClipOutput,
+  type ClipFrameRate,
+  validateClipFrameRate,
 } from '../infrastructure/video/benchmark/clipExtraction'
 import { extractClipsWithWorker } from '../infrastructure/video/benchmark/clipWorkerClient'
 import {
@@ -36,7 +38,7 @@ export type ClipReport = {
     jobs: 1
     clipSeconds: 3
     maxClips: 10
-    frameRate: 10
+    frameRate: ClipFrameRate
     maxDimension: 320
     bitrate: 250000
     muted: true
@@ -58,9 +60,11 @@ export async function runClipBenchmark(options: {
   selectionId: string
   build: BuildIdentity
   signal: AbortSignal
+  frameRate?: ClipFrameRate
   onProgress?: (message: string) => void
   onSample?: (sample: ClipSample) => void
 }): Promise<ClipReport> {
+  const frameRate = validateClipFrameRate(options.frameRate ?? CLIP_FPS)
   const started = performance.now()
   const report: ClipReport = {
     schemaVersion: 1,
@@ -81,7 +85,7 @@ export async function runClipBenchmark(options: {
       jobs: 1,
       clipSeconds: CLIP_SECONDS,
       maxClips: 10,
-      frameRate: CLIP_FPS,
+      frameRate,
       maxDimension: 320,
       bitrate: 250000,
       muted: true,
@@ -121,6 +125,7 @@ export async function runClipBenchmark(options: {
       const output = await extractClipsWithWorker(
         options.files[file],
         options.signal,
+        frameRate,
       )
       options.signal.throwIfAborted()
       Object.assign(row, {

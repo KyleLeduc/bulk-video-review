@@ -8,6 +8,37 @@ afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
+it('groups automatic plans before collapsed manual settings with independent validation', async () => {
+  const wrapper = mount(CustomExtractionBenchmark, {
+    props: {
+      build: { revision: null, dirty: null, assetsSha256: null },
+      capable: true,
+    },
+  })
+  const manual = wrapper.get('details[data-test=manual-extraction]')
+  expect(manual.attributes('open')).toBeUndefined()
+  expect(manual.find('[data-test=extraction-repetitions]').exists()).toBe(true)
+  expect(manual.find('[data-test=extraction-start]').exists()).toBe(true)
+  expect(manual.find('[data-test=plan-start]').exists()).toBe(false)
+  expect(manual.find('[data-test=extraction-files]').exists()).toBe(false)
+  const picker = wrapper.get<HTMLInputElement>('[data-test=extraction-files]')
+  Object.defineProperty(picker.element, 'files', {
+    value: [new File(['x'], 'private.mp4')],
+  })
+  await picker.trigger('change')
+  await wrapper.get('[data-test=memory-ack]').setValue(true)
+  await wrapper.get('[data-test=extraction-repetitions]').setValue(0)
+  expect(
+    wrapper.get('[data-test=extraction-start]').attributes('disabled'),
+  ).toBeDefined()
+  expect(
+    wrapper.get('[data-test=plan-start]').attributes('disabled'),
+  ).toBeUndefined()
+  expect(wrapper.html().indexOf('plan-heading')).toBeLessThan(
+    wrapper.html().indexOf('manual-extraction'),
+  )
+  wrapper.unmount()
+})
 it('keeps the visible table in launch order when concurrent jobs finish out of order', async () => {
   vi.spyOn(runner, 'runExtractionBenchmark').mockImplementation((options) => {
     for (const order of [2, 1])

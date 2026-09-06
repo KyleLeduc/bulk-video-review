@@ -17,25 +17,184 @@ const StoreHarness = defineComponent({
   template: '<div />',
 })
 
-const buildPreviewFrames = (): VideoPreviewFrame[] => [
-  {
-    timestampSeconds: 2,
-    blob: new Blob(['frame-one'], { type: 'image/jpeg' }),
+const buildPreviewFrames = (): VideoPreviewFrame[] =>
+  Array.from({ length: 9 }, (_, index) => ({
+    timestampSeconds: (index + 1) * 2,
+    blob: new Blob([`frame-${index}`], { type: 'image/jpeg' }),
     width: 480,
     height: 270,
-  },
-  {
-    timestampSeconds: 4,
-    blob: new Blob(['frame-two'], { type: 'image/jpeg' }),
-    width: 480,
-    height: 270,
-  },
-]
+  }))
 
 const markReady = (video: ParsedVideo) =>
   buildParsedVideo({ ...video, previewFrames: buildPreviewFrames() })
 
 describe('useVideoStore preview scheduler', () => {
+  test.each(['resolve', 'reject'] as const)(
+    'an old removed attempt cannot %s over a new same-ID job',
+    async (outcome) => {
+      const attempts: { finish: () => void }[] = []
+      const execute = vi.fn(
+        (
+          video: ParsedVideo,
+          options?: { signal?: AbortSignal },
+        ): Promise<ParsedVideo> => {
+          if (attempts.length >= 2) return Promise.resolve(markReady(video))
+          return new Promise((resolve, reject) => {
+            const first = attempts.length === 0
+            attempts.push({
+              finish: () => {
+                if (first) {
+                  if (outcome === 'resolve') resolve(markReady(video))
+                  else reject(new Error('late failure from removed file'))
+                } else reject(new DOMException('Paused', 'AbortError'))
+              },
+            })
+            expect(options?.signal).toBeDefined()
+          })
+        },
+      )
+      const { global, mocks } = createPresentationTestContext({
+        useCases: { updateThumbUseCase: { execute } },
+      })
+      const wrapper = mount(StoreHarness, { global })
+      const store = useVideoStore()
+      store.setThumbnailConcurrencyOverride(2)
+      store.addVideos([buildParsedVideo({ id: 'same' })])
+      const old = store.updateVideoThumbnails('same')
+      store.removeVideo('same')
+      store.addVideos([buildParsedVideo({ id: 'same' })])
+      const settled = vi.fn()
+      const replacement = store.updateVideoThumbnails('same').then(settled)
+      store.setPreviewProcessingPaused(true)
+      attempts[0].finish()
+      await flushPromises()
+      expect(settled).not.toHaveBeenCalled()
+      attempts[1].finish()
+      await flushPromises()
+      expect(store.getThumbnailJobState('same')).toBe('queued')
+      store.setPreviewProcessingPaused(false)
+      await Promise.all([old, replacement])
+      expect(store.allVideos[0].previewFrames).toHaveLength(9)
+      expect(execute).toHaveBeenCalledTimes(3)
+      expect(mocks.logger.error).not.toHaveBeenCalled()
+      wrapper.unmount()
+    },
+  )
+  test.each(['reject', 'late completion'] as const)(
+    'requeues a paused attempt on %s without settling its promise',
+    async (outcome) => {
+      let finish: () => void = () => {}
+      let firstSignal: AbortSignal | undefined
+      const execute = vi
+        .fn()
+        .mockImplementationOnce(
+          (video: ParsedVideo, options: { signal: AbortSignal }) =>
+            new Promise((resolve, reject) => {
+              firstSignal = options.signal
+              finish = () =>
+                outcome === 'reject'
+                  ? reject(new DOMException('Paused', 'AbortError'))
+                  : resolve(markReady(video))
+            }),
+        )
+        .mockImplementation(async (video: ParsedVideo) => markReady(video))
+      const { global } = createPresentationTestContext({
+        useCases: { updateThumbUseCase: { execute } },
+      })
+      const wrapper = mount(StoreHarness, { global })
+      const store = useVideoStore()
+      store.addVideos([
+        buildParsedVideo({
+          id: 'partial',
+          previewFrames: buildPreviewFrames().slice(0, 8),
+        }),
+      ])
+      const settled = vi.fn()
+      const pending = store.updateVideoThumbnails('partial').then(settled)
+      expect(execute).toHaveBeenCalledOnce()
+      store.setPreviewProcessingPaused(true)
+      expect(firstSignal?.aborted).toBe(true)
+      finish()
+      await flushPromises()
+      expect(store.getThumbnailJobState('partial')).toBe('queued')
+      expect(store.allVideos[0].previewFrames).toHaveLength(8)
+      expect(settled).not.toHaveBeenCalled()
+      store.setPreviewProcessingPaused(false)
+      store.setPreviewProcessingPaused(false)
+      await pending
+      expect(execute).toHaveBeenCalledTimes(2)
+      expect(store.allVideos[0].previewFrames).toHaveLength(9)
+      expect(store.getThumbnailJobState('partial')).toBe('ready')
+      wrapper.unmount()
+    },
+  )
+
+  test('does not declare an eight-frame adapter result complete', async () => {
+    const { global } = createPresentationTestContext({
+      useCases: {
+        updateThumbUseCase: {
+          execute: vi.fn(async (video) => ({
+            ...video,
+            previewFrames: buildPreviewFrames().slice(0, 8),
+          })),
+        },
+      },
+    })
+    const wrapper = mount(StoreHarness, { global })
+    const store = useVideoStore()
+    store.addVideos([buildParsedVideo({ id: 'partial' })])
+    await store.updateVideoThumbnails('partial')
+    expect(store.getThumbnailJobDiagnostic('partial')).toMatchObject({
+      state: 'failed',
+      completedFrames: 8,
+      totalFrames: 9,
+    })
+    wrapper.unmount()
+  })
+
+  test('repairs the retained partial entry when reimport hydrates a complete cached entry', async () => {
+    vi.useFakeTimers()
+    const video = buildParsedVideo({
+      id: 'cached',
+      previewFrames: buildPreviewFrames(),
+    })
+    const { global } = createPresentationTestContext({
+      useCases: {
+        addVideosUseCase: {
+          execute: vi.fn(async function* () {
+            yield { type: 'video' as const, video }
+          }),
+        },
+        updateThumbUseCase: {
+          execute: vi.fn(async (current) => markReady(current)),
+        },
+      },
+    })
+    const wrapper = mount(StoreHarness, { global })
+    const store = useVideoStore()
+    store.addVideos([
+      {
+        ...video,
+        previewFrames: video.previewFrames.slice(0, 2),
+        url: 'blob:live',
+        pinned: true,
+        votes: 3,
+      },
+    ])
+    await store.addVideosFromFiles(
+      createMockFileList(
+        new File(['video'], 'video.mp4', { type: 'video/mp4' }),
+      ),
+    )
+    await vi.advanceTimersByTimeAsync(200)
+    expect(store.allVideos[0]).toMatchObject({
+      url: 'blob:live',
+      pinned: true,
+      votes: 3,
+    })
+    expect(store.allVideos[0].previewFrames).toHaveLength(9)
+    wrapper.unmount()
+  })
   beforeEach(() => {
     vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockImplementation(
       (type: string) => (type === 'video/mp4' ? 'probably' : ''),
@@ -296,8 +455,8 @@ describe('useVideoStore preview scheduler', () => {
       expect.objectContaining({
         state: 'ready',
         stage: 'encoding',
-        completedFrames: 2,
-        totalFrames: 2,
+        completedFrames: 9,
+        totalFrames: 9,
         outputBytes: frames.reduce(
           (total, frame) => total + frame.blob.size,
           0,

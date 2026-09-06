@@ -260,7 +260,10 @@ describe('useVideoStore', () => {
     resolveUpdate?.(
       buildParsedVideo({
         id: 'id-1',
-        thumbUrls: ['thumb-1', 'thumb-2'],
+        thumbUrls: Array.from(
+          { length: 9 },
+          (_, index) => 'thumb-' + (index + 1),
+        ),
       }),
     )
 
@@ -287,7 +290,10 @@ describe('useVideoStore', () => {
             execute: vi.fn(async (video) =>
               buildParsedVideo({
                 ...video,
-                thumbUrls: ['thumb-1', 'thumb-2'],
+                thumbUrls: Array.from(
+                  { length: 9 },
+                  (_, index) => 'thumb-' + (index + 1),
+                ),
               }),
             ),
           },
@@ -317,7 +323,7 @@ describe('useVideoStore', () => {
       expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
       expect(
         store.allVideos.find(({ id }) => id === 'id-1')?.thumbUrls,
-      ).toEqual(['thumb-1', 'thumb-2'])
+      ).toEqual(Array.from({ length: 9 }, (_, index) => 'thumb-' + (index + 1)))
     } finally {
       vi.useRealTimers()
     }
@@ -347,7 +353,10 @@ describe('useVideoStore', () => {
             execute: vi.fn(async (video) =>
               buildParsedVideo({
                 ...video,
-                thumbUrls: ['thumb-1', 'thumb-2'],
+                thumbUrls: Array.from(
+                  { length: 9 },
+                  (_, index) => 'thumb-' + (index + 1),
+                ),
               }),
             ),
           },
@@ -454,7 +463,10 @@ describe('useVideoStore', () => {
             execute: vi.fn(async (video) =>
               buildParsedVideo({
                 ...video,
-                thumbUrls: ['thumb-1', 'thumb-2'],
+                thumbUrls: Array.from(
+                  { length: 9 },
+                  (_, index) => 'thumb-' + (index + 1),
+                ),
               }),
             ),
           },
@@ -572,7 +584,10 @@ describe('useVideoStore', () => {
       resolveThumbnailJob?.(
         buildParsedVideo({
           id: 'id-1',
-          thumbUrls: ['thumb-1', 'thumb-2'],
+          thumbUrls: Array.from(
+            { length: 9 },
+            (_, index) => 'thumb-' + (index + 1),
+          ),
         }),
       )
 
@@ -653,7 +668,10 @@ describe('useVideoStore', () => {
       store.addVideos([original])
       const preview = store.updateVideoThumbnails('id-1')
       const vote = store.updateVotes('id-1', 1)
-      const previewResult = { ...original, thumbUrls: ['one', 'two'] }
+      const previewResult = {
+        ...original,
+        thumbUrls: Array.from({ length: 9 }, (_, index) => 'frame-' + index),
+      }
 
       if (order === 'vote-first') {
         finishVote(3)
@@ -667,7 +685,10 @@ describe('useVideoStore', () => {
       }
 
       expect(store.allVideos[0]).toEqual(
-        expect.objectContaining({ votes: 3, thumbUrls: ['one', 'two'] }),
+        expect.objectContaining({
+          votes: 3,
+          thumbUrls: Array.from({ length: 9 }, (_, index) => 'frame-' + index),
+        }),
       )
       wrapper.unmount()
     },
@@ -710,7 +731,10 @@ describe('useVideoStore', () => {
     resolveThumbnailJob?.({
       ...original,
       pinned: false,
-      thumbUrls: ['thumb-1', 'thumb-2'],
+      thumbUrls: Array.from(
+        { length: 9 },
+        (_, index) => 'thumb-' + (index + 1),
+      ),
     })
 
     await updatePromise
@@ -719,7 +743,10 @@ describe('useVideoStore', () => {
       expect.objectContaining({
         id: 'id-1',
         pinned: true,
-        thumbUrls: ['thumb-1', 'thumb-2'],
+        thumbUrls: Array.from(
+          { length: 9 },
+          (_, index) => 'thumb-' + (index + 1),
+        ),
       }),
     )
   })
@@ -826,7 +853,10 @@ describe('useVideoStore', () => {
       resolveThumbnailJob?.(
         buildParsedVideo({
           id: 'id-1',
-          thumbUrls: ['thumb-1', 'thumb-2'],
+          thumbUrls: Array.from(
+            { length: 9 },
+            (_, index) => 'thumb-' + (index + 1),
+          ),
         }),
       )
       await vi.advanceTimersByTimeAsync(0)

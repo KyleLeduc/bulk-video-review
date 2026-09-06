@@ -4,6 +4,17 @@
       <div>
         <p class="eyebrow">{{ toastEyebrow }}</p>
         <h2>{{ progressHeadline }}</h2>
+        <p
+          v-if="
+            isPreviewProcessingPaused &&
+            thumbnailGenerationProgress.pendingCount > 0
+          "
+          role="status"
+          data-test="previews-paused"
+        >
+          Previews paused — return to this tab and window to resume. Completed
+          previews are kept.
+        </p>
         <p v-if="ingestionElapsedLabel" class="ingestion-toast__timing">
           {{ ingestionElapsedLabel }}
         </p>
@@ -164,6 +175,7 @@ const {
   isIngesting,
   queuedIngestionCount,
   isThumbnailDrainPaused,
+  isPreviewProcessingPaused,
   shouldShowProgressToast,
   thumbnailGenerationProgress,
 } = storeToRefs(videoStore)

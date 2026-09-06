@@ -178,20 +178,18 @@ onBeforeUnmount(() => {
 
 <template>
   <section aria-labelledby="extraction-heading">
-    <h2 id="extraction-heading">Custom files: DOM vs Mediabunny</h2>
+    <h2 id="extraction-heading">Preview extraction lab</h2>
     <p>
-      Preview extraction only — not ingestion, persistence or the earlier 2/1
-      and 2/2 pipeline tests. No fixtures needed.
+      Try motion previews or compare still extraction. Files stay local; library
+      data is unchanged.
     </p>
     <p class="warning">
-      Experimental: use files you trust. Parser and browser memory are not
-      hard-capped; very large or malformed media could freeze or crash the tab.
-      A disposable worker, best-effort read limits and a 120-second job deadline
-      reduce risk, but cannot prevent every allocation. Keep this tab visible;
-      hiding it cancels and invalidates the run.
+      Use trusted files and keep this tab visible. Memory is not hard-capped;
+      large or malformed media can freeze the tab. Hiding the tab cancels the
+      run.
     </p>
     <fieldset :disabled="active">
-      <legend>Comparison settings</legend>
+      <legend>Shared inputs</legend>
       <label
         >Local videos
         <input
@@ -207,77 +205,21 @@ onBeforeUnmount(() => {
         silently retried with DOM.
       </p>
       <label
-        >Run method
-        <select v-model="execution" data-test="extraction-execution">
-          <option value="paired">Paired DOM vs Mediabunny (serial)</option>
-          <option value="dom">DOM only</option>
-          <option value="mediabunny">Mediabunny only</option>
-        </select>
-      </label>
-      <label
-        >Concurrent file jobs
-        <select
-          v-model.number="jobs"
-          data-test="extraction-jobs"
-          :disabled="execution === 'paired'"
-        >
-          <option :value="1">1 job</option>
-          <option :value="2">2 jobs (more memory)</option>
-          <option :value="4">4 jobs (higher resource pressure)</option>
-        </select>
-      </label>
-      <label
-        >Previews per video
-        <select v-model.number="previewCount" data-test="extraction-count">
-          <option :value="9">9 stills (existing baseline)</option>
-          <option :value="100">100 stills (dense scrub test)</option>
-        </select>
-      </label>
-      <p>
-        Nine previews keep the existing whole-second decile targets. One hundred
-        use evenly spaced fractional times; short videos may still yield
-        repeated source frames. Candidate cumulative read limit per file:
-        {{ previewCount === 9 ? '256 MiB' : '1 GiB' }}; JPEG output limit: 16
-        MiB. These are not memory caps. Dense extraction still has a 120-second
-        deadline.
-      </p>
-      <label
-        >Mediabunny reader
-        <select
-          v-model="readerMode"
-          data-test="extraction-reader"
-          :disabled="execution === 'dom'"
-        >
-          <option value="direct">Direct reads (baseline)</option>
-          <option value="buffered-1mib">Buffered reads (1 MiB window)</option>
-        </select>
-      </label>
-      <p>
-        Buffered reads may fetch unused bytes. One extra window of up to 1 MiB
-        per worker; actual fetched bytes still count toward the read limit.
-        Compare the same job count and selection; DOM is unaffected.
-      </p>
-      <p>
-        Concurrent jobs use separate media elements or workers, but share disk
-        and decoder/GPU resources. More jobs and previews increase memory
-        pressure; speedup is not guaranteed. Start small before testing four
-        jobs.
-      </p>
-      <label
-        >Repetitions
-        <input
-          v-model.number="repetitions"
-          data-test="extraction-repetitions"
-          type="number"
-          min="1"
-          max="5"
-          step="1"
-      /></label>
-      <label
         ><input v-model="acknowledged" data-test="memory-ack" type="checkbox" />
         I understand the experimental memory limits.</label
       >
     </fieldset>
+    <details>
+      <summary>Privacy and measurement notes</summary>
+      <p>
+        JSON includes selection ID, file ordinals, exact sizes, build/browser
+        identity, settings and counters. No filenames, paths, media, hashes or
+        target timestamps. Exact sizes can still identify files. Browser and OS
+        caches are shared; no app result cache. Samples appear after timing.
+        Read timings overlap extraction; do not add them. Memory and UI-latency
+        metrics are unavailable.
+      </p>
+    </details>
     <ExtractionPlanPanel
       :files="files"
       :selection-id="selectionId"
@@ -286,148 +228,203 @@ onBeforeUnmount(() => {
       :busy="active"
       @active="planActivity"
     />
-    <p>
-      Paired mode runs one file/method at a time and alternates method order
-      each repetition. Standalone modes run only the selected method with one,
-      two or four concurrent files. Both use the same selected target times,
-      JPEG quality 0.72 and maximum width 480 (no upscaling). DOM metadata
-      preparation is recorded separately, outside extraction timing. Jobs
-      include fresh media/worker startup, loading, seeking/decoding and
-      encoding. Browser and OS caches remain shared; no saved app previews are
-      reused. Sample images appear only after the run, so their decoding does
-      not compete with timed jobs.
-    </p>
-    <div class="controls">
-      <button data-test="extraction-start" :disabled="!canStart" @click="start">
-        Start comparison
-      </button>
-      <button
-        data-test="extraction-stop"
-        :disabled="!active || planActive"
-        @click="stop"
-      >
-        Cancel comparison
-      </button>
-      <button
-        data-test="extraction-copy"
-        :disabled="!result || active || copying"
-        @click="copyJson"
-      >
-        Copy JSON
-      </button>
-    </div>
-    <p role="status" data-test="extraction-status">
-      {{ progress }} · {{ rows.length }} jobs recorded
-    </p>
-    <p v-if="copyStatus" role="status">{{ copyStatus }}</p>
-    <p v-if="result?.errors.length" role="alert">
-      Sample display failed; numeric evidence is retained below.
-    </p>
-    <p>
-      Files and sample images stay local. JSON includes selection ID, file
-      ordinals and exact byte sizes, build/browser identity, timings and
-      counters — no names, paths, video bytes, content hashes or target
-      timestamps. Exact sizes can still be identifying; this is minimized
-      metadata, not guaranteed anonymity.
-    </p>
-    <div v-if="result?.batches.length" class="table-scroll">
-      <h3>Standalone batch throughput ({{ result.settings.jobs }} jobs)</h3>
-      <p>
-        Use batch elapsed time for throughput, not the sum of overlapping job
-        times. Failed or interrupted batches are not valid speed comparisons.
-      </p>
-      <table data-test="extraction-batches">
-        <thead>
-          <tr>
-            <th>Repeat</th>
-            <th>Method</th>
-            <th>Batch elapsed</th>
-            <th>Peak jobs</th>
-            <th>Completed / selected</th>
-            <th>Failed / aborted</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="batch in result.batches" :key="batch.repetition">
-            <td>{{ batch.repetition }}</td>
-            <td>{{ batch.backend }}</td>
-            <td>{{ (batch.wallMs / 1000).toFixed(3) }} s</td>
-            <td>{{ batch.peakActiveJobs }}</td>
-            <td>{{ batch.completed }} / {{ result.selection.sizes.length }}</td>
-            <td>{{ batch.failed }} / {{ batch.aborted }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="table-scroll" v-if="rows.length">
-      <table>
-        <thead>
-          <tr>
-            <th>Repeat</th>
-            <th>Video</th>
-            <th>Method</th>
-            <th>Wall time</th>
-            <th>Frames</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in rows" :key="row.order">
-            <td>{{ row.repetition }}</td>
-            <td>{{ row.file }}</td>
-            <td>
-              {{
-                row.backend === 'dom'
-                  ? 'DOM (current)'
-                  : 'Mediabunny (candidate)'
-              }}
-            </td>
-            <td>{{ (row.wallMs / 1000).toFixed(3) }} s</td>
-            <td>{{ row.frames }}/{{ runPreviewCount }}</td>
-            <td>{{ row.status }} {{ row.reason ?? '' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <section v-if="samples.length">
-      <h3>Local visual check: {{ samplePair }}</h3>
-      <p>
-        Only the latest file's output is retained (a pair in paired mode). A
-        passed row confirms output count and shape, not identical pixels or
-        frame choice. Compare the images; decoder seeking can choose adjacent
-        frames.
-      </p>
-      <div v-for="sample in samples" :key="sample.backend">
-        <h4>{{ sample.backend }}</h4>
-        <div class="samples">
-          <img
-            v-for="(url, index) in sample.urls"
-            :key="index"
-            :src="url"
-            :alt="`${sample.backend} preview ${index + 1}`"
-          />
-        </div>
+    <details data-test="manual-extraction">
+      <summary>Manual still comparison</summary>
+      <fieldset :disabled="active">
+        <legend>Manual settings</legend>
+        <label
+          >Run method
+          <select v-model="execution" data-test="extraction-execution">
+            <option value="paired">Paired DOM vs Mediabunny (serial)</option>
+            <option value="dom">DOM only</option>
+            <option value="mediabunny">Mediabunny only</option>
+          </select>
+        </label>
+        <label
+          >Concurrent file jobs
+          <select
+            v-model.number="jobs"
+            data-test="extraction-jobs"
+            :disabled="execution === 'paired'"
+          >
+            <option :value="1">1 job</option>
+            <option :value="2">2 jobs (more memory)</option>
+            <option :value="4">4 jobs (higher resource pressure)</option>
+          </select>
+        </label>
+        <label
+          >Previews per video
+          <select v-model.number="previewCount" data-test="extraction-count">
+            <option :value="9">9 stills (existing baseline)</option>
+            <option :value="100">100 stills (dense scrub test)</option>
+          </select>
+        </label>
+        <label
+          >Mediabunny reader
+          <select
+            v-model="readerMode"
+            data-test="extraction-reader"
+            :disabled="execution === 'dom'"
+          >
+            <option value="direct">Direct reads (baseline)</option>
+            <option value="buffered-1mib">Buffered reads (1 MiB window)</option>
+          </select>
+        </label>
+        <label
+          >Repetitions
+          <input
+            v-model.number="repetitions"
+            data-test="extraction-repetitions"
+            type="number"
+            min="1"
+            max="5"
+            step="1"
+        /></label>
+      </fieldset>
+      <details>
+        <summary>Still settings and limits</summary>
+        <p>
+          Paired mode is serial and alternates backend order. Standalone mode
+          uses the chosen job count; disk and decoder/GPU resources remain
+          shared. More jobs increase memory use, not necessarily speed.
+        </p>
+        <p>
+          9 stills use whole-second deciles; 100 use fractional even spacing.
+          JPEG quality 0.72, maximum width 480 without upscaling. DOM metadata
+          preparation is outside timing. Candidate read limit:
+          {{ previewCount === 9 ? '256 MiB' : '1 GiB' }} per file; 16 MiB
+          output; 120-second deadline. Buffered mode adds a 1 MiB window and may
+          read unused bytes. These limits are not memory caps.
+        </p>
+      </details>
+      <div class="controls">
+        <button
+          data-test="extraction-start"
+          :disabled="!canStart"
+          @click="start"
+        >
+          Start comparison
+        </button>
+        <button
+          data-test="extraction-stop"
+          :disabled="!active || planActive"
+          @click="stop"
+        >
+          Cancel comparison
+        </button>
+        <button
+          data-test="extraction-copy"
+          :disabled="!result || active || copying"
+          @click="copyJson"
+        >
+          Copy JSON
+        </button>
       </div>
-    </section>
-    <label v-if="result"
-      >Copyable JSON evidence<textarea
-        ref="jsonText"
-        data-test="extraction-json"
-        readonly
-        rows="12"
-        :value="exported"
-      />
-    </label>
+      <p role="status" data-test="extraction-status">
+        {{ progress }} · {{ rows.length }} jobs recorded
+      </p>
+      <p v-if="copyStatus" role="status">{{ copyStatus }}</p>
+      <p v-if="result?.errors.length" role="alert">
+        Sample display failed; numeric evidence is retained below.
+      </p>
+      <div v-if="result?.batches.length" class="table-scroll">
+        <h3>Standalone batch throughput ({{ result.settings.jobs }} jobs)</h3>
+        <p>
+          Use batch elapsed time for throughput, not the sum of overlapping job
+          times. Failed or interrupted batches are not valid speed comparisons.
+        </p>
+        <table data-test="extraction-batches">
+          <thead>
+            <tr>
+              <th>Repeat</th>
+              <th>Method</th>
+              <th>Batch elapsed</th>
+              <th>Peak jobs</th>
+              <th>Completed / selected</th>
+              <th>Failed / aborted</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="batch in result.batches" :key="batch.repetition">
+              <td>{{ batch.repetition }}</td>
+              <td>{{ batch.backend }}</td>
+              <td>{{ (batch.wallMs / 1000).toFixed(3) }} s</td>
+              <td>{{ batch.peakActiveJobs }}</td>
+              <td>
+                {{ batch.completed }} / {{ result.selection.sizes.length }}
+              </td>
+              <td>{{ batch.failed }} / {{ batch.aborted }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-scroll" v-if="rows.length">
+        <table>
+          <thead>
+            <tr>
+              <th>Repeat</th>
+              <th>Video</th>
+              <th>Method</th>
+              <th>Wall time</th>
+              <th>Frames</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in rows" :key="row.order">
+              <td>{{ row.repetition }}</td>
+              <td>{{ row.file }}</td>
+              <td>
+                {{
+                  row.backend === 'dom'
+                    ? 'DOM (current)'
+                    : 'Mediabunny (candidate)'
+                }}
+              </td>
+              <td>{{ (row.wallMs / 1000).toFixed(3) }} s</td>
+              <td>{{ row.frames }}/{{ runPreviewCount }}</td>
+              <td>{{ row.status }} {{ row.reason ?? '' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <section v-if="samples.length">
+        <h3>Local visual check: {{ samplePair }}</h3>
+        <p>
+          Only the latest file's output is retained (a pair in paired mode). A
+          passed row confirms output count and shape, not identical pixels or
+          frame choice. Compare the images; decoder seeking can choose adjacent
+          frames.
+        </p>
+        <div v-for="sample in samples" :key="sample.backend">
+          <h4>{{ sample.backend }}</h4>
+          <div class="samples">
+            <img
+              v-for="(url, index) in sample.urls"
+              :key="index"
+              :src="url"
+              :alt="`${sample.backend} preview ${index + 1}`"
+            />
+          </div>
+        </div>
+      </section>
+      <label v-if="result"
+        >Copyable JSON evidence<textarea
+          ref="jsonText"
+          data-test="extraction-json"
+          readonly
+          rows="12"
+          :value="exported"
+        />
+      </label>
+    </details>
     <p>
       <a
         href="/third-party/mediabunny/index.html"
         target="_blank"
         rel="noopener"
         >Mediabunny 1.55.7 license, notices and corresponding source</a
-      >. JSON includes setup, extraction, encoding, cleanup and worker-overhead
-      timings; read timings are nested inside worker work and must not be added
-      to it. Memory and interaction-latency metrics are unavailable. No
-      normal-app backend or concurrency setting is changed.
+      >. No normal-app backend or concurrency setting is changed.
     </p>
   </section>
 </template>
@@ -439,6 +436,11 @@ fieldset,
   border: 1px solid #ccd5df;
   border-radius: 8px;
   margin: 1rem 0;
+}
+summary {
+  cursor: pointer;
+  padding: 0.6rem 0;
+  font-weight: 600;
 }
 .warning {
   background: #fff7e6;

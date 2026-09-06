@@ -15,20 +15,12 @@ import {
 } from '@test-utils/index'
 import { UpdateVideoThumbnailsUseCase } from './UpdateVideoThumbnailsUseCase'
 
-const previewFrames = [
-  {
-    timestampSeconds: 10,
-    blob: new Blob(['frame-1'], { type: 'image/jpeg' }),
-    width: 480,
-    height: 270,
-  },
-  {
-    timestampSeconds: 20,
-    blob: new Blob(['frame-2'], { type: 'image/jpeg' }),
-    width: 480,
-    height: 270,
-  },
-]
+const previewFrames = Array.from({ length: 9 }, (_, index) => ({
+  timestampSeconds: (index + 1) * 10,
+  blob: new Blob([`frame-${index}`], { type: 'image/jpeg' }),
+  width: 480,
+  height: 270,
+}))
 
 const buildPreviewRepository = (): IVideoPreviewRepository => ({
   getFrames: vi.fn(async () => []),
@@ -358,44 +350,79 @@ describe('UpdateVideoThumbnailsUseCase', () => {
     expect(eventPublisher.publish).not.toHaveBeenCalled()
   })
 
-  test('keeps the last known thumbnails when generation returns too few frames', async () => {
-    const thumbnailGenerator: IVideoThumbnailGenerator = {
-      generateThumbnails: vi.fn(async () => [previewFrames[0]]),
-    }
-    const aggregateRepository: IVideoAggregateRepository = {
-      getVideo: vi.fn(async () => buildVideoAggregate({ id: 'id-1' })),
-      getAllVideos: vi.fn(async () => []),
-      postVideo: vi.fn(async (video) => ({ ...video, votes: 0 })),
-      updateVideo: vi.fn(async (video) => buildVideoAggregate(video)),
-      updateVotes: vi.fn(async () => null),
-      wipeData: vi.fn(async () => {}),
-    }
-    const previewRepository = buildPreviewRepository()
-    const sessionRegistry = buildSessionRegistry({
-      acquireObjectUrl: vi.fn(() => 'blob:session-video'),
-    })
-    const eventPublisher: IEventPublisher = {
-      publish: vi.fn(async () => {}),
-      publishBatch: vi.fn(async () => {}),
-    }
-    const useCase = new UpdateVideoThumbnailsUseCase(
-      thumbnailGenerator,
-      aggregateRepository,
-      sessionRegistry,
-      eventPublisher,
-      previewRepository,
-    )
-    const original = buildParsedVideo({
-      id: 'id-1',
-      thumbUrls: ['legacy-1', 'legacy-2'],
-    })
+  test.each([1, 2, 8])(
+    'keeps the last known thumbnails when generation returns only %i frames',
+    async (count) => {
+      const thumbnailGenerator: IVideoThumbnailGenerator = {
+        generateThumbnails: vi.fn(async () => previewFrames.slice(0, count)),
+      }
+      const aggregateRepository: IVideoAggregateRepository = {
+        getVideo: vi.fn(async () => buildVideoAggregate({ id: 'id-1' })),
+        getAllVideos: vi.fn(async () => []),
+        postVideo: vi.fn(async (video) => ({ ...video, votes: 0 })),
+        updateVideo: vi.fn(async (video) => buildVideoAggregate(video)),
+        updateVotes: vi.fn(async () => null),
+        wipeData: vi.fn(async () => {}),
+      }
+      const previewRepository = buildPreviewRepository()
+      const sessionRegistry = buildSessionRegistry({
+        acquireObjectUrl: vi.fn(() => 'blob:session-video'),
+      })
+      const eventPublisher: IEventPublisher = {
+        publish: vi.fn(async () => {}),
+        publishBatch: vi.fn(async () => {}),
+      }
+      const useCase = new UpdateVideoThumbnailsUseCase(
+        thumbnailGenerator,
+        aggregateRepository,
+        sessionRegistry,
+        eventPublisher,
+        previewRepository,
+      )
+      const original = buildParsedVideo({
+        id: 'id-1',
+        thumbUrls: ['legacy-1', 'legacy-2'],
+      })
 
-    const updated = await useCase.execute(original)
+      const updated = await useCase.execute(original)
 
-    expect(updated).toEqual(original)
-    expect(previewRepository.replaceFrames).not.toHaveBeenCalled()
-    expect(aggregateRepository.getVideo).not.toHaveBeenCalled()
-    expect(aggregateRepository.updateVideo).not.toHaveBeenCalled()
-    expect(eventPublisher.publish).not.toHaveBeenCalled()
-  })
+      expect(updated).toEqual(original)
+      expect(previewRepository.replaceFrames).not.toHaveBeenCalled()
+      expect(aggregateRepository.getVideo).not.toHaveBeenCalled()
+      expect(aggregateRepository.updateVideo).not.toHaveBeenCalled()
+      expect(eventPublisher.publish).not.toHaveBeenCalled()
+    },
+  )
+
+  test.each([2, 8])(
+    'backfills an existing %i-frame set with the complete set',
+    async (count) => {
+      const previews = buildPreviewRepository()
+      const generator = { generateThumbnails: vi.fn(async () => previewFrames) }
+      const repository: IVideoAggregateRepository = {
+        getVideo: vi.fn(async () => buildVideoAggregate()),
+        getAllVideos: vi.fn(async () => []),
+        postVideo: vi.fn(async (video) => ({ ...video, votes: 0 })),
+        updateVideo: vi.fn(async (video) => buildVideoAggregate(video)),
+        updateVotes: vi.fn(async () => null),
+        wipeData: vi.fn(async () => {}),
+      }
+      const useCase = new UpdateVideoThumbnailsUseCase(
+        generator,
+        repository,
+        buildSessionRegistry(),
+        { publish: vi.fn(), publishBatch: vi.fn() },
+        previews,
+      )
+      const result = await useCase.execute(
+        buildParsedVideo({
+          url: 'blob:video',
+          previewFrames: previewFrames.slice(0, count),
+          thumbUrls: Array(9).fill('legacy'),
+        }),
+      )
+      expect(result.previewFrames).toHaveLength(9)
+      expect(previews.replaceFrames).toHaveBeenCalledWith('id-1', previewFrames)
+    },
+  )
 })
