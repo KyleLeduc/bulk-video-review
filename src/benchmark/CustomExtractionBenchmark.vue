@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
 import type { BenchmarkReaderMode } from '../infrastructure/video/benchmark/benchmarkFileReader'
 import type { PreviewCount } from '../infrastructure/video/benchmark/previewExtraction'
+import ExtractionPlanPanel from './ExtractionPlanPanel.vue'
 import {
   runExtractionBenchmark,
   type ExtractionReport,
@@ -26,6 +27,7 @@ watch(execution, (value) => {
 })
 const acknowledged = ref(false)
 const active = ref(false)
+const planActive = ref(false)
 const progress = ref('Choose local files to begin')
 const rows = shallowRef<ExtractionRow[]>([])
 const result = shallowRef<ExtractionReport>()
@@ -65,6 +67,17 @@ function select(event: Event) {
 }
 function stop() {
   controller?.abort()
+}
+function planActivity(value: boolean) {
+  planActive.value = value
+  active.value = value
+  emit('active', value)
+  if (value) {
+    releaseSamples()
+    rows.value = []
+    result.value = undefined
+    progress.value = 'Automatic plan active above'
+  }
 }
 const beforeUnload = (event: BeforeUnloadEvent) => {
   event.preventDefault()
@@ -265,6 +278,14 @@ onBeforeUnmount(() => {
         I understand the experimental memory limits.</label
       >
     </fieldset>
+    <ExtractionPlanPanel
+      :files="files"
+      :selection-id="selectionId"
+      :build="build"
+      :disabled="!capable || !files.length || !acknowledged"
+      :busy="active"
+      @active="planActivity"
+    />
     <p>
       Paired mode runs one file/method at a time and alternates method order
       each repetition. Standalone modes run only the selected method with one,
@@ -280,7 +301,11 @@ onBeforeUnmount(() => {
       <button data-test="extraction-start" :disabled="!canStart" @click="start">
         Start comparison
       </button>
-      <button data-test="extraction-stop" :disabled="!active" @click="stop">
+      <button
+        data-test="extraction-stop"
+        :disabled="!active || planActive"
+        @click="stop"
+      >
         Cancel comparison
       </button>
       <button

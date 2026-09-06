@@ -10,7 +10,11 @@ export default defineConfig({
     excludeSpecPattern:
       process.env.BVR_BENCHMARK_SMOKE === 'true'
         ? []
-        : ['**/videoBenchmark.cy.ts', '**/customExtraction.cy.ts'],
+        : [
+            '**/videoBenchmark.cy.ts',
+            '**/customExtraction.cy.ts',
+            '**/extractionPlan.cy.ts',
+          ],
     baseUrl: 'http://localhost:4173',
   },
 })

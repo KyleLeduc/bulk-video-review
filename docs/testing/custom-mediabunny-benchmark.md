@@ -38,11 +38,11 @@ For standalone runs, compare **`batches[].wallMs`**, with completion/failure cou
 On build `77f845f`, the owner's retained 20-file selection completed all 160 jobs / 720 frames per backend without failures or hidden-tab invalidation:
 
 | Repetition | First backend | DOM total | Mediabunny total |
-|---|---|---:|---:|
-| 1 | DOM | 19.3142 s | 20.1836 s |
-| 2 | Mediabunny | 10.3484 s | 39.7693 s |
-| 3 | DOM | 19.5297 s | 19.9850 s |
-| 4 | Mediabunny | 10.3616 s | 39.5246 s |
+| ---------- | ------------- | --------: | ---------------: |
+| 1          | DOM           | 19.3142 s |        20.1836 s |
+| 2          | Mediabunny    | 10.3484 s |        39.7693 s |
+| 3          | DOM           | 19.5297 s |        19.9850 s |
+| 4          | Mediabunny    | 10.3616 s |        39.5246 s |
 
 Both backends were roughly twice as fast in second position. Per-file candidate read counts/bytes stayed constant. This establishes a repeatable order correlation, **not** its cause; all successful candidate files passed the same MP4/AVC gate. Schema-1 aggregate times do not identify whether file reads, decoding, startup or display overlap caused the swings. No native reproduction or fix of that timing pattern is claimed.
 
@@ -52,12 +52,12 @@ The subsequent standalone 1-job and 2-job native checks are recorded below. No m
 
 Owner results on `ab93dbe`, same 20-file selection, schema 2, with all completed batches producing 180 frames:
 
-| Backend / jobs | Repetition 1 | Repetition 2 |
-|---|---:|---:|
-| DOM / 1 | 20.7579 s | 19.7160 s |
-| DOM / 2 | 11.3804 s | 8.1558 s |
-| Mediabunny / 1 (clean rerun) | 39.6566 s | 40.3020 s |
-| Mediabunny / 2 | 20.4248 s | 20.8282 s |
+| Backend / jobs               | Repetition 1 | Repetition 2 |
+| ---------------------------- | -----------: | -----------: |
+| DOM / 1                      |    20.7579 s |    19.7160 s |
+| DOM / 2                      |    11.3804 s |     8.1558 s |
+| Mediabunny / 1 (clean rerun) |    39.6566 s |    40.3020 s |
+| Mediabunny / 2               |    20.4248 s |    20.8282 s |
 
 An earlier single-job candidate run was interrupted when hidden during repetition 2; exclude its partial batch. Clean single-job candidate mean is 39.9793s, two-job mean 20.6265s (1.94x observed throughput). Sequential read timing totals are 37.6282s and 38.2506s, about 95% of batch wall time, across 18,957 slices / 448,283,124 requested bytes per repetition. This motivates a read-path experiment, not a proven physical disk or codec diagnosis. DOM remains faster in this implementation; run order/cache state is uncontrolled.
 
@@ -67,19 +67,69 @@ All actual read-ahead counts toward the count-specific per-job read budget (256 
 
 The owner completed both reader orders on build `594ab59` and confirmed previews looked good:
 
-| Mode / position | Batch times (seconds) |
-|---|---|
-| Direct first, 1 job | 40.5386 / 40.3169 |
-| Buffered second, 1 job | 29.7849 / 28.0795 |
-| Buffered first, 1 job | 27.6338 / 28.0079 |
-| Direct second, 1 job | 40.7993 / 40.0721 |
-| Buffered, 2 jobs | 16.7387 / 17.0177 |
+| Mode / position        | Batch times (seconds) |
+| ---------------------- | --------------------- |
+| Direct first, 1 job    | 40.5386 / 40.3169     |
+| Buffered second, 1 job | 29.7849 / 28.0795     |
+| Buffered first, 1 job  | 27.6338 / 28.0079     |
+| Direct second, 1 job   | 40.7993 / 40.0721     |
+| Buffered, 2 jobs       | 16.7387 / 17.0177     |
 
 All batches completed. Combined one-job means: direct 40.431725s, buffered 28.376525s (29.8% less elapsed). Actual reads per repetition fell from 18,957 to 886, while bytes increased from 448,283,124 to 941,658,548. Buffered two-job mean 16.8782s gives 1.65x throughput over the preceding buffered one-job mean 27.82085s. Buffering helped 16/20 files; files 9, 10, 12 and 18 regressed in both run orders. Identical output byte counts are not pixel-equivalence proof. Earlier DOM two-job mean 9.7681s was on a different build/cache history; Mediabunny has not established a throughput win.
 
-**Next owner test:** on the same schema-4 build/retained selection, compare DOM versus buffered Mediabunny at nine previews and four jobs first (two repetitions each). Then test 100 previews with one, two and four jobs for both backends, starting on a small selection. Reverse backend order for promising results. Keep all failures, compare complete batch elapsed time, and note whether the page stays responsive. Stop increasing concurrency if failures or responsiveness worsen. Nine-preview 1/2-job reruns are useful only for a same-build control, not as a repeated reader experiment. Eight jobs and automatic routing are not enabled.
+**Historical next step (now measured):** compare DOM versus buffered Mediabunny at nine/100 previews and two/four jobs. The owner's completed schema-4 matrix and NAS caveat are recorded below. The current next owner test is the three-second clip smoke, not another manual matrix. Keep all failures and note page responsiveness. Eight jobs and automatic routing remain disabled.
 
-Dense stills, metadata+poster ingestion and ten five-second motion clips are separate workloads; the latter two are planned follow-ups, not implemented here. Larger lists alone do not establish a crossover, and a single size threshold is not justified. See the [staged plan](../plans/2026-09-05-preview-density-and-ingestion-adapters.md).
+Dense stills, metadata+poster ingestion and motion clips are separate workloads. The experimental three-second clip checkpoint is described below; production ingestion and saved-gallery integration remain follow-ups. Larger lists alone do not establish a crossover, and a single size threshold is not justified. See the [staged plan](../plans/2026-09-05-preview-density-and-ingestion-adapters.md) and [three-second checkpoint plan](../plans/2026-09-06-benchmark-plan-runner-and-clips.md).
+
+## Automatic plans and three-second motion checkpoint
+
+Select files once, acknowledge the experimental limits, select **Automatic test plan → Preset**, then **Run test plan**. Manual comparison settings do not alter presets.
+
+- **Three-second clips: smoke v1** (`clips-3s-v1`, default): one file job, sequential clips, one pass. Start with 2–3 trusted MP4/H.264 files including a short video and a representative long NAS video. Up to ten clips, 3 seconds each, at 10 fps, 250 kbit/s target bitrate and at most 320 pixels on the longest side. No audio. Prefer encodable AVC/MP4, otherwise VP8/WebM; unsupported input/encoder combinations fail visibly without DOM fallback.
+- **Short confirmation v1** (`confirmation-v1`): nine stills, four file jobs; Mediabunny then DOM, then DOM then Mediabunny. Four configurations total.
+- **Full still matrix v1** (`still-matrix-v1`): nine/100 stills × two/four file jobs × both backends. Eight configurations followed by the reverse sequence: 16 total. Each step has one repetition; `step.pass` identifies the two passes. Mediabunny always uses buffered 1 MiB reads. Expect tens of minutes for the owner's NAS selection; a shorter confirmation is usually the better next check.
+
+All steps share the same browser-wide lock as manual and pipeline benchmarks, and run sequentially. Stop or hiding the tab ends the suite; completed and interrupted evidence is retained. Hidden runs must be excluded from speed comparisons. The table updates per configuration; progress names the active configuration/file and elapsed time. **Copy all JSON** and **Download results** export one envelope (`mode: extraction-plan-v1`, schema 1) with ordered settings and reports. A failed row is never removed to make a speed comparison look successful.
+
+Still reports remain schema 4. Clip reports use `mode: clip-extraction-custom-v1`, schema 1, and report clip counts instead of pretending clips are still frames. Clip timing includes metadata setup; still batch timing excludes its DOM metadata preparation, so they are not directly comparable. `conversionMs` combines decoding, resizing, encoding and muxing. Read timing is nested, not additive. `firstClipMs` is the first encoded clip inside the worker, **not first visible playback**. Browser/UI latency and memory metrics are not available.
+
+Window policy: `count = min(10, max(1, floor(videoSpan / 3)))`; starts are spaced by `videoSpan / count`, relative to the usable video track start. A video under three seconds gets one shortened clip. Thus short videos avoid duplicate clamped or overlapping windows. This is an overview experiment, not a duration-scaled dense scrub policy for very long videos.
+
+Clips retain the existing qualified MP4/H.264 input boundary. One input is reused across a file's windows. Each disposable worker has a 120-second deadline, 1 GiB cumulative read budget, bounded 2 MiB output buffer per clip and 16 MiB total encoded output limit. The reader/cache limits remain best-effort; parser, codec, GPU and library allocations are **not** hard-capped. Failed/aborted files do not publish partial clip sets. Only the latest successful file's clips are retained, after timing; playback is user-started, muted and looping, and starting a clip pauses the others. Source tags are explicitly omitted from generated clips.
+
+At the next owner smoke checkpoint, inspect correct orientation, aspect ratio, motion, loop duration/boundary, and page responsiveness. Try Play on two clips to confirm the earlier one pauses, then Stop a fresh run. Download one report. No production thumbnail component, ingestion adapter or persistence schema changes are included, and FFmpeg WASM is deferred.
+
+## NAS interpretation of the owner's schema-4 matrix
+
+The owner clarified that the selected files reside on a wired NAS share, not the PC's local disk. Mean complete batch seconds across two passes:
+
+| Previews | File jobs |     DOM | Buffered Mediabunny |
+| -------- | --------: | ------: | ------------------: |
+| 9        |         2 |  10.592 |              17.409 |
+| 9        |         4 |   9.380 |              11.570 |
+| 100      |         2 | 138.082 |             208.794 |
+| 100      |         4 | 128.744 |             160.230 |
+
+All 320 file jobs passed on build `12e10f6`, same selection, foreground. DOM wins this actual workload. The experiment does **not** isolate decoding speed or prove a browser main-thread bottleneck. Candidate jobs already use separate workers; file I/O, OS caching, NAS/network contention, CPU and hardware decoder limits may all contribute. Application read bytes are cumulative File slice bytes, not unique bytes fetched from the NAS; read wall time includes awaiting reads and buffer creation, not just network latency. Do not label those counters as wire throughput. Two reversed passes reduce ordering bias but do not create cold caches. A small, owner-copied local-SSD subset would help isolate the NAS contribution in a future controlled test.
+
+## Additional information Mediabunny can derive
+
+Verified against the installed **1.55.7** declarations in `node_modules/mediabunny/dist/mediabunny.d.ts`; field availability still depends on container, codec and embedded metadata. The current benchmark does not collect/export this inventory. The [reading guide](https://mediabunny.dev/guide/reading-media-files) explains the API; methods named `compute` may require more work than `get` methods.
+
+| Category                    | Available information                                                                                                                                                      | Cost / caveat                                                                                                                             |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Container and timing        | Recognized format, MIME including codecs, track inventory, metadata duration, computed duration, first timestamp and time resolution                                       | Often metadata reads; exact duration can require scanning. DOM already provides basic duration and displayed dimensions.                  |
+| Video track                 | Codec and full parameter string, coded vs displayed resolution, rotation, pixel aspect ratio, square-pixel dimensions, transparency capability                             | Useful for correct portrait/anamorphic display and codec filters. Not a visual quality score.                                             |
+| Color                       | Color primaries, transfer function, matrix/range, HDR indication, decoder configuration                                                                                    | Only as reliable as file signaling. Does not guarantee the browser/display renders HDR correctly.                                         |
+| Audio track                 | Codec, channels, sample rate, decoder configuration; number of audio tracks                                                                                                | Enables audio-presence/channel/codec filters. Channel count alone does not reliably describe speaker layout.                              |
+| Track labels and purpose    | Track ID/number, language, name and dispositions such as default or commentary; metadata bitrate fields where present                                                      | These may be absent, unknown or incorrectly tagged.                                                                                       |
+| Embedded descriptive tags   | Title, description, artist, album, album artist, genre, date, track/disc numbers, comment, lyrics/transcript if already embedded, images/artwork, raw format-specific tags | Reading existing tags does not generate a transcript. May include sensitive information; keep opt-in and out of benchmark exports.        |
+| Packet/frame statistics     | Packet count, average packet rate/bitrate, timestamp-derived frame-rate estimate/constancy; keyframe positions and spacing from packet inspection                          | Can need partial or full packet/index scans. Approximate/sample-based results must be labeled; GOP analysis requires our own aggregation. |
+| Derived visual/audio assets | Stills, contact sheets, short loops, audio samples and waveform data                                                                                                       | Requires decoding; waveform summaries, scene-cut scoring, black-frame checks and loudness analysis need additional application logic.     |
+
+Camera model/GPS/location may occur in raw vendor-specific tags, but are not a universal normalized guarantee. Object/person recognition, semantic search, captions generated from speech and scene descriptions need separate algorithms/models. File size and filesystem modification time are available from `File` without Mediabunny and are not proof of original recording date. `canDecode`/encoder checks describe the current browser's capabilities, not immutable file metadata.
+
+For this app, a useful first metadata tier would be codec, orientation/aspect ratio, audio presence/channels, HDR signaling and available language labels. Rich visual previews are a separate background tier. The [conversion guide](https://mediabunny.dev/guide/converting-media-files) covers trimming/resizing/encoding; no claim that these operations outperform DOM is made by this checkpoint.
 
 ## Limits and privacy
 
@@ -89,7 +139,7 @@ Mediabunny's parser can allocate before the custom read callback and expand comp
 
 Best-effort limits: 120s per preparation/extraction job, 8 MiB source cache, no library prefetch, 16 MiB per requested range/actual slice, cumulative actual slice bytes of 256 MiB for nine previews or 1 GiB for 100, 16 MiB JPEG output per job, decoded/display dimensions at most 8192 per axis and 33,554,432 pixels. Optional buffered mode adds one 1 MiB reader-owned window. These may reject otherwise playable large/long-GOP inputs; retain `read-limit` rows. They do not cap parser indexes, internal pending buffers, decoder queues or GPU memory before allocation. The worker reads bounded `File.slice()` ranges, not a direct `File.arrayBuffer()`; a range can still cover an entire small file. No library fork is included.
 
-Files and sample images stay in the browser. Copied JSON contains a random selection ID, 1-based file ordinals, exact file sizes, build/browser identity, settings, preparation/row wall times, output/read counts and allowlisted reason codes. It contains no names, paths, raw exceptions, video/image bytes, content hashes, durations, codec metadata or per-frame target/PTS arrays. **Exact sizes and browser metadata are not guaranteed anonymous.** Selection identity is retained only while the selection remains in this page; it is not content verification.
+Files and sample media stay in the browser. Standalone still JSON contains a random selection ID, 1-based file ordinals, exact file sizes, build/browser identity, settings, preparation/row wall times, output/read counts and allowlisted reason codes. It contains no names, paths, raw exceptions, video/image bytes, content hashes, source durations, codec metadata or per-frame target/PTS arrays. Clip reports additionally identify the output codec, clip count and configured clip duration; they do not export source metadata or media. **Exact sizes and browser metadata are not guaranteed anonymous.** Selection identity is retained only while the selection remains in this page; it is not content verification.
 
 The browser-wide `bvr-video-benchmark-v1` Web Lock excludes other benchmark modes/tabs, not ordinary review tabs. No catalog database is opened or deleted by this extraction mode.
 
@@ -106,6 +156,12 @@ Build, start `scripts/productionServer.mjs` with `BVR_BENCHMARK_ENABLED=true`, t
 ```sh
 BVR_BENCHMARK_SMOKE=true npx cypress run --browser chrome --spec cypress/e2e/customExtraction.cy.ts
 BVR_BENCHMARK_SMOKE=true npx cypress run --browser edge --spec cypress/e2e/customExtraction.cy.ts
+BVR_BENCHMARK_SMOKE=true npx cypress run --browser chrome --spec cypress/e2e/extractionPlan.cy.ts
+BVR_BENCHMARK_SMOKE=true npx cypress run --browser edge --spec cypress/e2e/extractionPlan.cy.ts
 ```
 
 The smoke uses the repository's two synthetic MP4s on the devbox only. It checks actual DOM and worker extraction, alternating order, 8 paired jobs / 9 frames each, successful stage metrics, decoded sample-image dimensions, private-field absence, clipboard-denial fallback and served source/license assets. It then runs DOM-only and both Mediabunny readers with two overlapping nine-preview jobs, followed by four overlapping 100-preview jobs (duplicate synthetic files), checks schema 4 settings/budgets and per-batch peak/completion counts, cancels another run and returns to pipeline controls. Unit tests cover deadlines, malformed replies, no fallback, hidden-tab invalidation, cancellation/queue settlement, display failures, launch ordering, dense policies and cleanup. Native owner hardware/performance and dense visual acceptance remain separate.
+
+The plan smoke additionally checks the four-step confirmation order, one/ten clips for the short/long fixtures, encoded duration and dimensions, actual playback and loop wraparound, single-envelope copy/download, cancellation and normal-mode return. These fixtures are solid colors, so this does not qualify motion fidelity or rotated real-world files.
+
+Local checkpoint on 2026-09-06: 508/508 unit tests, lint, app/Cypress type checks, production build and three smoke specs each in Chrome 152 and Edge 152 passed. Read-only review found no remaining issues. Both browsers exercised AVC/MP4; VP8/WebM fallback has deterministic unit coverage only. Tested local artifact: revision `12e10f60b8c90a47f3156a2dd076cdd15aec9db0`, `dirty: true`, assets SHA-256 `66381d0277bc212c3880c8acb122a8ff0d1a5792edb8478610db364e0337bb9d`. This checkpoint is not published; owner NAS visual acceptance and production integration remain pending.
