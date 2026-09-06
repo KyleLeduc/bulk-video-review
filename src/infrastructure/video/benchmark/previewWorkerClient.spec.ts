@@ -35,7 +35,11 @@ describe('disposable extraction worker', () => {
       prepared,
       new AbortController().signal,
     )
-    expect(worker.postMessage).toHaveBeenCalledWith({ file, prepared })
+    expect(worker.postMessage).toHaveBeenCalledWith({
+      file,
+      prepared,
+      readerMode: 'direct',
+    })
     const output = {
       metrics: { ...emptyMetrics(), readMs: 0, readMaxMs: 0 },
       frames: Array(9).fill(new Blob(['jpeg'], { type: 'image/jpeg' })),
@@ -62,6 +66,23 @@ describe('disposable extraction worker', () => {
       extractWithWorker(file, prepared, controller.signal),
     ).rejects.toMatchObject({ name: 'AbortError' })
     expect(worker.postMessage).toHaveBeenCalledTimes(1)
+  })
+  it('forwards the explicit buffered reader selection', async () => {
+    const worker = setup()
+    const controller = new AbortController()
+    const promise = extractWithWorker(
+      file,
+      prepared,
+      controller.signal,
+      'buffered-1mib',
+    )
+    expect(worker.postMessage).toHaveBeenCalledWith({
+      file,
+      prepared,
+      readerMode: 'buffered-1mib',
+    })
+    controller.abort()
+    await expect(promise).rejects.toMatchObject({ name: 'AbortError' })
   })
   it('terminates at the deadline even without a worker reply', async () => {
     vi.useFakeTimers()

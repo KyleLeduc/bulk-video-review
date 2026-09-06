@@ -1,9 +1,12 @@
 import { CanvasSink, CustomSource, Input, MP4 } from 'mediabunny'
 import {
+  createBenchmarkFileReader,
+  type BenchmarkReaderMode,
+} from './benchmarkFileReader'
+import {
   checkDimensions,
   ExtractionError,
   MAX_OUTPUT_BYTES,
-  MAX_READ_BYTES,
   safeFailure,
   validateExtraction,
   emptyMetrics,
@@ -13,7 +16,11 @@ import {
 
 // Disposable, single-job worker. No production DI, persistence or fallback.
 self.onmessage = async (
-  event: MessageEvent<{ file: File; prepared: PreparedExtraction }>,
+  event: MessageEvent<{
+    file: File
+    prepared: PreparedExtraction
+    readerMode?: BenchmarkReaderMode
+  }>,
 ) => {
   let input: Input | undefined
   const started = performance.now()
@@ -39,38 +46,18 @@ self.onmessage = async (
     )
       throw new ExtractionError('invalid-metadata')
     checkDimensions(prepared.width, prepared.height)
-    let readBytes = 0
-    let readCalls = 0
+    const reader = createBenchmarkFileReader(
+      file,
+      event.data.readerMode ?? 'direct',
+      metrics,
+    )
     input = new Input({
       formats: [MP4],
       source: new CustomSource({
         getSize: () => file.size,
         maxCacheSize: 8 * 1024 * 1024,
         prefetchProfile: 'none',
-        read: async (start, end) => {
-          // Best-effort I/O guards, NOT pre-allocation or parser-memory limits.
-          const bytes = end - start
-          if (
-            !Number.isSafeInteger(start) ||
-            !Number.isSafeInteger(end) ||
-            start < 0 ||
-            end > file.size ||
-            bytes <= 0 ||
-            bytes > 16 * 1024 * 1024 ||
-            readBytes + bytes > MAX_READ_BYTES
-          )
-            throw new ExtractionError('read-limit')
-          readBytes += bytes
-          readCalls++
-          const readStarted = performance.now()
-          try {
-            return new Uint8Array(await file.slice(start, end).arrayBuffer())
-          } finally {
-            const elapsed = performance.now() - readStarted
-            metrics.readMs! += elapsed
-            metrics.readMaxMs = Math.max(metrics.readMaxMs!, elapsed)
-          }
-        },
+        read: reader.read,
       }),
     })
     const track = await input.getPrimaryVideoTrack()
@@ -122,8 +109,8 @@ self.onmessage = async (
         frames,
         width: prepared.width,
         height: prepared.height,
-        readBytes,
-        readCalls,
+        readBytes: reader.readBytes,
+        readCalls: reader.readCalls,
       },
       prepared,
     )

@@ -73,6 +73,45 @@ describe('serial custom extraction comparison', () => {
     ])
       expect(json).not.toContain(secret)
     expect(result.selection.sizes).toEqual([file.size])
+    expect(result.schemaVersion).toBe(3)
+    expect(result.settings.readerMode).toBe('direct')
+  })
+  it('records and forwards buffered selection, but reports null for DOM-only', async () => {
+    setup()
+    for (const execution of ['mediabunny', 'dom'] as const) {
+      const result = await runExtractionBenchmark({
+        files: [file],
+        selectionId: 'selection',
+        repetitions: 1,
+        execution,
+        readerMode: 'buffered-1mib',
+        build: { revision: null, dirty: null, assetsSha256: null },
+        signal: new AbortController().signal,
+      })
+      expect(result.settings.readerMode).toBe(
+        execution === 'dom' ? null : 'buffered-1mib',
+      )
+    }
+    expect(candidate.extractWithWorker).toHaveBeenCalledWith(
+      file,
+      prepared,
+      expect.any(AbortSignal),
+      'buffered-1mib',
+    )
+  })
+  it('rejects invalid reader selection before preparing files', async () => {
+    setup()
+    await expect(
+      runExtractionBenchmark({
+        files: [file],
+        selectionId: 'selection',
+        repetitions: 1,
+        readerMode: 'unknown' as never,
+        build: { revision: null, dirty: null, assetsSha256: null },
+        signal: new AbortController().signal,
+      }),
+    ).rejects.toThrow()
+    expect(dom.prepareFile).not.toHaveBeenCalled()
   })
   it('runs only the selected backend with two bounded jobs and records actual batch elapsed time', async () => {
     setup()
@@ -115,7 +154,7 @@ describe('serial custom extraction comparison', () => {
     expect(result.rows[4].startedAtMs).toBeGreaterThanOrEqual(
       result.rows[3].finishedAtMs,
     )
-    expect(result.schemaVersion).toBe(2)
+    expect(result.schemaVersion).toBe(3)
   })
   it('defers bounded sample publication until all jobs finish', async () => {
     const order = setup()

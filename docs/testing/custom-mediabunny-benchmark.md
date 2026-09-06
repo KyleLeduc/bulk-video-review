@@ -12,10 +12,10 @@ This experimental `/benchmark/` mode compares the current DOM preview extraction
 
 ## Measurement contract
 
-- Separate report: `mode: preview-extraction-custom-v1`, now **`schemaVersion: 2`**. The existing full-pipeline protocol v2 remains unchanged. Extraction schema 1 did not have stage metrics, batch timing or standalone runs, and displayed samples between jobs; compare versions with that caveat.
+- Separate report: `mode: preview-extraction-custom-v1`, now **`schemaVersion: 3`**. The existing full-pipeline protocol v2 remains unchanged. Extraction schema 1 did not have stage metrics, batch timing or standalone runs, and displayed samples between jobs; compare versions with that caveat. Schema 3 adds `settings.readerMode` (`direct`, `buffered-1mib`, or null for DOM-only) and counts actual File slice calls/bytes, including read-ahead. Schema 2 direct source callbacks each performed one slice, so their counter meaning matches schema 3 direct reads.
 - DOM preparation reads metadata once per file before trials and derives nine integer-second targets `floor(duration / 10 * i)` for `i=1..9`; short clips may repeat targets. Preparation wall time is separately recorded, without exporting duration or targets.
 - Paired mode: one file/method job at a time. Odd repetitions run DOM then Mediabunny per file; even repetitions reverse this. Standalone: one backend per run, bounded to one or two active files; each repetition fully settles before the next. Fixed file order and shared preparation can still influence caches; no OS/browser cache reset is claimed.
-- Every timed job starts a fresh media element or worker. Wall time includes startup, metadata/container work, seek/decode and JPEG encoding. DOM read counters are unavailable (`null`); candidate counters measure source callback requests, not all parser allocations or disk-cache misses.
+- Every timed job starts a fresh media element or worker. Wall time includes startup, metadata/container work, seek/decode and JPEG encoding. DOM read counters are unavailable (`null`); candidate counters measure actual File slice requests (including unused read-ahead), not parser allocations or physical disk-cache misses.
 - Both paths use JPEG quality .72, maximum width 480, no upscaling. Only the latest file's outputs are retained (at most 18 blobs/URLs); sample display is deferred until all measured jobs settle. Display failure is recorded without discarding numeric evidence; partial URLs are revoked.
 - These are **extraction-only** numbers: no identification, application persistence, gallery work or result-cache reuse. They are not directly comparable to the prior ~11s DOM 2/1 and ~9.45s DOM 2/2 full-pipeline plateaus. No Mediabunny throughput win has been established yet.
 
@@ -28,7 +28,7 @@ Every successful row includes an allowlisted `metrics` object; failed/aborted ro
 - `encodeMs`: JPEG encoding elapsed time.
 - `cleanupMs`: DOM disposal/revoke calls, or worker Input disposal. These measure API calls, not proof that native GPU/decoder allocations have physically drained. The worker now disposes before publishing its reply; the client then terminates it.
 - `totalMs`: adapter elapsed time including setup/extraction/encoding/cleanup. The worker iterator may pipeline work, so stage breakdowns are observations of awaited boundaries rather than exclusive CPU accounting.
-- `readMs` / `readMaxMs`: cumulative/max elapsed source callback reads (null for DOM). They are **nested within worker work and may overlap**; do not add readMs to other stages. Byte/call counters are callback requests, not physical disk misses.
+- `readMs` / `readMaxMs`: cumulative/max elapsed File slice/arrayBuffer reads (null for DOM). Buffered cache hits and queue waits are excluded from these read metrics, but included in job wall/stage timing. They are **nested within worker work and may overlap**; do not add readMs to other stages. Byte/call counters are actual slice requests, not physical disk misses.
 - `workerOverheadMs`: nonnegative host elapsed minus worker total (null DOM). Includes startup/module loading, message transport, queueing and host validation; not a pure worker-startup measurement.
 
 For standalone runs, compare **`batches[].wallMs`**, with completion/failure counts and peak active jobs. It measures actual elapsed processing for each repetition, including progress notification/scheduling overhead but excluding shared metadata preparation and final sample display. Do not sum overlapping row times to claim batch throughput. Failed/interrupted batches are not speedup evidence.
@@ -46,7 +46,26 @@ On build `77f845f`, the owner's retained 20-file selection completed all 160 job
 
 Both backends were roughly twice as fast in second position. Per-file candidate read counts/bytes stayed constant. This establishes a repeatable order correlation, **not** its cause; all successful candidate files passed the same MP4/AVC gate. Schema-1 aggregate times do not identify whether file reads, decoding, startup or display overlap caused the swings. No native reproduction or fix of that timing pattern is claimed.
 
-Next native check: on the revised build and same retained selection, run DOM only / 1 job and Mediabunny only / 1 job with two repetitions each; copy both reports. Then repeat each with 2 jobs. Keep the tab visible. For confirmation, reverse the order of standalone runs; browser/OS cache state still is not controlled. No more identical schema-1 repetitions are needed.
+The subsequent standalone 1-job and 2-job native checks are recorded below. No more identical schema-1 repetitions are needed.
+
+### Standalone baseline and buffered-reader experiment
+
+Owner results on `ab93dbe`, same 20-file selection, schema 2, with all completed batches producing 180 frames:
+
+| Backend / jobs | Repetition 1 | Repetition 2 |
+|---|---:|---:|
+| DOM / 1 | 20.7579 s | 19.7160 s |
+| DOM / 2 | 11.3804 s | 8.1558 s |
+| Mediabunny / 1 (clean rerun) | 39.6566 s | 40.3020 s |
+| Mediabunny / 2 | 20.4248 s | 20.8282 s |
+
+An earlier single-job candidate run was interrupted when hidden during repetition 2; exclude its partial batch. Clean single-job candidate mean is 39.9793s, two-job mean 20.6265s (1.94x observed throughput). Sequential read timing totals are 37.6282s and 38.2506s, about 95% of batch wall time, across 18,957 slices / 448,283,124 requested bytes per repetition. This motivates a read-path experiment, not a proven physical disk or codec diagnosis. DOM remains faster in this implementation; run order/cache state is uncontrolled.
+
+Schema 3 keeps **Direct reads (baseline)** as default and adds **Buffered reads (1 MiB window)**. On a small cache miss the latter reads forward up to 1 MiB, clamped at EOF, and retains one window per worker. Larger valid requests bypass the buffer. Buffered reads are serialized so concurrent source requests can reuse the same window. Returned bytes are exact-sized copies to prevent small downstream cache entries retaining whole windows. Copy cost and unused read-ahead may offset fewer asynchronous reads; both are included in elapsed measurements. Library cache (8 MiB) and prefetch (`none`) remain unchanged.
+
+All actual read-ahead counts toward the existing 256 MiB per-job read budget; single slices remain limited to 16 MiB. A file that passed direct reads may fail buffered mode with `read-limit`; retain that result, do not silently retry or increase the limit. One reader-owned window is not a total memory guarantee: returned copies, library buffers, parser and decoder allocations are additional.
+
+**Next owner test:** same retained selection, Mediabunny only, 1 job, 2 repetitions with direct reads, then buffered reads; copy both schema-3 reports. Inspect samples. Keep the page visible and repeat in reverse order if results warrant confirmation. Compare completed batch elapsed time, actual read counts/bytes and nested read timing. Test buffered 2-job throughput after the reader-only comparison. No further unchanged DOM baseline is needed yet.
 
 ## Limits and privacy
 
@@ -54,7 +73,7 @@ Two concurrent jobs can roughly double memory pressure; the following limits app
 
 Mediabunny's parser can allocate before the custom read callback and expand compressed indexes; see the [earlier source audit](mediabunny-qualification.md). The owner accepted those limitations for this custom-file experiment. **No hard memory bound or malformed-input security qualification is claimed.** Worker cancellation/timeouts cannot prevent browser/native OOM or an unresponsive main page.
 
-Best-effort limits: 120s per preparation/extraction job, 8 MiB source cache, no prefetch, 16 MiB per callback read, 256 MiB cumulative callback reads per job, 16 MiB JPEG output per job, decoded/display dimensions at most 8192 per axis and 33,554,432 pixels. These may reject otherwise playable large/long-GOP inputs; retain `read-limit` rows. They do not cap parser indexes, internal pending buffers, decoder queues or GPU memory before allocation. The worker reads bounded `File.slice()` ranges, not a direct `File.arrayBuffer()`; a range can still cover an entire small file. No library fork is included.
+Best-effort limits: 120s per preparation/extraction job, 8 MiB source cache, no library prefetch, 16 MiB per requested range/actual slice, 256 MiB cumulative actual slice bytes per job, 16 MiB JPEG output per job, decoded/display dimensions at most 8192 per axis and 33,554,432 pixels. Optional buffered mode adds one 1 MiB reader-owned window. These may reject otherwise playable large/long-GOP inputs; retain `read-limit` rows. They do not cap parser indexes, internal pending buffers, decoder queues or GPU memory before allocation. The worker reads bounded `File.slice()` ranges, not a direct `File.arrayBuffer()`; a range can still cover an entire small file. No library fork is included.
 
 Files and sample images stay in the browser. Copied JSON contains a random selection ID, 1-based file ordinals, exact file sizes, build/browser identity, settings, preparation/row wall times, output/read counts and allowlisted reason codes. It contains no names, paths, raw exceptions, video/image bytes, content hashes, durations, codec metadata or per-frame target/PTS arrays. **Exact sizes and browser metadata are not guaranteed anonymous.** Selection identity is retained only while the selection remains in this page; it is not content verification.
 
@@ -75,4 +94,4 @@ BVR_BENCHMARK_SMOKE=true npx cypress run --browser chrome --spec cypress/e2e/cus
 BVR_BENCHMARK_SMOKE=true npx cypress run --browser edge --spec cypress/e2e/customExtraction.cy.ts
 ```
 
-The smoke uses the repository's two synthetic MP4s on the devbox only. It checks actual DOM and worker extraction, alternating order, 8 paired jobs / 9 frames each, successful stage metrics, decoded sample-image dimensions, private-field absence, clipboard-denial fallback and served source/license assets. It then runs DOM-only and Mediabunny-only with two overlapping jobs each, checks per-batch peak/completion counts, cancels another run and returns to pipeline controls. Unit tests cover deadlines, malformed replies, no fallback, hidden-tab invalidation, cancellation/queue settlement, display failures, launch ordering and cleanup. Native owner hardware/performance and visual acceptance remain separate.
+The smoke uses the repository's two synthetic MP4s on the devbox only. It checks actual DOM and worker extraction, alternating order, 8 paired jobs / 9 frames each, successful stage metrics, decoded sample-image dimensions, private-field absence, clipboard-denial fallback and served source/license assets. It then runs DOM-only and both Mediabunny reader variants with two overlapping jobs each, checks schema 3 reader selection and per-batch peak/completion counts, cancels another run and returns to pipeline controls. Unit tests cover deadlines, malformed replies, no fallback, hidden-tab invalidation, cancellation/queue settlement, display failures, launch ordering and cleanup. Native owner hardware/performance and visual acceptance remain separate.

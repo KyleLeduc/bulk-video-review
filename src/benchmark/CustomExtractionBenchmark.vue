@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
+import type { BenchmarkReaderMode } from '../infrastructure/video/benchmark/benchmarkFileReader'
 import {
   runExtractionBenchmark,
   type ExtractionReport,
@@ -16,6 +17,7 @@ const selectionId = ref('')
 const repetitions = ref(3)
 const execution = ref<ExtractionExecution>('paired')
 const jobs = ref<1 | 2>(1)
+const readerMode = ref<BenchmarkReaderMode>('direct')
 watch(execution, (value) => {
   if (value === 'paired') jobs.value = 1
 })
@@ -82,6 +84,7 @@ async function start() {
       repetitions: repetitions.value,
       execution: execution.value,
       jobs: execution.value === 'paired' ? 1 : jobs.value,
+      readerMode: readerMode.value,
       build: props.build,
       signal: controller.signal,
       onProgress: (message) => {
@@ -204,6 +207,22 @@ onBeforeUnmount(() => {
           <option :value="2">2 jobs (more memory)</option>
         </select>
       </label>
+      <label
+        >Mediabunny reader
+        <select
+          v-model="readerMode"
+          data-test="extraction-reader"
+          :disabled="execution === 'dom'"
+        >
+          <option value="direct">Direct reads (baseline)</option>
+          <option value="buffered-1mib">Buffered reads (1 MiB window)</option>
+        </select>
+      </label>
+      <p>
+        Buffered reads may fetch unused bytes. One extra window of up to 1 MiB
+        per worker; actual fetched bytes still count toward the read limit.
+        Compare the same job count and selection; DOM is unaffected.
+      </p>
       <p>
         Two jobs use separate media elements or workers, but share disk and
         decoder/GPU resources. Memory pressure can roughly double; speedup is

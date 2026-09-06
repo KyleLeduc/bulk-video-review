@@ -7,11 +7,13 @@ import {
   type PreparedExtraction,
   type ExtractionOutput,
 } from './previewExtraction'
+import type { BenchmarkReaderMode } from './benchmarkFileReader'
 
 export function extractWithWorker(
   file: File,
   prepared: PreparedExtraction,
   signal: AbortSignal,
+  readerMode: BenchmarkReaderMode = 'direct',
 ): Promise<ExtractionOutput> {
   const started = performance.now()
   return new Promise((resolve, reject) => {
@@ -73,7 +75,7 @@ export function extractWithWorker(
       }
     }
     try {
-      worker.postMessage({ file, prepared })
+      worker.postMessage({ file, prepared, readerMode })
     } catch {
       finish(undefined, new ExtractionError('extraction-failed'))
     }

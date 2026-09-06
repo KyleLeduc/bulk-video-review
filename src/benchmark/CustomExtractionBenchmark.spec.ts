@@ -51,7 +51,7 @@ it('requires custom files and memory acknowledgement, and copies redacted result
   const build = { revision: null, dirty: null, assetsSha256: null }
   const report: runner.ExtractionReport = {
     errors: [],
-    schemaVersion: 2,
+    schemaVersion: 3,
     mode: 'preview-extraction-custom-v1',
     status: 'completed',
     hidden: false,
@@ -62,6 +62,7 @@ it('requires custom files and memory acknowledgement, and copies redacted result
       jobs: 1,
       execution: 'paired',
       samples: 'after-run',
+      readerMode: 'direct',
       candidate: 'mediabunny@1.55.7',
       deadlineMs: 120000,
     },
@@ -90,12 +91,14 @@ it('requires custom files and memory acknowledgement, and copies redacted result
   await wrapper.get('[data-test=memory-ack]').setValue(true)
   await wrapper.get('[data-test=extraction-execution]').setValue('mediabunny')
   await wrapper.get('[data-test=extraction-jobs]').setValue('2')
+  await wrapper.get('[data-test=extraction-reader]').setValue('buffered-1mib')
   await wrapper.get('[data-test=extraction-start]').trigger('click')
   await flushPromises()
   expect(run.mock.calls[0][0].files).toEqual([file])
   expect(run.mock.calls[0][0]).toMatchObject({
     execution: 'mediabunny',
     jobs: 2,
+    readerMode: 'buffered-1mib',
   })
   await wrapper.get('[data-test=extraction-execution]').setValue('paired')
   expect(

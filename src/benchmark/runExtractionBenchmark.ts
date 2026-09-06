@@ -11,6 +11,7 @@ import {
   type PreparedExtraction,
 } from '../infrastructure/video/benchmark/previewExtraction'
 import { extractWithWorker } from '../infrastructure/video/benchmark/previewWorkerClient'
+import type { BenchmarkReaderMode } from '../infrastructure/video/benchmark/benchmarkFileReader'
 import {
   extractWithDom,
   prepareFile,
@@ -46,7 +47,7 @@ export type ExtractionBatch = {
 }
 export type ExtractionReport = {
   errors: 'display-failed'[]
-  schemaVersion: 2
+  schemaVersion: 3
   mode: 'preview-extraction-custom-v1'
   status: 'completed' | 'failed' | 'interrupted'
   hidden: boolean
@@ -57,6 +58,7 @@ export type ExtractionReport = {
     jobs: 1 | 2
     execution: ExtractionExecution
     samples: 'after-run'
+    readerMode: BenchmarkReaderMode | null
     candidate: 'mediabunny@1.55.7'
     deadlineMs: number
   }
@@ -70,6 +72,7 @@ type Options = {
   repetitions: number
   execution?: ExtractionExecution
   jobs?: 1 | 2
+  readerMode?: BenchmarkReaderMode
   build: BuildIdentity
   signal: AbortSignal
   onProgress?: (message: string) => void
@@ -110,6 +113,7 @@ export async function runExtractionBenchmark(
 ): Promise<ExtractionReport> {
   const execution = options.execution ?? 'paired'
   const jobs = options.jobs ?? 1
+  const readerMode = options.readerMode ?? 'direct'
   if (
     !Number.isInteger(options.repetitions) ||
     options.repetitions < 1 ||
@@ -117,10 +121,11 @@ export async function runExtractionBenchmark(
     !options.files.length ||
     !['paired', 'dom', 'mediabunny'].includes(execution) ||
     ![1, 2].includes(jobs) ||
+    !['direct', 'buffered-1mib'].includes(readerMode) ||
     (execution === 'paired' && jobs !== 1)
   )
     throw new Error(
-      'Choose files, 1–5 repetitions and 1–2 jobs; paired comparisons require one job',
+      'Choose files, a supported reader, 1–5 repetitions and 1–2 jobs; paired comparisons require one job',
     )
   if (!navigator.locks) throw new Error('Web Locks unavailable')
   return navigator.locks.request(
@@ -142,7 +147,7 @@ export async function runExtractionBenchmark(
       if (options.signal.aborted || hidden) abort()
       const report: ExtractionReport = {
         errors: [],
-        schemaVersion: 2,
+        schemaVersion: 3,
         mode: 'preview-extraction-custom-v1',
         status: 'completed',
         hidden,
@@ -162,6 +167,7 @@ export async function runExtractionBenchmark(
           jobs,
           execution,
           samples: 'after-run',
+          readerMode: execution === 'dom' ? null : readerMode,
           candidate: 'mediabunny@1.55.7',
           deadlineMs: EXTRACTION_DEADLINE_MS,
         },
@@ -241,11 +247,14 @@ export async function runExtractionBenchmark(
             const targets = prepared[file]
             if (!targets) throw new ExtractionError('invalid-metadata')
             output = await timedJob(controller.signal, (signal) =>
-              (backend === 'dom' ? extractWithDom : extractWithWorker)(
-                options.files[file],
-                targets,
-                signal,
-              ),
+              backend === 'dom'
+                ? extractWithDom(options.files[file], targets, signal)
+                : extractWithWorker(
+                    options.files[file],
+                    targets,
+                    signal,
+                    readerMode,
+                  ),
             )
             validateExtraction(output, targets)
             row.metrics = validateMetrics(output.metrics)

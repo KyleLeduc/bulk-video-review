@@ -18,7 +18,8 @@ describe('Custom extraction built-runtime smoke', () => {
         const json = String(value)
         const result = JSON.parse(json)
         expect(result.mode).to.equal('preview-extraction-custom-v1')
-        expect(result.schemaVersion).to.equal(2)
+        expect(result.schemaVersion).to.equal(3)
+        expect(result.settings.readerMode).to.equal('direct')
         expect(result.settings.samples).to.equal('after-run')
         expect(result.status).to.equal('completed')
         expect(result.hidden).to.equal(false)
@@ -94,8 +95,14 @@ describe('Custom extraction built-runtime smoke', () => {
     cy.request('/third-party/mediabunny/mediabunny-1.55.7.tar.gz')
       .its('status')
       .should('equal', 200)
-    for (const backend of ['dom', 'mediabunny']) {
+    for (const [backend, readerMode] of [
+      ['dom', null],
+      ['mediabunny', 'direct'],
+      ['mediabunny', 'buffered-1mib'],
+    ] as const) {
       cy.get('[data-test=extraction-execution]').select(backend)
+      if (readerMode) cy.get('[data-test=extraction-reader]').select(readerMode)
+      else cy.get('[data-test=extraction-reader]').should('be.disabled')
       cy.get('[data-test=extraction-jobs]').select('2')
       cy.get('[data-test=extraction-repetitions]').clear()
       cy.get('[data-test=extraction-repetitions]').type('1')
@@ -107,7 +114,17 @@ describe('Custom extraction built-runtime smoke', () => {
           expect(result.status).to.equal('completed')
           expect(result.settings.execution).to.equal(backend)
           expect(result.settings.jobs).to.equal(2)
+          expect(result.settings.readerMode).to.equal(readerMode)
           expect(result.rows).to.have.length(2)
+          for (const row of result.rows) {
+            expect(row.status).to.equal('passed')
+            expect(row.frames).to.equal(9)
+            if (readerMode) {
+              expect(row.readCalls).to.be.greaterThan(0)
+              expect(row.readBytes).to.be.greaterThan(0)
+              expect(row.metrics.readMs).to.be.greaterThan(0)
+            }
+          }
           expect(
             result.rows.every(
               (row: { backend: string }) => row.backend === backend,
