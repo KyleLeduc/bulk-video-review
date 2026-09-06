@@ -1,8 +1,12 @@
 import { CanvasSink, CustomSource, Input, MP4 } from 'mediabunny'
 import {
-  createBenchmarkFileReader,
-  type BenchmarkReaderMode,
-} from './benchmarkFileReader'
+  prepareKeyframes,
+  validateKeyframeOutput,
+  type KeyframeRequest,
+} from './keyframeExtraction'
+import { createPlayerTimelineGuard } from './playerTimeline'
+import { KEYFRAME_QUALITY } from '../../../domain/services/videoPreviewPolicy'
+import { createFileReader, type FileReaderMode } from './fileReader'
 import {
   checkDimensions,
   checkPreviewCount,
@@ -15,15 +19,21 @@ import {
   type PreparedExtraction,
 } from './previewExtraction'
 
-// Disposable, single-job worker. No production DI, persistence or fallback.
+// Disposable, single-job worker. No DI, persistence or fallback.
 self.onmessage = async (
-  event: MessageEvent<{
-    file: File
-    prepared: PreparedExtraction
-    readerMode?: BenchmarkReaderMode
-  }>,
+  event: MessageEvent<
+    { file: File } & (
+      | KeyframeRequest
+      | {
+          file: File
+          prepared: PreparedExtraction
+          readerMode?: FileReaderMode
+        }
+    )
+  >,
 ) => {
   let input: Input | undefined
+  let timeline: ReturnType<typeof createPlayerTimelineGuard> | undefined
   const started = performance.now()
   const metrics = emptyMetrics()
   metrics.readMs = metrics.readMaxMs = 0
@@ -36,22 +46,35 @@ self.onmessage = async (
       typeof OffscreenCanvas === 'undefined'
     )
       throw new ExtractionError('unsupported')
-    const { file, prepared } = event.data
+    const { file } = event.data
+    const keyframes = 'kind' in event.data ? event.data : undefined
+    let prepared = 'prepared' in event.data ? event.data.prepared : undefined
+    if (keyframes) {
+      // Validate before opening the input; source dimensions are checked again below.
+      prepareKeyframes(keyframes.duration, 1, 1, keyframes.maxWidth)
+      timeline = createPlayerTimelineGuard()
+    }
     if (
       !(file instanceof File) ||
-      !Array.isArray(prepared?.targets) ||
-      !prepared.targets.every(
-        (n, i, list) =>
-          Number.isFinite(n) && n >= 0 && (i === 0 || n >= list[i - 1]),
-      )
+      (!keyframes &&
+        (!Array.isArray(prepared?.targets) ||
+          !prepared!.targets.every(
+            (n, i, list) =>
+              Number.isFinite(n) && n >= 0 && (i === 0 || n >= list[i - 1]),
+          )))
     )
       throw new ExtractionError('invalid-metadata')
-    const count = prepared.targets.length
+    const count = keyframes ? 100 : prepared!.targets.length
     checkPreviewCount(count)
-    checkDimensions(prepared.width, prepared.height)
-    const reader = createBenchmarkFileReader(
+    if (!keyframes) {
+      checkDimensions(prepared!.width, prepared!.height)
+    }
+    const reader = createFileReader(
       file,
-      event.data.readerMode ?? 'direct',
+      keyframes
+        ? 'buffered-1mib'
+        : ('readerMode' in event.data ? event.data.readerMode : undefined) ??
+            'direct',
       metrics,
       count,
     )
@@ -73,6 +96,19 @@ self.onmessage = async (
       await track.getDisplayHeight(),
     )
     if (!(await track.canDecode())) throw new ExtractionError('unsupported')
+    let tolerance = 0
+    if (keyframes) {
+      if (keyframes.kind !== 'keyframes')
+        throw new ExtractionError('invalid-metadata')
+      tolerance = await timeline!.check(track, keyframes.duration)
+      prepared = prepareKeyframes(
+        keyframes.duration,
+        await track.getDisplayWidth(),
+        await track.getDisplayHeight(),
+        keyframes.maxWidth,
+      )
+    }
+    if (!prepared) throw new ExtractionError('invalid-metadata')
     const sink = new CanvasSink(track, {
       width: prepared.width,
       height: prepared.height,
@@ -81,6 +117,7 @@ self.onmessage = async (
     })
     const frames: Blob[] = []
     let outputBytes = 0
+    let previousTimestamp = -Infinity
     metrics.setupMs = performance.now() - started
     const iterator = sink.canvasesAtTimestamps(prepared.targets)
     try {
@@ -92,11 +129,21 @@ self.onmessage = async (
         const wrapped = next.value
         if (!wrapped || !(wrapped.canvas instanceof OffscreenCanvas))
           throw new ExtractionError('output-invalid')
+        if (keyframes) {
+          timeline!.assertSupported()
+          if (
+            !Number.isFinite(wrapped.timestamp) ||
+            wrapped.timestamp < previousTimestamp ||
+            wrapped.timestamp > prepared.targets[frames.length] + tolerance
+          )
+            throw new ExtractionError('unsupported-timeline')
+          previousTimestamp = wrapped.timestamp
+        }
         // Await encoding before the pool reuses this canvas.
         const encodeStarted = performance.now()
         const blob = await wrapped.canvas.convertToBlob({
           type: 'image/jpeg',
-          quality: 0.72,
+          quality: KEYFRAME_QUALITY,
         })
         metrics.encodeMs += performance.now() - encodeStarted
         outputBytes += blob.size
@@ -107,17 +154,22 @@ self.onmessage = async (
     } finally {
       await iterator.return()
     }
-    const output = validateExtraction(
-      {
-        metrics,
-        frames,
-        width: prepared.width,
-        height: prepared.height,
-        readBytes: reader.readBytes,
-        readCalls: reader.readCalls,
-      },
-      prepared,
-    )
+    timeline?.assertSupported()
+    const rawOutput = {
+      metrics,
+      frames,
+      width: prepared.width,
+      height: prepared.height,
+      readBytes: reader.readBytes,
+      readCalls: reader.readCalls,
+    }
+    const output = keyframes
+      ? validateKeyframeOutput(
+          rawOutput,
+          keyframes.duration,
+          keyframes.maxWidth,
+        )
+      : validateExtraction(rawOutput, prepared)
     reply = { ok: true, output }
   } catch (error) {
     reply = { ok: false, reason: safeFailure(error) }
@@ -130,6 +182,7 @@ self.onmessage = async (
     }
     metrics.cleanupMs = performance.now() - cleanupStarted
     metrics.totalMs = performance.now() - started
+    timeline?.dispose()
   }
   self.postMessage(reply!)
 }

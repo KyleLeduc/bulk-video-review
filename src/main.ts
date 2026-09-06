@@ -9,7 +9,7 @@ import {
   addVideosUseCase,
   filterVideosUseCase,
   logger,
-  updateThumbUseCase,
+  updatePreviewsUseCase,
   updateVotesUseCase,
   videoSessionRegistry,
   wipeVideoDataUseCase,
@@ -18,7 +18,7 @@ import {
   ADD_VIDEOS_USE_CASE_KEY,
   FILTER_VIDEOS_USE_CASE_KEY,
   LOGGER_KEY,
-  UPDATE_THUMB_USE_CASE_KEY,
+  UPDATE_PREVIEWS_USE_CASE_KEY,
   UPDATE_VOTES_USE_CASE_KEY,
   VIDEO_SESSION_REGISTRY_KEY,
   WIPE_VIDEO_DATA_USE_CASE_KEY,
@@ -32,7 +32,8 @@ app.use(autoAnimatePlugin)
 app.provide(ADD_VIDEOS_USE_CASE_KEY, addVideosUseCase)
 app.provide(FILTER_VIDEOS_USE_CASE_KEY, filterVideosUseCase)
 app.provide(LOGGER_KEY, logger)
-app.provide(UPDATE_THUMB_USE_CASE_KEY, updateThumbUseCase)
+if (updatePreviewsUseCase)
+  app.provide(UPDATE_PREVIEWS_USE_CASE_KEY, updatePreviewsUseCase)
 app.provide(UPDATE_VOTES_USE_CASE_KEY, updateVotesUseCase)
 app.provide(WIPE_VIDEO_DATA_USE_CASE_KEY, wipeVideoDataUseCase)
 app.provide(VIDEO_SESSION_REGISTRY_KEY, videoSessionRegistry)

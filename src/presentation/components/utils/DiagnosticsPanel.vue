@@ -259,11 +259,18 @@
     <section class="panel-section">
       <h2>Database</h2>
       <button
-        @click="wipeVideoDataUseCase?.execute()"
-        :disabled="!wipeVideoDataUseCase"
+        data-testid="wipe-database"
+        @click="wipeDatabase"
+        :disabled="
+          !wipeVideoDataUseCase ||
+          videoStore.isWiping ||
+          videoStore.isIngesting ||
+          queuedIngestionCount > 0
+        "
       >
         Wipe Database
       </button>
+      <p v-if="wipeStatus" role="status">{{ wipeStatus }}</p>
     </section>
   </section>
 </template>
@@ -281,6 +288,17 @@ const wipeVideoDataUseCase = inject<WipeVideoDataUseCase>(
 
 const appState = useAppStateStore()
 const videoStore = useVideoStore()
+const wipeStatus = ref('')
+async function wipeDatabase() {
+  wipeStatus.value = ''
+  try {
+    await videoStore.wipeVideoData()
+    wipeStatus.value = 'Database and preview cache cleared.'
+  } catch {
+    wipeStatus.value =
+      'Could not finish clearing data. Please retry after ingestion finishes.'
+  }
+}
 
 const { isDiagnosticsPanelOpen } = storeToRefs(appState)
 const {
@@ -367,6 +385,8 @@ const phaseLabel = computed(() => {
   return phase ? labels[phase] : 'Ingestion'
 })
 const drainStatusLabel = computed(() => {
+  if (videoStore.isWiping) return 'Paused while clearing data'
+  if (videoStore.isPreviewProcessingPaused) return 'Paused until focus returns'
   if (isThumbnailDrainPaused.value) {
     return queuedIngestionCount.value > 0
       ? 'Thumbnail drain paused'

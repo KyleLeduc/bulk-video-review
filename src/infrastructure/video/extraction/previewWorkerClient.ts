@@ -7,13 +7,40 @@ import {
   type PreparedExtraction,
   type ExtractionOutput,
 } from './previewExtraction'
-import type { BenchmarkReaderMode } from './benchmarkFileReader'
+import type { FileReaderMode } from './fileReader'
+import {
+  validateKeyframeOutput,
+  type KeyframeRequest,
+} from './keyframeExtraction'
 
 export function extractWithWorker(
   file: File,
   prepared: PreparedExtraction,
   signal: AbortSignal,
-  readerMode: BenchmarkReaderMode = 'direct',
+  readerMode: FileReaderMode = 'direct',
+): Promise<ExtractionOutput> {
+  return runPreviewWorker(file, signal, { prepared, readerMode })
+}
+
+export function extractKeyframesWithWorker(
+  file: File,
+  duration: number,
+  signal: AbortSignal,
+  maxWidth = 160,
+): Promise<ExtractionOutput> {
+  return runPreviewWorker(file, signal, {
+    kind: 'keyframes',
+    duration,
+    maxWidth,
+  })
+}
+
+function runPreviewWorker(
+  file: File,
+  signal: AbortSignal,
+  request:
+    | KeyframeRequest
+    | { prepared: PreparedExtraction; readerMode: FileReaderMode },
 ): Promise<ExtractionOutput> {
   const started = performance.now()
   return new Promise((resolve, reject) => {
@@ -54,7 +81,14 @@ export function extractWithWorker(
     worker.onmessage = (event) => {
       try {
         if (event.data?.ok !== true) throw workerFailure(event.data?.reason)
-        const output = validateExtraction(event.data.output, prepared)
+        const output =
+          'kind' in request
+            ? validateKeyframeOutput(
+                event.data.output,
+                request.duration,
+                request.maxWidth,
+              )
+            : validateExtraction(event.data.output, request.prepared)
         output.metrics = validateMetrics(output.metrics)
         output.metrics.workerOverheadMs = Math.max(
           0,
@@ -75,7 +109,7 @@ export function extractWithWorker(
       }
     }
     try {
-      worker.postMessage({ file, prepared, readerMode })
+      worker.postMessage({ file, ...request })
     } catch {
       finish(undefined, new ExtractionError('extraction-failed'))
     }

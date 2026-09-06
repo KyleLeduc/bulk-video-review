@@ -98,11 +98,13 @@ export class VideoAggregateRepository implements IVideoAggregateRepository {
       this.videoRepository.getAllVideos(),
     ])
 
-    await Promise.all([
+    const results = await Promise.allSettled([
       ...metadatas.map((metadata) =>
         this.metadataRepository.deleteMetadata(metadata.id),
       ),
       ...videos.map((video) => this.videoRepository.deleteVideo(video.id)),
     ])
+    const failure = results.find((result) => result.status === 'rejected')
+    if (failure?.status === 'rejected') throw failure.reason
   }
 }

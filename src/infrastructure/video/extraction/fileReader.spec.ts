@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it, vi } from 'vitest'
-import { createBenchmarkFileReader } from './benchmarkFileReader'
+import { createFileReader } from './fileReader'
 import { emptyMetrics, MAX_READ_BYTES } from './previewExtraction'
 
 const block = 1024 * 1024
@@ -14,7 +14,7 @@ function fixture(size = 2 * block + 13) {
 }
 it('keeps direct reads exact and counts actual I/O', async () => {
   const { file, slice, metrics, data } = fixture()
-  const reader = createBenchmarkFileReader(file, 'direct', metrics)
+  const reader = createFileReader(file, 'direct', metrics)
   expect(await reader.read(10, 30)).toEqual(data.slice(10, 30))
   await reader.read(30, 50)
   expect(slice.mock.calls).toEqual([
@@ -34,20 +34,20 @@ it.each(['direct', 'buffered-1mib'] as const)(
         throw new Error('I/O failed')
       }),
     } as unknown as Blob
-    const reader = createBenchmarkFileReader(file, mode, emptyMetrics(), 100)
+    const reader = createFileReader(file, mode, emptyMetrics(), 100)
     for (let i = 0; i < 64; i++)
       await expect(reader.read(0, 16 * block)).rejects.toThrow('I/O failed')
     await expect(reader.read(0, 1)).rejects.toThrow('read-limit')
     expect(reader.readBytes).toBe(1024 * block)
     expect(file.slice).toHaveBeenCalledTimes(64)
     expect(() =>
-      createBenchmarkFileReader(file, mode, emptyMetrics(), 101 as never),
+      createFileReader(file, mode, emptyMetrics(), 101 as never),
     ).toThrow()
   },
 )
 it('shares one window for concurrent adjacent reads and returns isolated exact bytes', async () => {
   const { file, slice, metrics, data } = fixture()
-  const reader = createBenchmarkFileReader(file, 'buffered-1mib', metrics)
+  const reader = createFileReader(file, 'buffered-1mib', metrics)
   const [a, b] = await Promise.all([reader.read(10, 30), reader.read(30, 50)])
   expect(a).toEqual(data.slice(10, 30))
   expect(b).toEqual(data.slice(30, 50))
@@ -60,7 +60,7 @@ it('shares one window for concurrent adjacent reads and returns isolated exact b
 })
 it('replaces the window, clamps at EOF and bypasses caching for large requests', async () => {
   const { file, slice, metrics, data } = fixture()
-  const reader = createBenchmarkFileReader(file, 'buffered-1mib', metrics)
+  const reader = createFileReader(file, 'buffered-1mib', metrics)
   await reader.read(0, 10)
   expect(await reader.read(block - 2, block + 2)).toEqual(
     data.slice(block - 2, block + 2),
@@ -85,7 +85,7 @@ it.each(['direct', 'buffered-1mib'] as const)(
   'rejects invalid ranges before I/O (%s)',
   async (mode) => {
     const { file, slice, metrics } = fixture()
-    const reader = createBenchmarkFileReader(file, mode, metrics)
+    const reader = createFileReader(file, mode, metrics)
     for (const [start, end] of [
       [-1, 1],
       [0, 0],
@@ -108,7 +108,7 @@ it.each(['direct', 'buffered-1mib'] as const)(
         throw new Error('I/O failed')
       }),
     } as unknown as Blob
-    const reader = createBenchmarkFileReader(file, mode, emptyMetrics())
+    const reader = createFileReader(file, mode, emptyMetrics())
     await expect(reader.read(0, 16 * block + 1)).rejects.toThrow('read-limit')
     for (let i = 0; i < 16; i++)
       await expect(reader.read(0, 16 * block)).rejects.toThrow('I/O failed')
@@ -124,11 +124,7 @@ it('counts read-ahead toward the limit even when only one byte is requested', as
       throw new Error('I/O failed')
     }),
   } as unknown as Blob
-  const reader = createBenchmarkFileReader(
-    file,
-    'buffered-1mib',
-    emptyMetrics(),
-  )
+  const reader = createFileReader(file, 'buffered-1mib', emptyMetrics())
   for (let i = 0; i < 256; i++)
     await expect(reader.read(0, 1)).rejects.toThrow('I/O failed')
   await expect(reader.read(0, 1)).rejects.toThrow('read-limit')
@@ -139,7 +135,7 @@ it('does not poison subsequent buffered requests after a rejected read', async (
   slice.mockImplementationOnce(() => {
     throw new Error('I/O failed')
   })
-  const reader = createBenchmarkFileReader(file, 'buffered-1mib', metrics)
+  const reader = createFileReader(file, 'buffered-1mib', metrics)
   await expect(reader.read(0, 10)).rejects.toThrow('I/O failed')
   expect(await reader.read(0, 10)).toEqual(data.slice(0, 10))
   expect(reader.readBytes).toBe(2 * block)

@@ -13,8 +13,65 @@ import {
   buildVideoAggregate,
 } from '@test-utils/index'
 import { LinearVideoIngestionUseCase } from './LinearVideoIngestionUseCase'
+import { KEYFRAME_PREVIEW_VERSION } from '@domain/services/videoPreviewPolicy'
 
 describe('LinearVideoIngestionUseCase preview hydration', () => {
+  test.each([false, true])(
+    'hydrates new products nonfatally while registering the original file (cache fails=%s)',
+    async (cacheFails) => {
+      const file = new File(['mp4'], 'cached.mp4')
+      const aggregate = buildVideoAggregate({
+        id: 'cached-id',
+        duration: 10,
+        votes: 4,
+      })
+      const keyframes = [
+        {
+          timestampSeconds: 0,
+          width: 160,
+          height: 90,
+          blob: new Blob(['jpeg'], { type: 'image/jpeg' }),
+        },
+      ]
+      const previewCache = {
+        epoch: 0,
+        getProducts: vi.fn(async () => {
+          if (cacheFails) throw new Error('cache unavailable')
+          return {
+            motionClips: [],
+            keyframes,
+            previewVersions: { keyframes: KEYFRAME_PREVIEW_VERSION },
+          }
+        }),
+        putProduct: vi.fn(),
+        clear: vi.fn(),
+      }
+      const registry = buildSessionRegistry()
+      const logger = buildLogger()
+      const useCase = new LinearVideoIngestionUseCase(
+        { generateId: vi.fn(async () => 'cached-id'), extract: vi.fn() },
+        {
+          getVideo: vi.fn(async () => aggregate),
+        } as unknown as IVideoAggregateRepository,
+        registry,
+        logger,
+        { hasFailure: vi.fn(), recordFailure: vi.fn(), clearFailure: vi.fn() },
+        undefined,
+        previewCache,
+      )
+      const videos = []
+      for await (const event of useCase.execute([{ file }]))
+        if (event.type === 'video') videos.push(event.video)
+      expect(videos).toHaveLength(1)
+      expect(videos[0]).toMatchObject({
+        votes: 4,
+        keyframes: cacheFails ? [] : keyframes,
+      })
+      expect(registry.registerFile).toHaveBeenCalledWith('cached-id', file)
+      expect(previewCache.getProducts).toHaveBeenCalledWith('cached-id', 10)
+      if (cacheFails) expect(logger.warn).toHaveBeenCalled()
+    },
+  )
   test('hydrates persisted preview frames for a cached video', async () => {
     const file = new File(['video-bytes'], 'cached.mp4', {
       type: 'video/mp4',

@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import CustomExtractionBenchmark from './CustomExtractionBenchmark.vue'
 import * as runner from './runExtractionBenchmark'
-import { emptyMetrics } from '../infrastructure/video/benchmark/previewExtraction'
+import { emptyMetrics } from '../infrastructure/video/extraction/previewExtraction'
 
 afterEach(() => {
   vi.restoreAllMocks()

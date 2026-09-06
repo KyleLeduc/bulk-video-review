@@ -15,7 +15,25 @@ import {
   type PreviewCount,
   type PreparedExtraction,
   type ExtractionOutput,
-} from './previewExtraction'
+} from '../extraction/previewExtraction'
+
+/** Player duration for production-recipe probes; no still-sampling policy. */
+export async function readPlayerDuration(
+  file: File,
+  signal: AbortSignal,
+): Promise<number> {
+  const url = URL.createObjectURL(file)
+  let video: HTMLVideoElement | null = null
+  try {
+    video = await loadVideoElement(url, { signal })
+    if (!Number.isFinite(video.duration) || video.duration <= 0)
+      throw new ExtractionError('invalid-metadata')
+    return video.duration
+  } finally {
+    disposeVideoElement(video)
+    URL.revokeObjectURL(url)
+  }
+}
 
 export async function prepareFile(
   file: File,

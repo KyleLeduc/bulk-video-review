@@ -2,13 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { runExtractionPlan } from './runExtractionBenchmark'
 import { planSteps } from './extractionPlans'
 import * as dom from '../infrastructure/video/benchmark/domPreviewExtraction'
-import * as bunny from '../infrastructure/video/benchmark/previewWorkerClient'
-import * as clips from '../infrastructure/video/benchmark/clipWorkerClient'
-import { ExtractionError } from '../infrastructure/video/benchmark/previewExtraction'
+import * as bunny from '../infrastructure/video/extraction/previewWorkerClient'
+import * as clips from '../infrastructure/video/extraction/clipWorkerClient'
+import { ExtractionError } from '../infrastructure/video/extraction/previewExtraction'
 import {
   emptyMetrics,
   prepareTargets,
-} from '../infrastructure/video/benchmark/previewExtraction'
+} from '../infrastructure/video/extraction/previewExtraction'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -47,6 +47,95 @@ function setup() {
   return { order, request }
 }
 describe('versioned extraction plans', () => {
+  it.each([false, true])(
+    'keeps one fixed source and defers mixed-plan media (interrupted=%s)',
+    async (interrupted) => {
+      const { request } = setup()
+      const controller = new AbortController()
+      vi.spyOn(dom, 'readPlayerDuration').mockResolvedValue(30)
+      const clip = vi.spyOn(clips, 'extractClipsWithWorker').mockResolvedValue({
+        clips: [
+          {
+            blob: new Blob(['clip'], { type: 'video/mp4' }),
+            start: 0,
+            duration: 1.5,
+          },
+        ],
+        codec: 'avc',
+        width: 320,
+        height: 180,
+        readBytes: 1,
+        readCalls: 1,
+        metrics: {
+          setupMs: 0,
+          conversionMs: 1,
+          firstClipMs: 1,
+          totalMs: 1,
+          readMs: 0,
+          readMaxMs: 0,
+        },
+      })
+      const extract = vi
+        .spyOn(bunny, 'extractKeyframesWithWorker')
+        .mockImplementation(async (_file, _duration, _signal, width) => {
+          if (interrupted && width === 160) {
+            controller.abort()
+            throw new DOMException('Stop', 'AbortError')
+          }
+          return {
+            frames: Array(2).fill(new Blob(['jpeg'], { type: 'image/jpeg' })),
+            width: width!,
+            height: 90,
+            readBytes: 1024,
+            readCalls: 1,
+            metrics: emptyMetrics(),
+          }
+        })
+      const sample = vi.fn<
+        NonNullable<Parameters<typeof runExtractionPlan>[0]['onKeyframeSample']>
+      >(() => expect(extract).toHaveBeenCalledTimes(6))
+      const clipSample = vi.fn<
+        NonNullable<Parameters<typeof runExtractionPlan>[0]['onClipSample']>
+      >(() => expect(extract).toHaveBeenCalledTimes(6))
+      const result = await runExtractionPlan({
+        ...options(),
+        files: [...options().files, new File(['other'], 'other.mp4')],
+        preset: 'motion-keyframes-quality-v1',
+        signal: controller.signal,
+        onClipSample: clipSample,
+        onKeyframeSample: sample,
+      })
+      expect(request).toHaveBeenCalledOnce()
+      expect(clip.mock.calls[0][4]).toEqual({ kind: 'motion', duration: 30 })
+      if (interrupted) {
+        expect(result.status).toBe('interrupted')
+        expect(result.results.length).toBe(3)
+        expect(sample).not.toHaveBeenCalled()
+        expect(clipSample).not.toHaveBeenCalled()
+      } else {
+        expect(result.status).toBe('completed')
+        expect(result.results).toHaveLength(4)
+        expect(sample).toHaveBeenCalledTimes(3)
+        expect(sample.mock.calls.every((call) => call[0].file === 1)).toBe(true)
+        expect(clipSample.mock.calls[0]?.[0]).toMatchObject({ file: 1 })
+      }
+    },
+  )
+  it('defines a fixed production motion step and three keyframe quality widths', () => {
+    const steps = planSteps('motion-keyframes-quality-v1')
+    expect(steps).toHaveLength(4)
+    expect(steps[0]).toMatchObject({
+      workload: 'clips',
+      frameRate: 20,
+      clipSeconds: 1.5,
+      production: true,
+      jobs: 1,
+    })
+    expect(
+      steps.slice(1).map((step) => ('maxWidth' in step ? step.maxWidth : null)),
+    ).toEqual([120, 160, 240])
+    expect(steps.every((step) => step.jobs === 1 && step.pass === 1)).toBe(true)
+  })
   it.each(['clips-quality-v1', 'clips-duration-v1'] as const)(
     'runs and labels all four %s variants before publishing any samples',
     async (preset) => {

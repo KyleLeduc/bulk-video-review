@@ -13,12 +13,13 @@ import {
   type ExtractionOutput,
   type FailureReason,
   type PreparedExtraction,
-} from '../infrastructure/video/benchmark/previewExtraction'
-import { extractWithWorker } from '../infrastructure/video/benchmark/previewWorkerClient'
-import type { BenchmarkReaderMode } from '../infrastructure/video/benchmark/benchmarkFileReader'
+} from '../infrastructure/video/extraction/previewExtraction'
+import { extractWithWorker } from '../infrastructure/video/extraction/previewWorkerClient'
+import type { FileReaderMode } from '../infrastructure/video/extraction/fileReader'
 import {
   planSteps,
   type ClipPlanStep,
+  type KeyframePlanStep,
   type ExtractionPreset,
   type PlanStep,
 } from './extractionPlans'
@@ -27,6 +28,11 @@ import {
   type ClipReport,
   type ClipSample,
 } from './runClipBenchmark'
+import {
+  runKeyframeBenchmark,
+  type KeyframeReport,
+  type KeyframeSample,
+} from './runKeyframeBenchmark'
 import {
   extractWithDom,
   prepareFile,
@@ -77,7 +83,7 @@ export type ExtractionReport = {
     maxOutputBytes: number
     execution: ExtractionExecution
     samples: 'after-run'
-    readerMode: BenchmarkReaderMode | null
+    readerMode: FileReaderMode | null
     candidate: 'mediabunny@1.55.7'
     deadlineMs: number
   }
@@ -92,7 +98,7 @@ type Options = {
   execution?: ExtractionExecution
   jobs?: 1 | 2 | 4
   previewCount?: PreviewCount
-  readerMode?: BenchmarkReaderMode
+  readerMode?: FileReaderMode
   build: BuildIdentity
   signal: AbortSignal
   onProgress?: (message: string) => void
@@ -407,7 +413,7 @@ async function runExtractionUnlocked(
 
 export type PlanResult = {
   step: PlanStep
-  report: ExtractionReport | ClipReport
+  report: ExtractionReport | ClipReport | KeyframeReport
 }
 export type ExtractionPlanReport = {
   schemaVersion: 1
@@ -429,6 +435,7 @@ type PlanOptions = Pick<
   preset: ExtractionPreset
   onStep?: (result: PlanResult, index: number) => void
   onClipSample?: (sample: ClipSample, step: ClipPlanStep) => void
+  onKeyframeSample?: (sample: KeyframeSample, step: KeyframePlanStep) => void
 }
 
 export async function runExtractionPlan(
@@ -489,6 +496,13 @@ export async function runExtractionPlan(
       // Quality plans retain at most four variants, each already bounded to
       // 16 MiB encoded output. Samples never enter the exported report.
       const clipSamples: { sample: ClipSample; step: ClipPlanStep }[] = []
+      const keyframeSamples: {
+        sample: KeyframeSample
+        step: KeyframePlanStep
+      }[] = []
+      // Select before any result is known; never substitute a different file on failure.
+      const sampleFile =
+        options.preset === 'motion-keyframes-quality-v1' ? 1 : undefined
       try {
         for (const [index, step] of steps.entries()) {
           if (controller.signal.aborted) break
@@ -518,16 +532,27 @@ export async function runExtractionPlan(
                       samples = value
                     },
                   })
-                : await runClipBenchmark({
-                    ...common,
-                    frameRate: step.frameRate,
-                    clipSeconds: step.clipSeconds,
-                    onSample: (value) => {
-                      if (clipSamples.length >= 4)
-                        throw new Error('Sample limit')
-                      clipSamples.push({ sample: value, step })
-                    },
-                  })
+                : step.workload === 'keyframes'
+                  ? await runKeyframeBenchmark({
+                      ...common,
+                      maxWidth: step.maxWidth,
+                      sampleFile: sampleFile!,
+                      onSample: (sample) => {
+                        keyframeSamples.push({ sample, step })
+                      },
+                    })
+                  : await runClipBenchmark({
+                      ...common,
+                      frameRate: step.frameRate,
+                      clipSeconds: step.clipSeconds,
+                      production: step.production,
+                      sampleFile,
+                      onSample: (value) => {
+                        if (clipSamples.length >= 4)
+                          throw new Error('Sample limit')
+                        clipSamples.push({ sample: value, step })
+                      },
+                    })
             const entry = { step, report: result }
             report.results.push(entry)
             notify(() => options.onStep?.(entry, index + 1))
@@ -545,6 +570,8 @@ export async function runExtractionPlan(
           if (samples.length) notify(() => options.onSamples?.(samples))
           for (const { sample, step } of clipSamples)
             notify(() => options.onClipSample?.(sample, step))
+          for (const { sample, step } of keyframeSamples)
+            notify(() => options.onKeyframeSample?.(sample, step))
         }
         report.status = controller.signal.aborted
           ? 'interrupted'

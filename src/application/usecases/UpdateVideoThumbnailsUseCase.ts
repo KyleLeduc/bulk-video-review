@@ -120,6 +120,9 @@ export class UpdateVideoThumbnailsUseCase {
       url,
       pinned,
       previewFrames,
+      motionClips: video.motionClips,
+      keyframes: video.keyframes,
+      previewVersions: video.previewVersions,
     }
   }
 }

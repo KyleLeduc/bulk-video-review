@@ -1,12 +1,13 @@
-import type { PreviewCount } from '../infrastructure/video/benchmark/previewExtraction'
+import type { PreviewCount } from '../infrastructure/video/extraction/previewExtraction'
 import {
   CLIP_FRAME_RATES,
   CLIP_DURATIONS,
   type ClipSeconds,
   type ClipFrameRate,
-} from '../infrastructure/video/benchmark/clipExtraction'
+} from '../infrastructure/video/extraction/clipExtraction'
 
 export type ExtractionPreset =
+  | 'motion-keyframes-quality-v1'
   | 'confirmation-v1'
   | 'still-matrix-v1'
   | 'clips-3s-v1'
@@ -25,10 +26,39 @@ export type PlanStep = { id: string; pass: number } & (
       jobs: 1
       frameRate?: ClipFrameRate
       clipSeconds?: ClipSeconds
+      production?: true
+    }
+  | {
+      workload: 'keyframes'
+      execution: 'mediabunny'
+      jobs: 1
+      maxWidth: 120 | 160 | 240
     }
 )
 export type ClipPlanStep = Extract<PlanStep, { workload: 'clips' }>
+export type KeyframePlanStep = Extract<PlanStep, { workload: 'keyframes' }>
 export function planSteps(preset: ExtractionPreset): PlanStep[] {
+  if (preset === 'motion-keyframes-quality-v1')
+    return [
+      {
+        id: 'motion-1.5s-20fps',
+        pass: 1,
+        workload: 'clips',
+        execution: 'mediabunny',
+        jobs: 1,
+        frameRate: 20,
+        clipSeconds: 1.5,
+        production: true,
+      },
+      ...([120, 160, 240] as const).map((maxWidth) => ({
+        id: `keyframes-${maxWidth}px`,
+        pass: 1,
+        workload: 'keyframes' as const,
+        execution: 'mediabunny' as const,
+        jobs: 1 as const,
+        maxWidth,
+      })),
+    ]
   if (preset === 'clips-duration-v1')
     return CLIP_DURATIONS.map((clipSeconds) => ({
       id: `clips-${clipSeconds}s-20fps`,

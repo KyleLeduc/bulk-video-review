@@ -13,12 +13,16 @@ import {
   type ClipFrameRate,
   type ClipOutput,
 } from './clipExtraction'
+import { motionClipWindows } from '../../../domain/services/videoPreviewPolicy'
+
+export type MotionRequest = { kind: 'motion'; duration: number }
 
 export function extractClipsWithWorker(
   file: File,
   signal: AbortSignal,
   frameRate: ClipFrameRate = CLIP_FPS,
   clipSeconds: ClipSeconds = CLIP_SECONDS,
+  motion?: MotionRequest,
 ): Promise<ClipOutput> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
@@ -27,6 +31,8 @@ export function extractClipsWithWorker(
     }
     validateClipFrameRate(frameRate)
     validateClipSeconds(clipSeconds)
+    if (motion && !motionClipWindows(motion.duration).length)
+      throw new ExtractionError('invalid-metadata')
     let worker: Worker
     try {
       worker = new Worker(
@@ -60,13 +66,27 @@ export function extractClipsWithWorker(
     worker.onmessage = (event) => {
       try {
         if (event.data?.ok !== true) throw workerFailure(event.data?.reason)
-        finish(validateClipOutput(event.data.output, clipSeconds))
+        const output = validateClipOutput(event.data.output, clipSeconds)
+        if (motion) {
+          const windows = motionClipWindows(motion.duration)
+          if (
+            output.clips.length !== windows.length ||
+            output.clips.some(
+              (clip, i) =>
+                Math.abs(clip.start - windows[i].start) > 1e-6 ||
+                Math.abs(clip.duration - (windows[i].end - windows[i].start)) >
+                  1e-6,
+            )
+          )
+            throw new ExtractionError('output-invalid')
+        }
+        finish(output)
       } catch (error) {
         finish(undefined, error)
       }
     }
     try {
-      worker.postMessage({ file, frameRate, clipSeconds })
+      worker.postMessage({ file, frameRate, clipSeconds, ...motion })
     } catch {
       finish(undefined, new ExtractionError('extraction-failed'))
     }

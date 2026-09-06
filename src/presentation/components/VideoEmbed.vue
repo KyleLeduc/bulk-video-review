@@ -23,23 +23,12 @@
     ></video>
 
     <div v-if="canSeek" class="video-preview-rail-container">
-      <div
-        v-if="canShowPreview && isPreviewVisible && activePreviewFrame"
-        class="video-preview-tooltip"
-        data-testid="video-preview-tooltip"
-        :style="previewTooltipStyle"
-      >
-        <img
-          data-testid="video-preview-image"
-          :src="activePreviewFrame.url"
-          :width="activePreviewFrame.width"
-          :height="activePreviewFrame.height"
-          alt=""
-        />
-        <span data-testid="video-preview-time">{{
-          formatTime(previewSeconds ?? 0)
-        }}</span>
-      </div>
+      <SeekPreviewTooltip
+        v-if="isPreviewVisible"
+        :frames="props.previewFrames"
+        :seconds="previewSeconds ?? 0"
+        :duration="effectiveDuration"
+      />
 
       <input
         class="video-preview-rail"
@@ -67,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+import SeekPreviewTooltip from './SeekPreviewTooltip.vue'
 import type { ParsedVideo } from '@domain/entities'
 import {
   computed,
@@ -143,46 +133,6 @@ const effectiveDuration = computed(() =>
 )
 
 const canSeek = computed(() => effectiveDuration.value > 0)
-const canShowPreview = computed(
-  () => canSeek.value && props.previewFrames.length > 0,
-)
-
-const activePreviewFrame = computed<DisplayVideoPreviewFrame | null>(() => {
-  if (previewSeconds.value === null || props.previewFrames.length === 0) {
-    return null
-  }
-
-  return props.previewFrames.reduce((nearest, candidate) =>
-    Math.abs(candidate.timestampSeconds - previewSeconds.value!) <
-    Math.abs(nearest.timestampSeconds - previewSeconds.value!)
-      ? candidate
-      : nearest,
-  )
-})
-
-const previewPositionPercent = computed(() =>
-  effectiveDuration.value > 0 && previewSeconds.value !== null
-    ? clamp((previewSeconds.value / effectiveDuration.value) * 100, 0, 100)
-    : 0,
-)
-
-const previewTooltipStyle = computed(() => {
-  const position = previewPositionPercent.value
-
-  if (position <= 22.5) {
-    return { left: '0%', transform: 'translateX(0)' }
-  }
-
-  if (position >= 77.5) {
-    return { left: '100%', transform: 'translateX(-100%)' }
-  }
-
-  return {
-    left: `${position}%`,
-    transform: 'translateX(-50%)',
-  }
-})
-
 const formatTime = (seconds: number) => {
   const safeSeconds = Math.max(0, Math.floor(seconds))
   const minutes = Math.floor(safeSeconds / 60)
@@ -198,7 +148,7 @@ const timelineValueText = computed(
 )
 
 const showPreviewAt = (seconds: number) => {
-  if (!canShowPreview.value) {
+  if (!canSeek.value) {
     return
   }
 
@@ -420,34 +370,6 @@ onBeforeUnmount(() => {
 .video-preview-rail:focus-visible {
   outline: 2px solid #67d7ff;
   outline-offset: 2px;
-}
-
-.video-preview-tooltip {
-  position: absolute;
-  bottom: calc(100% + 4px);
-  width: min(180px, 45%);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  border-radius: 4px;
-  overflow: hidden;
-  background: #05070a;
-  color: #fff;
-  pointer-events: none;
-  z-index: 3;
-}
-
-.video-preview-tooltip img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.video-preview-tooltip span {
-  display: block;
-  padding: 2px 6px;
-  font:
-    600 12px/1.4 system-ui,
-    sans-serif;
-  text-align: center;
 }
 
 video {

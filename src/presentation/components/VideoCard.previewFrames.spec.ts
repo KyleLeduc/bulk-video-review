@@ -1,208 +1,126 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import type { VideoPreviewFrame } from '@domain/entities'
 import {
   buildParsedVideo,
+  buildPreviewProducts,
   createPresentationTestContext,
 } from '@test-utils/index'
 import VideoCard from './VideoCard.vue'
 import VideoEmbed from './VideoEmbed.vue'
+import MotionPreview from './MotionPreview.vue'
 
-const frame = (
-  timestampSeconds: number,
-  content: string,
-): VideoPreviewFrame => ({
-  timestampSeconds,
-  blob: new Blob([content], { type: 'image/jpeg' }),
-  width: 480,
-  height: 270,
+let createUrl: ReturnType<typeof vi.fn<typeof URL.createObjectURL>>
+let revokeUrl: ReturnType<typeof vi.fn<typeof URL.revokeObjectURL>>
+beforeEach(() => {
+  let id = 0
+  createUrl = vi.fn(() => 'blob:keyframe-' + ++id)
+  revokeUrl = vi.fn()
+  vi.spyOn(URL, 'createObjectURL').mockImplementation(createUrl)
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(revokeUrl)
+})
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
 })
 
-describe('VideoCard Blob preview frames', () => {
-  let createObjectURL: ReturnType<typeof vi.fn>
-  let revokeObjectURL: ReturnType<typeof vi.fn>
-  let originalCreateObjectURL: typeof URL.createObjectURL | undefined
-  let originalRevokeObjectURL: typeof URL.revokeObjectURL | undefined
-
-  beforeEach(() => {
-    createObjectURL = vi
-      .fn()
-      .mockReturnValueOnce('blob:preview-1')
-      .mockReturnValueOnce('blob:preview-2')
-      .mockReturnValueOnce('blob:preview-3')
-    revokeObjectURL = vi.fn()
-    originalCreateObjectURL = URL.createObjectURL
-    originalRevokeObjectURL = URL.revokeObjectURL
-    Object.defineProperty(URL, 'createObjectURL', {
-      configurable: true,
-      value: createObjectURL,
-    })
-    Object.defineProperty(URL, 'revokeObjectURL', {
-      configurable: true,
-      value: revokeObjectURL,
-    })
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
-    if (originalCreateObjectURL) {
-      Object.defineProperty(URL, 'createObjectURL', {
-        configurable: true,
-        value: originalCreateObjectURL,
-      })
-    } else {
-      Reflect.deleteProperty(URL, 'createObjectURL')
-    }
-    if (originalRevokeObjectURL) {
-      Object.defineProperty(URL, 'revokeObjectURL', {
-        configurable: true,
-        value: originalRevokeObjectURL,
-      })
-    } else {
-      Reflect.deleteProperty(URL, 'revokeObjectURL')
-    }
-    vi.restoreAllMocks()
-  })
-
-  test('creates one object URL per Blob and lends display frames to VideoEmbed', async () => {
-    const previewFrames = [frame(3, 'first'), frame(7, 'second')]
-    const { global } = createPresentationTestContext()
-    const wrapper = mount(VideoCard, {
-      props: {
-        video: buildParsedVideo({ id: 'video-1', previewFrames }),
-      },
-      global,
-    })
-
-    expect(createObjectURL).toHaveBeenNthCalledWith(1, previewFrames[0].blob)
-    expect(createObjectURL).toHaveBeenNthCalledWith(2, previewFrames[1].blob)
-
-    await wrapper.get('.pin').trigger('click')
-    expect(wrapper.getComponent(VideoEmbed).props('previewFrames')).toEqual([
-      {
-        timestampSeconds: 3,
-        url: 'blob:preview-1',
-        width: 480,
-        height: 270,
-      },
-      {
-        timestampSeconds: 7,
-        url: 'blob:preview-2',
-        width: 480,
-        height: 270,
-      },
-    ])
-
-    wrapper.unmount()
-    expect(revokeObjectURL).toHaveBeenCalledTimes(2)
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:preview-1')
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:preview-2')
-  })
-
-  test('rotates resolved frames on hover and returns to the cover on leave', async () => {
-    vi.useFakeTimers()
-    const previewFrames = [frame(3, 'first'), frame(7, 'second')]
-    const video = buildParsedVideo({
-      id: 'video-1',
-      thumb: 'data:image/jpeg;base64,cover',
-      previewFrames,
-    })
-    const { global, mocks } = createPresentationTestContext()
-    const wrapper = mount(VideoCard, {
-      props: { video },
-      global,
-      shallow: true,
-    })
-    const image = wrapper.get('img.thumb')
-
-    expect(image.attributes('src')).toBe(video.thumb)
-    await image.trigger('mouseenter')
-    expect(image.attributes('src')).toBe('blob:preview-1')
-
-    await vi.advanceTimersByTimeAsync(500)
-    expect(image.attributes('src')).toBe('blob:preview-2')
-
-    await vi.advanceTimersByTimeAsync(500)
-    expect(image.attributes('src')).toBe('blob:preview-1')
-    expect(mocks.useCases.updateThumbUseCase.execute).not.toHaveBeenCalled()
-
-    await image.trigger('mouseleave')
-    expect(image.attributes('src')).toBe(video.thumb)
-    wrapper.unmount()
-  })
-
-  test('reuses URLs for reordered Blobs and revokes only removed frames', async () => {
-    const first = frame(3, 'first')
-    const second = frame(7, 'second')
-    const third = frame(11, 'third')
+describe('VideoCard independent preview products', () => {
+  test('lends only granular keyframes to the player and revokes their URLs', async () => {
+    const products = buildPreviewProducts()
     const { global } = createPresentationTestContext()
     const wrapper = mount(VideoCard, {
       props: {
         video: buildParsedVideo({
-          id: 'video-1',
-          previewFrames: [first, second],
+          ...products,
+          previewFrames: products.keyframes.slice(0, 1),
+          thumbUrls: ['legacy'],
         }),
       },
       global,
       shallow: true,
     })
-
-    await wrapper.setProps({
-      video: buildParsedVideo({
-        id: 'video-1',
-        previewFrames: [second, first],
-      }),
-    })
-    expect(createObjectURL).toHaveBeenCalledTimes(2)
-    expect(revokeObjectURL).not.toHaveBeenCalled()
-
-    await wrapper.setProps({
-      video: buildParsedVideo({
-        id: 'video-1',
-        previewFrames: [second, third],
-      }),
-    })
-
-    expect(createObjectURL).toHaveBeenCalledTimes(3)
-    expect(revokeObjectURL).toHaveBeenCalledOnce()
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:preview-1')
-
+    await wrapper.get('.pin').trigger('click')
+    expect(wrapper.getComponent(VideoEmbed).props('previewFrames')).toEqual(
+      products.keyframes.map((frame, index) => ({
+        timestampSeconds: frame.timestampSeconds,
+        width: 160,
+        height: 90,
+        url: 'blob:keyframe-' + (index + 1),
+      })),
+    )
+    expect(wrapper.findComponent(MotionPreview).exists()).toBe(false)
     wrapper.unmount()
-    expect(revokeObjectURL).toHaveBeenCalledTimes(3)
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:preview-2')
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:preview-3')
+    expect(revokeUrl).toHaveBeenCalledTimes(4)
   })
 
-  test('keeps legacy preview URLs usable without creating object URLs', async () => {
+  test('uses hover for motion while keeping the cover, with no still slideshow fallback', async () => {
     vi.useFakeTimers()
+    const { global } = createPresentationTestContext()
     const video = buildParsedVideo({
-      id: 'video-1',
-      duration: 90,
-      thumb: 'data:image/jpeg;base64,cover',
-      thumbUrls: [
-        'data:image/jpeg;base64,legacy-1',
-        'data:image/jpeg;base64,legacy-2',
-      ],
-      previewFrames: [],
+      ...buildPreviewProducts(),
+      thumb: 'cover',
+      thumbUrls: ['legacy-1', 'legacy-2'],
     })
-    const { global, mocks } = createPresentationTestContext()
     const wrapper = mount(VideoCard, {
       props: { video },
       global,
       shallow: true,
     })
     const image = wrapper.get('img.thumb')
-
     await image.trigger('mouseenter')
-    expect(image.attributes('src')).toBe(video.thumbUrls[0])
+    expect(wrapper.getComponent(MotionPreview).props('active')).toBe(true)
+    await vi.advanceTimersByTimeAsync(1100)
+    expect(image.attributes('src')).toBe('cover')
+    await image.trigger('mouseleave')
+    expect(wrapper.getComponent(MotionPreview).props('active')).toBe(false)
+    await wrapper.setProps({
+      video: buildParsedVideo({ thumb: 'cover', thumbUrls: ['legacy-1'] }),
+    })
+    await image.trigger('mouseenter')
+    await vi.advanceTimersByTimeAsync(600)
+    expect(image.attributes('src')).toBe('cover')
+    await wrapper.get('.pin').trigger('click')
+    expect(wrapper.getComponent(VideoEmbed).props('previewFrames')).toEqual([])
+    wrapper.unmount()
+  })
 
-    await vi.advanceTimersByTimeAsync(500)
-    expect(image.attributes('src')).toBe(video.thumbUrls[1])
-    await vi.advanceTimersByTimeAsync(300)
+  test('reuses keyframe URLs on reorder and releases removed frames', async () => {
+    const { global } = createPresentationTestContext()
+    const frames = buildPreviewProducts().keyframes
+    const wrapper = mount(VideoCard, {
+      props: { video: buildParsedVideo({ keyframes: frames.slice(0, 2) }) },
+      global,
+      shallow: true,
+    })
+    await wrapper.setProps({
+      video: buildParsedVideo({ keyframes: [frames[1], frames[0]] }),
+    })
+    expect(createUrl).toHaveBeenCalledTimes(2)
+    expect(revokeUrl).not.toHaveBeenCalled()
+    await wrapper.setProps({
+      video: buildParsedVideo({ keyframes: frames.slice(1, 3) }),
+    })
+    expect(createUrl).toHaveBeenCalledTimes(3)
+    expect(revokeUrl).toHaveBeenCalledWith('blob:keyframe-1')
+    wrapper.unmount()
+    expect(revokeUrl).toHaveBeenCalledTimes(3)
+  })
 
-    expect(createObjectURL).not.toHaveBeenCalled()
-    expect(mocks.useCases.updateThumbUseCase.execute).not.toHaveBeenCalled()
-
+  test('cleans partial keyframe URL allocation and leaves seeking available', async () => {
+    createUrl
+      .mockImplementationOnce(() => 'blob:first')
+      .mockImplementationOnce(() => {
+        throw new Error('allocation')
+      })
+    const { global } = createPresentationTestContext()
+    const wrapper = mount(VideoCard, {
+      props: { video: buildParsedVideo(buildPreviewProducts()) },
+      global,
+      shallow: true,
+    })
+    expect(revokeUrl).toHaveBeenCalledWith('blob:first')
+    await wrapper.get('.pin').trigger('click')
+    expect(wrapper.getComponent(VideoEmbed).props('previewFrames')).toEqual([])
+    expect(wrapper.text()).toContain('Preview display unavailable')
     wrapper.unmount()
   })
 })

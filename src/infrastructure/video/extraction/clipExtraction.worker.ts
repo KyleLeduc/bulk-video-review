@@ -9,7 +9,14 @@ import {
   StreamTarget,
   WebMOutputFormat,
 } from 'mediabunny'
-import { createBenchmarkFileReader } from './benchmarkFileReader'
+import { createFileReader } from './fileReader'
+import {
+  motionClipWindows,
+  MOTION_FRAME_RATE,
+  MOTION_SECONDS,
+} from '../../../domain/services/videoPreviewPolicy'
+import { createPlayerTimelineGuard } from './playerTimeline'
+import type { MotionRequest } from './clipWorkerClient'
 import {
   boundedClipBuffer,
   clipDimensions,
@@ -30,15 +37,34 @@ import {
 
 // One file per disposable worker; the client terminates it on cancellation/deadline.
 self.onmessage = async (
-  event: MessageEvent<{ file: File; frameRate: unknown; clipSeconds: unknown }>,
+  event: MessageEvent<
+    {
+      file: File
+      frameRate: unknown
+      clipSeconds: unknown
+    } & Partial<MotionRequest>
+  >,
 ) => {
   const started = performance.now()
   let input: Input | undefined
   let conversion: Conversion | undefined
+  let timeline: ReturnType<typeof createPlayerTimelineGuard> | undefined
   let reply: { ok: true; output: ClipOutput } | { ok: false; reason: string }
   try {
     const frameRate = validateClipFrameRate(event.data?.frameRate)
     const clipSeconds = validateClipSeconds(event.data?.clipSeconds)
+    if (event.data.kind !== undefined && event.data.kind !== 'motion')
+      throw new ExtractionError('invalid-metadata')
+    const motion = event.data.kind === 'motion'
+    if (motion) {
+      if (
+        !motionClipWindows(event.data.duration!).length ||
+        frameRate !== MOTION_FRAME_RATE ||
+        clipSeconds !== MOTION_SECONDS
+      )
+        throw new ExtractionError('invalid-metadata')
+      timeline = createPlayerTimelineGuard()
+    }
     if (
       typeof VideoEncoder === 'undefined' ||
       typeof VideoDecoder === 'undefined' ||
@@ -48,7 +74,7 @@ self.onmessage = async (
     const { file } = event.data
     if (!(file instanceof File)) throw new ExtractionError('invalid-metadata')
     const reads = emptyMetrics()
-    const reader = createBenchmarkFileReader(file, 'buffered-1mib', reads, 100)
+    const reader = createFileReader(file, 'buffered-1mib', reads, 100)
     input = new Input({
       formats: [MP4],
       source: new CustomSource({
@@ -70,14 +96,17 @@ self.onmessage = async (
       await track.getDisplayWidth(),
       await track.getDisplayHeight(),
     )
-    const startTime = Math.max(0, await track.getFirstTimestamp())
-    const windows = clipWindows(
-      (await track.computeDuration()) - startTime,
-      clipSeconds,
-    ).map((window) => ({
-      start: window.start + startTime,
-      end: window.end + startTime,
-    }))
+    if (motion) await timeline!.check(track, event.data.duration!)
+    const startTime = motion ? 0 : Math.max(0, await track.getFirstTimestamp())
+    const windows = motion
+      ? motionClipWindows(event.data.duration!)
+      : clipWindows(
+          (await track.computeDuration()) - startTime,
+          clipSeconds,
+        ).map((window) => ({
+          start: window.start + startTime,
+          end: window.end + startTime,
+        }))
     const codec = (await canEncodeVideo('avc', {
       ...dimensions,
       bitrate: 250000,
@@ -134,6 +163,7 @@ self.onmessage = async (
       )
         throw new ExtractionError('unsupported')
       await conversion.execute()
+      timeline?.assertSupported()
       metrics.conversionMs += performance.now() - conversionStarted
       const blob = buffer.blob(format.mimeType)
       outputBytes += blob.size
@@ -170,6 +200,7 @@ self.onmessage = async (
     } catch {
       reply = { ok: false, reason: 'extraction-failed' }
     }
+    timeline?.dispose()
   }
   // Host wall time additionally includes worker startup/message delivery.
   if (reply!.ok) reply.output.metrics.totalMs = performance.now() - started

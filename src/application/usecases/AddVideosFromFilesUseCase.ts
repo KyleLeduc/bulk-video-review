@@ -127,6 +127,9 @@ export class AddVideosFromFilesUseCase {
             url: '',
             pinned: false,
             previewFrames: [],
+            motionClips: [],
+            keyframes: [],
+            previewVersions: {},
           })
           this.logger.debug('[add-videos] partition:item:cached', {
             itemIndex: index + 1,
@@ -270,6 +273,9 @@ export class AddVideosFromFilesUseCase {
       url: '',
       pinned: false,
       previewFrames: [],
+      motionClips: [],
+      keyframes: [],
+      previewVersions: {},
     }
   }
 

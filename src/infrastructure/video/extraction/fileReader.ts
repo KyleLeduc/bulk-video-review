@@ -5,13 +5,13 @@ import {
   type ExtractionMetrics,
 } from './previewExtraction'
 
-export type BenchmarkReaderMode = 'direct' | 'buffered-1mib'
+export type FileReaderMode = 'direct' | 'buffered-1mib'
 const WINDOW_BYTES = 1024 * 1024
 
-// Benchmark-only I/O boundary. These limits do not bound parser/decoder memory.
-export function createBenchmarkFileReader(
+// File I/O boundary. These limits do not bound parser/decoder memory.
+export function createFileReader(
   file: Blob,
-  mode: BenchmarkReaderMode,
+  mode: FileReaderMode,
   metrics: ExtractionMetrics,
   count: PreviewCount = 9,
 ) {

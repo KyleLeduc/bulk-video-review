@@ -5,9 +5,14 @@ const state = vi.hoisted(() => ({
   encoderAvailable: true,
   avcAvailable: true,
   options: undefined as unknown,
+  first: 0,
+  end: 3,
+  warnOnConversion: false,
+  warn: undefined as undefined | ((args: unknown[]) => void),
+  removeWarning: vi.fn(),
 }))
-vi.mock('./benchmarkFileReader', () => ({
-  createBenchmarkFileReader: (
+vi.mock('./fileReader', () => ({
+  createFileReader: (
     _file: File,
     _mode: string,
     metrics: { readMs: number; readMaxMs: number },
@@ -24,8 +29,9 @@ vi.mock('mediabunny', () => {
     getCodedHeight: async () => 90,
     getDisplayWidth: async () => 160,
     getDisplayHeight: async () => 90,
-    getFirstTimestamp: async () => 0,
-    computeDuration: async () => 3,
+    getFirstTimestamp: async () => state.first,
+    computeDuration: async () => state.end,
+    getTimeResolution: async () => 1000,
     isVideoTrack: () => true,
   }
   class StreamTarget {
@@ -35,6 +41,12 @@ vi.mock('mediabunny', () => {
     constructor(public options: { target: StreamTarget }) {}
   }
   return {
+    Logging: {
+      on: (_event: string, listener: (args: unknown[]) => void) => {
+        state.warn = listener
+        return state.removeWarning
+      },
+    },
     MP4: {},
     CustomSource: class {},
     Input: class {
@@ -60,6 +72,8 @@ vi.mock('mediabunny', () => {
           isValid: true,
           utilizedTracks: [track],
           execute: async () => {
+            if (state.warnOnConversion)
+              state.warn?.(['Unsupported edit list: multiple edits'])
             const writer = options.output.options.target.writable.getWriter()
             await writer.write({
               type: 'write',
@@ -79,12 +93,21 @@ vi.mock('mediabunny', () => {
   }
 })
 afterEach(() => {
+  state.first = 0
+  state.end = 3
+  state.warnOnConversion = false
+  state.removeWarning.mockClear()
   state.avcAvailable = true
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
   vi.resetModules()
 })
-async function run(frameRate: unknown, clipSeconds: unknown = 3) {
+async function run(
+  frameRate: unknown,
+  clipSeconds: unknown = 3,
+  duration?: number,
+  kind = 'motion',
+) {
   state.now = 0
   const postMessage = vi.fn()
   const worker = {
@@ -100,10 +123,45 @@ async function run(frameRate: unknown, clipSeconds: unknown = 3) {
   vi.spyOn(performance, 'now').mockImplementation(() => state.now)
   await import('./clipExtraction.worker')
   await worker.onmessage?.({
-    data: { file: new File(['mp4'], 'private.mp4'), frameRate, clipSeconds },
+    data: {
+      file: new File(['mp4'], 'private.mp4'),
+      frameRate,
+      clipSeconds,
+      ...(duration === undefined ? {} : { kind, duration }),
+    },
   } as MessageEvent)
   return postMessage.mock.calls[0][0]
 }
+it('uses explicit player time for motion instead of shifting by a negative packet start', async () => {
+  state.encoderAvailable = true
+  state.first = -1
+  state.end = 6
+  const reply = await run(20, 1.5, 6)
+  expect(reply.ok).toBe(true)
+  expect(
+    reply.output.clips.map((clip: { start: number }) => clip.start),
+  ).toEqual([0, 3])
+  expect(state.options).toMatchObject({
+    trim: { start: 3, end: 4.5 },
+    video: { frameRate: 20 },
+  })
+  expect(state.removeWarning).toHaveBeenCalledOnce()
+})
+it('discards production motion when conversion discovers unsupported edits', async () => {
+  state.encoderAvailable = true
+  state.warnOnConversion = true
+  expect(await run(20, 1.5, 3)).toEqual({
+    ok: false,
+    reason: 'unsupported-timeline',
+  })
+  expect(state.removeWarning).toHaveBeenCalledOnce()
+})
+it('rejects unknown workloads instead of running a legacy benchmark', async () => {
+  expect(await run(20, 1.5, 3, 'unknown')).toEqual({
+    ok: false,
+    reason: 'invalid-metadata',
+  })
+})
 it.each([0.5, 1, 1.5, 2])(
   'trims and reports %s seconds at 20 FPS',
   async (clipSeconds) => {

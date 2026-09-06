@@ -1,7 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import * as utils from '../services/videoDomUtils'
 import { extractWithDom } from './domPreviewExtraction'
-import { prepareTargets } from './previewExtraction'
+import { prepareTargets } from '../extraction/previewExtraction'
 
 afterEach(() => vi.restoreAllMocks())
 it.each([9, 100] as const)(

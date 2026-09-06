@@ -11,6 +11,38 @@ import {
 import { VideoAggregateRepository } from './VideoAggregateRepository'
 
 describe('VideoAggregateRepository', () => {
+  test('a failed deletion does not settle wipe while sibling deletions are active', async () => {
+    let finish = () => {}
+    const failure = new Error('delete failed')
+    const metadata = {
+      getAllMetadata: vi.fn(async () => [{ id: 'one', votes: 0 }]),
+      deleteMetadata: vi.fn(async () => {
+        throw failure
+      }),
+    } as unknown as IMetadataRepository
+    const videos = {
+      getAllVideos: vi.fn(async () => [buildVideoEntity()]),
+      deleteVideo: vi.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            finish = resolve
+          }),
+      ),
+    } as unknown as IVideoRepository
+    const settled = vi.fn()
+    const pending = new VideoAggregateRepository(
+      metadata,
+      videos,
+      buildLogger(),
+    )
+      .wipeData()
+      .catch(settled)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(settled).not.toHaveBeenCalled()
+    finish()
+    await pending
+    expect(settled).toHaveBeenCalledWith(failure)
+  })
   test('updating video content does not overwrite newer votes from stale input', async () => {
     const metadataRepository: IMetadataRepository = {
       getMetadata: vi.fn(async () => ({ id: 'id-1', votes: 3 })),

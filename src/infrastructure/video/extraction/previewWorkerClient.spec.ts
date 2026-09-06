@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { extractWithWorker } from './previewWorkerClient'
+import {
+  extractWithWorker,
+  extractKeyframesWithWorker,
+} from './previewWorkerClient'
 import { emptyMetrics, prepareTargets } from './previewExtraction'
 
 class FakeWorker {
@@ -54,6 +57,64 @@ describe('disposable extraction worker', () => {
     expect(worker.terminate).toHaveBeenCalledOnce()
     expect(worker.onmessage).toBeNull()
   })
+  it.each(['valid', 'short', 'oversized', 'warning'] as const)(
+    'validates the distinct keyframe reply (%s)',
+    async (kind) => {
+      const worker = setup()
+      const promise = extractKeyframesWithWorker(
+        file,
+        60,
+        new AbortController().signal,
+        160,
+      )
+      expect(worker.postMessage).toHaveBeenCalledWith({
+        file,
+        kind: 'keyframes',
+        duration: 60,
+        maxWidth: 160,
+      })
+      const output = {
+        metrics: { ...emptyMetrics(), readMs: 1, readMaxMs: 1 },
+        frames: Array(kind === 'short' ? 3 : 4).fill(
+          new Blob(['jpeg'], { type: 'image/jpeg' }),
+        ),
+        width: kind === 'oversized' ? 320 : 160,
+        height: 90,
+        readBytes: 4,
+        readCalls: 1,
+      }
+      worker.onmessage?.({
+        data:
+          kind === 'warning'
+            ? { ok: false, reason: 'unsupported-timeline' }
+            : { ok: true, output },
+      } as MessageEvent)
+      if (kind === 'valid') await expect(promise).resolves.toMatchObject(output)
+      else
+        await expect(promise).rejects.toThrow(
+          kind === 'warning' ? 'unsupported-timeline' : 'output-invalid',
+        )
+      expect(worker.terminate).toHaveBeenCalledOnce()
+    },
+  )
+  it.each(['abort', 'deadline'] as const)(
+    'retires a keyframe worker on %s and ignores late replies',
+    async (reason) => {
+      vi.useFakeTimers()
+      const worker = setup()
+      const controller = new AbortController()
+      const pending = extractKeyframesWithWorker(file, 60, controller.signal)
+      const late = worker.onmessage
+      const rejection = expect(pending).rejects.toMatchObject(
+        reason === 'abort' ? { name: 'AbortError' } : { message: 'deadline' },
+      )
+      if (reason === 'abort') controller.abort()
+      else await vi.advanceTimersByTimeAsync(120000)
+      await rejection
+      late?.({ data: { ok: false, reason: 'private' } } as MessageEvent)
+      expect(worker.terminate).toHaveBeenCalledOnce()
+    },
+  )
   it('terminates when cancelled, including before startup', async () => {
     const worker = setup()
     const controller = new AbortController()

@@ -3,6 +3,7 @@ import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import type {
   FilterVideosUseCase,
   UpdateVideoThumbnailsUseCase,
+  UpdateVideoPreviewsUseCase,
   UpdateVideoVotesUseCase,
   VideoIngestionUseCase,
   WipeVideoDataUseCase,
@@ -16,6 +17,10 @@ export const FILTER_VIDEOS_USE_CASE_KEY: InjectionKey<FilterVideosUseCase> =
 
 export const UPDATE_THUMB_USE_CASE_KEY: InjectionKey<UpdateVideoThumbnailsUseCase> =
   Symbol('UpdateVideoThumbnailsUseCase')
+
+export const UPDATE_PREVIEWS_USE_CASE_KEY: InjectionKey<
+  Pick<UpdateVideoPreviewsUseCase, 'execute'>
+> = Symbol('UpdateVideoPreviewsUseCase')
 
 export const UPDATE_VOTES_USE_CASE_KEY: InjectionKey<UpdateVideoVotesUseCase> =
   Symbol('UpdateVideoVotesUseCase')

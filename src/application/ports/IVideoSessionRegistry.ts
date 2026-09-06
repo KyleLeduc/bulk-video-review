@@ -6,6 +6,7 @@
  */
 export interface IVideoSessionRegistry {
   registerFile(videoId: string, file: File): void
+  getFile(videoId: string): File | null
   unregisterFile(videoId: string): void
   acquireObjectUrl(videoId: string): string | null
   releaseObjectUrl(videoId: string): void

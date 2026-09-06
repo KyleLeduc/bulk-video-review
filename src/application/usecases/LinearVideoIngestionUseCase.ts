@@ -1,4 +1,9 @@
 import type { ParsedVideo } from '@domain/entities'
+import type { IVideoPreviewCacheRepository } from '@domain/repositories/IVideoPreviewCacheRepository'
+import {
+  hasCompleteMotionClips,
+  hasCompleteKeyframes,
+} from '@domain/services/videoPreviewPolicy'
 import { measureVideoProcessing } from '@app/services/videoProcessingTiming'
 import type { VideoProcessingTimingObserver } from '@app/ports/VideoProcessingTiming'
 import type { VideoImportItem } from '@domain/valueObjects'
@@ -75,6 +80,7 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
     private readonly logger: ILogger,
     private readonly failureTracker: IVideoIngestionFailureTracker,
     private readonly previewRepository?: IVideoPreviewRepository,
+    private readonly previewCache?: IVideoPreviewCacheRepository,
   ) {}
 
   async *execute(
@@ -493,6 +499,30 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
           })
         }
 
+        if (this.previewCache) {
+          try {
+            const products = await this.previewCache.getProducts(
+              id,
+              parsedVideo.duration,
+            )
+            const hydrated = { ...parsedVideo, ...products }
+            if (hasCompleteMotionClips(hydrated)) {
+              parsedVideo.motionClips = products.motionClips
+              parsedVideo.previewVersions.motionClips =
+                products.previewVersions.motionClips
+            }
+            if (hasCompleteKeyframes(hydrated)) {
+              parsedVideo.keyframes = products.keyframes
+              parsedVideo.previewVersions.keyframes =
+                products.previewVersions.keyframes
+            }
+          } catch {
+            this.logger.warn(
+              '[linear-ingestion] preview-products:hydrate:failed',
+              { id },
+            )
+          }
+        }
         this.sessionRegistry.registerFile(id, item.file)
         return { status: 'cached', video: parsedVideo }
       }
@@ -682,6 +712,9 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
       url: '',
       pinned: false,
       previewFrames: [],
+      motionClips: [],
+      keyframes: [],
+      previewVersions: {},
     }
   }
 
@@ -703,6 +736,7 @@ export interface LinearVideoIngestionUseCaseDeps {
   logger: ILogger
   failureTracker: IVideoIngestionFailureTracker
   previewRepository: IVideoPreviewRepository
+  previewCache?: IVideoPreviewCacheRepository
 }
 
 export function createLinearVideoIngestionUseCase({
@@ -712,6 +746,7 @@ export function createLinearVideoIngestionUseCase({
   logger,
   failureTracker,
   previewRepository,
+  previewCache,
 }: LinearVideoIngestionUseCaseDeps): LinearVideoIngestionUseCase {
   return new LinearVideoIngestionUseCase(
     metadataExtractor,
@@ -720,5 +755,6 @@ export function createLinearVideoIngestionUseCase({
     logger,
     failureTracker,
     previewRepository,
+    previewCache,
   )
 }

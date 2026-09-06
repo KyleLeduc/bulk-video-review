@@ -1,4 +1,5 @@
 import type { ParsedVideo } from '../entities'
+import { hasCompleteMotionClips } from './videoPreviewPolicy'
 import type {
   VideoFilterOptions,
   VideoFilterRequest,
@@ -58,9 +59,9 @@ const matchesCriteria = (
     case 'all':
       return true
     case 'ready':
-      return video.previewFrames.length > 1 || video.thumbUrls.length > 1
+      return hasCompleteMotionClips(video)
     case 'missing':
-      return video.previewFrames.length <= 1 && video.thumbUrls.length <= 1
+      return !hasCompleteMotionClips(video)
     default: {
       const unsupportedPreviewAvailability: never = previewAvailability
       throw new Error(

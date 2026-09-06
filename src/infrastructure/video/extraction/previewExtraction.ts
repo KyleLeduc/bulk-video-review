@@ -63,6 +63,7 @@ export type ExtractionOutput = {
 }
 const reasons = [
   'unsupported',
+  'unsupported-timeline',
   'invalid-metadata',
   'read-limit',
   'output-invalid',

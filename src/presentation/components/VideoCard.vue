@@ -12,11 +12,17 @@
         <img
           class="thumb"
           v-if="!state.showVideo"
-          :src="currentThumbUrl"
+          :src="props.video.thumb"
           @mouseenter="startThumbRotation"
           @mouseleave="stopThumbRotation"
           alt=""
           srcset=""
+        />
+        <MotionPreview
+          v-if="!state.showVideo"
+          :clips="props.video.motionClips"
+          :active="isThumbnailHovered"
+          @error="previewDisplayError = true"
         />
         <VideoEmbed
           v-else
@@ -154,10 +160,11 @@
 </template>
 
 <script setup lang="ts">
-import { hasCompletePreviews } from '@app/services/previewCompleteness'
+import { hasCompleteVideoPreviews } from '@app/services/previewCompleteness'
 import type { ParsedVideo } from '@domain/entities'
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
+import MotionPreview from './MotionPreview.vue'
 import { useVideoStore } from '@presentation/stores'
 
 const videoStore = useVideoStore()
@@ -171,12 +178,10 @@ const emit = defineEmits<{
 
 interface State {
   showVideo: boolean
-  thumbIndex: number
 }
 
 const state = reactive<State>({
   showVideo: false,
-  thumbIndex: 0,
 })
 
 type DisplayPreviewFrame = {
@@ -188,14 +193,10 @@ type DisplayPreviewFrame = {
 
 const displayPreviewFrames = ref<DisplayPreviewFrame[]>([])
 const previewObjectUrls = new Map<Blob, string>()
-const isRotatingThumbnails = ref(false)
+const previewDisplayError = ref(false)
 const isThumbnailHovered = ref(false)
-const prefersReducedMotion =
-  typeof window !== 'undefined' &&
-  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
-
 const syncDisplayPreviewFrames = () => {
-  const frames = [...props.video.previewFrames].sort(
+  const frames = [...props.video.keyframes].sort(
     (left, right) => left.timestampSeconds - right.timestampSeconds,
   )
   const currentBlobs = new Set(frames.map((frame) => frame.blob))
@@ -207,59 +208,38 @@ const syncDisplayPreviewFrames = () => {
     }
   })
 
-  displayPreviewFrames.value =
-    frames.length > 0
-      ? frames.map((frame) => {
-          let url = previewObjectUrls.get(frame.blob)
-          if (!url) {
-            url = URL.createObjectURL(frame.blob)
-            previewObjectUrls.set(frame.blob, url)
-          }
-
-          return {
-            timestampSeconds: frame.timestampSeconds,
-            url,
-            width: frame.width,
-            height: frame.height,
-          }
-        })
-      : props.video.thumbUrls.map((url, index, legacyFrames) => ({
-          timestampSeconds:
-            Number.isFinite(props.video.duration) && props.video.duration > 0
-              ? (props.video.duration * (index + 1)) / (legacyFrames.length + 1)
-              : index,
-          url,
-          width: 480,
-          height: 270,
-        }))
-
-  if (state.thumbIndex >= displayPreviewFrames.value.length) {
-    state.thumbIndex = 0
+  try {
+    displayPreviewFrames.value = frames.map((frame) => {
+      let url = previewObjectUrls.get(frame.blob)
+      if (!url) {
+        url = URL.createObjectURL(frame.blob)
+        previewObjectUrls.set(frame.blob, url)
+      }
+      return {
+        timestampSeconds: frame.timestampSeconds,
+        url,
+        width: frame.width,
+        height: frame.height,
+      }
+    })
+    previewDisplayError.value = false
+  } catch {
+    previewObjectUrls.forEach((url) => URL.revokeObjectURL(url))
+    previewObjectUrls.clear()
+    displayPreviewFrames.value = []
+    previewDisplayError.value = true
   }
-
-  isRotatingThumbnails.value =
-    isThumbnailHovered.value &&
-    !prefersReducedMotion &&
-    displayPreviewFrames.value.length > 0
 }
-
-const currentThumbUrl = computed(() =>
-  isRotatingThumbnails.value && displayPreviewFrames.value.length > 0
-    ? displayPreviewFrames.value[state.thumbIndex]?.url || props.video.thumb
-    : props.video.thumb,
-)
-
+watch(() => props.video.keyframes, syncDisplayPreviewFrames, {
+  immediate: true,
+})
 watch(
-  [
-    () => props.video.previewFrames,
-    () => props.video.thumbUrls,
-    () => props.video.duration,
-  ],
-  syncDisplayPreviewFrames,
-  { immediate: true },
+  () => props.video.id,
+  () => {
+    stopThumbRotation()
+  },
 )
 
-const intervalId = ref<number | null>(null)
 const hoverWarmupTimeoutId = ref<number | null>(null)
 const hoverWarmupProgressIntervalId = ref<number | null>(null)
 const hoverWarmupProgress = ref(0)
@@ -309,7 +289,7 @@ const beginHoverWarmupProgressAnimation = () => {
   if (
     hoverWarmupProgressIntervalId.value !== null ||
     isThumbnailJobActive.value ||
-    hasCompletePreviews(props.video)
+    hasCompleteVideoPreviews(props.video)
   ) {
     return
   }
@@ -327,23 +307,14 @@ const beginHoverWarmupProgressAnimation = () => {
   }, 16)
 }
 
-const updateThumbSrc = () => {
-  if (displayPreviewFrames.value.length > 0) {
-    state.thumbIndex =
-      (state.thumbIndex + 1) % displayPreviewFrames.value.length
-  }
-}
-
 const startThumbRotation = () => {
   isThumbnailHovered.value = true
-  state.thumbIndex = 0
-  isRotatingThumbnails.value =
-    !prefersReducedMotion && displayPreviewFrames.value.length > 0
 
   if (
     hoverWarmupTimeoutId.value === null &&
-    !hasCompletePreviews(props.video) &&
-    !isThumbnailJobActive.value
+    !hasCompleteVideoPreviews(props.video) &&
+    !isThumbnailJobActive.value &&
+    thumbnailJobState.value !== 'failed'
   ) {
     beginHoverWarmupProgressAnimation()
 
@@ -354,16 +325,10 @@ const startThumbRotation = () => {
       hoverWarmupTimeoutId.value = null
     }, HOVER_WARMUP_DELAY_MS)
   }
-
-  if (!prefersReducedMotion && intervalId.value === null) {
-    intervalId.value = window.setInterval(updateThumbSrc, 500)
-  }
 }
 
 const stopThumbRotation = () => {
   isThumbnailHovered.value = false
-  isRotatingThumbnails.value = false
-  state.thumbIndex = 0
 
   if (hoverWarmupTimeoutId.value !== null) {
     clearTimeout(hoverWarmupTimeoutId.value)
@@ -373,11 +338,6 @@ const stopThumbRotation = () => {
   clearHoverWarmupProgressAnimation(!isThumbnailJobActive.value)
   if (isThumbnailJobActive.value) {
     hoverWarmupProgress.value = 1
-  }
-
-  if (intervalId.value !== null) {
-    clearInterval(intervalId.value)
-    intervalId.value = null
   }
 }
 
@@ -484,14 +444,25 @@ const videoMetaEntries = computed(() => {
     value: formatDurationWithSeconds(props.video.duration),
   })
 
-  const thumbs =
-    props.video.previewFrames.length > 0
-      ? props.video.previewFrames.length
-      : props.video.thumbUrls.length
   values.push({
-    key: 'thumbnail count',
-    value: thumbs ? `${thumbs} thumbnail(s)` : 'No additional thumbnails',
+    key: 'motion clips',
+    value: String(props.video.motionClips.length),
   })
+  values.push({
+    key: 'seek thumbnails',
+    value: String(props.video.keyframes.length),
+  })
+  const diagnostic = videoStore.getThumbnailJobDiagnostic(props.video.id)
+  for (const [kind, reason] of Object.entries(diagnostic?.failures ?? {})) {
+    values.push({ key: kind, value: reason })
+  }
+  if (diagnostic?.cacheFailures?.length)
+    values.push({
+      key: 'cache',
+      value: 'Not saved: ' + diagnostic.cacheFailures.join(', '),
+    })
+  if (previewDisplayError.value)
+    values.push({ key: 'preview', value: 'Preview display unavailable' })
 
   values.push({
     key: 'tags',

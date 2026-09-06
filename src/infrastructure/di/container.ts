@@ -8,6 +8,7 @@ export const {
   videoQueryAdapter,
   addVideosUseCase,
   updateThumbUseCase,
+  updatePreviewsUseCase,
   updateVotesUseCase,
   wipeVideoDataUseCase,
   filterVideosUseCase,

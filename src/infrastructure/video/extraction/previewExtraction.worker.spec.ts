@@ -4,11 +4,26 @@ import { afterEach, expect, it, vi } from 'vitest'
 const state = vi.hoisted(() => ({
   events: [] as string[],
   fail: false,
+  sinkTargets: [] as number[],
+  timestamps: 'valid' as
+    | 'valid'
+    | 'future'
+    | 'backward'
+    | 'nan'
+    | 'warning'
+    | 'empty',
+  warn: undefined as undefined | ((args: unknown[]) => void),
   read: undefined as
     | undefined
     | ((start: number, end: number) => Promise<Uint8Array>),
 }))
 vi.mock('mediabunny', () => ({
+  Logging: {
+    on: (_event: string, listener: (args: unknown[]) => void) => {
+      state.warn = listener
+      return () => {}
+    },
+  },
   MP4: {},
   CustomSource: class {
     constructor(options: {
@@ -29,6 +44,9 @@ vi.mock('mediabunny', () => ({
         getDisplayWidth: async () => 160,
         getDisplayHeight: async () => 90,
         canDecode: async () => true,
+        getFirstTimestamp: async () => -0.1,
+        computeDuration: async () => 60,
+        getTimeResolution: async () => 1000,
       }
     }
     dispose() {
@@ -37,12 +55,30 @@ vi.mock('mediabunny', () => ({
   },
   CanvasSink: class {
     async *canvasesAtTimestamps(targets: number[]) {
-      for (let i = 0; i < targets.length; i++)
-        yield { canvas: new OffscreenCanvas(160, 90) }
+      state.sinkTargets = targets
+      if (state.timestamps === 'empty') return
+      for (let i = 0; i < targets.length; i++) {
+        if (state.timestamps === 'warning')
+          state.warn?.(['Unsupported edit list: rate'])
+        const timestamp =
+          state.timestamps === 'future'
+            ? targets[i] + 5
+            : state.timestamps === 'nan'
+              ? NaN
+              : state.timestamps === 'backward' && i === 2
+                ? -1
+                : targets[i]
+        yield {
+          canvas: new OffscreenCanvas(160, 90),
+          timestamp,
+          duration: 0.05,
+        }
+      }
     }
   },
 }))
 afterEach(() => {
+  state.timestamps = 'valid'
   vi.unstubAllGlobals()
   vi.resetModules()
 })
@@ -103,5 +139,46 @@ it.each([
       expect(
         (reply[0] as { output: { frames: Blob[] } }).output.frames,
       ).toHaveLength(count)
+  },
+)
+
+async function runKeyframes() {
+  state.fail = false
+  const host = { onmessage: null as unknown, postMessage: vi.fn() }
+  vi.stubGlobal('self', host)
+  vi.stubGlobal('VideoDecoder', class {})
+  vi.stubGlobal(
+    'OffscreenCanvas',
+    class {
+      async convertToBlob() {
+        return new Blob(['jpeg'], { type: 'image/jpeg' })
+      }
+    },
+  )
+  await import('./previewExtraction.worker')
+  await (host.onmessage as (event: unknown) => Promise<void>)({
+    data: {
+      file: new File(['mp4'], 'private.mp4'),
+      kind: 'keyframes',
+      duration: 60,
+      maxWidth: 160,
+    },
+  })
+  return host.postMessage.mock.calls[0][0]
+}
+it('extracts a distinct keyframe workload with player-time targets and small dimensions', async () => {
+  const reply = await runKeyframes()
+  expect(state.sinkTargets).toEqual([0, 15, 30, 45])
+  expect(reply).toMatchObject({ ok: true, output: { width: 160, height: 90 } })
+  expect(reply.output.frames).toHaveLength(4)
+})
+it.each(['future', 'backward', 'nan', 'warning', 'empty'] as const)(
+  'rejects %s keyframe output without a partial product',
+  async (kind) => {
+    state.timestamps = kind
+    expect(await runKeyframes()).toEqual({
+      ok: false,
+      reason: kind === 'empty' ? 'output-invalid' : 'unsupported-timeline',
+    })
   },
 )

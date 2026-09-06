@@ -2,6 +2,13 @@ import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { createFilterVideosUseCase } from '@app/usecases'
+import type { PreviewEnrichmentOptions } from '@app/usecases/UpdateVideoPreviewsUseCase'
+import type { ParsedVideo } from '@domain/entities'
+import { UPDATE_PREVIEWS_USE_CASE_KEY } from '@presentation/di/injectionKeys'
+import {
+  MOTION_PREVIEW_VERSION,
+  KEYFRAME_PREVIEW_VERSION,
+} from '@domain/services/videoPreviewPolicy'
 import type {
   PinnedVideoMode,
   PreviewAvailability,
@@ -11,6 +18,7 @@ import type {
 import { useVideoFilterStore, useVideoStore } from '@presentation/stores'
 import {
   buildParsedVideo,
+  buildPreviewProducts,
   createPresentationTestContext,
 } from '@test-utils/index'
 
@@ -414,7 +422,8 @@ describe('useVideoFilterStore', () => {
         buildParsedVideo({
           id: 'ready',
           title: 'Charlie',
-          thumbUrls: ['a', 'b'],
+          duration: 60,
+          ...buildPreviewProducts(),
         }),
         buildParsedVideo({ id: 'one', title: 'Bravo', thumbUrls: ['a'] }),
         buildParsedVideo({ id: 'none', title: 'Alpha', thumbUrls: [] }),
@@ -604,25 +613,47 @@ describe('useVideoFilterStore', () => {
   })
 
   test('reacts to collection, pin, vote, and preview changes from the video store', async () => {
-    const { filterStore, videoStore } = mountStores({
+    const context = createPresentationTestContext({
       useCases: {
+        filterVideosUseCase: createFilterVideosUseCase(),
         updateVotesUseCase: {
           execute: vi.fn(async () => 3),
         },
-        updateThumbUseCase: {
-          execute: vi.fn(async (video) => ({
-            ...video,
-            thumbUrls: Array.from(
-              { length: 9 },
-              (_, index) => `preview-${index}`,
-            ),
-          })),
-        },
       },
     })
+    context.global.provide[UPDATE_PREVIEWS_USE_CASE_KEY as symbol] = {
+      execute: async (
+        video: ParsedVideo,
+        options: PreviewEnrichmentOptions,
+      ) => {
+        const products = buildPreviewProducts(video.duration)
+        options.onProduct?.({
+          kind: 'motionClips',
+          version: MOTION_PREVIEW_VERSION,
+          items: products.motionClips,
+        })
+        options.onProduct?.({
+          kind: 'keyframes',
+          version: KEYFRAME_PREVIEW_VERSION,
+          items: products.keyframes,
+        })
+        return {
+          video: { ...video, ...products },
+          failures: {},
+          cacheFailures: [],
+        }
+      },
+    }
+    const wrapper = mount(StoreHarness, { global: context.global })
+    const { filterStore, videoStore } = wrapper.vm as unknown as HarnessStores
 
     videoStore.addVideos([
-      buildParsedVideo({ id: 'reactive', votes: 1, thumbUrls: [] }),
+      buildParsedVideo({
+        id: 'reactive',
+        duration: 60,
+        votes: 1,
+        thumbUrls: [],
+      }),
       buildParsedVideo({ id: 'removed', votes: 100 }),
     ])
     expect(filterStore.totalCount).toBe(2)
@@ -649,5 +680,6 @@ describe('useVideoFilterStore', () => {
 
     await videoStore.updateVideoThumbnails('reactive')
     expect(ids(filterStore.filteredVideos)).toEqual(['reactive'])
+    wrapper.unmount()
   })
 })

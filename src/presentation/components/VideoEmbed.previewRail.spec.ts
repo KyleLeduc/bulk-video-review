@@ -232,7 +232,13 @@ describe('VideoEmbed preview rail', () => {
     ).toBe(25)
     expect(
       noFrames.find('[data-testid="video-preview-tooltip"]').exists(),
-    ).toBe(false)
+    ).toBe(true)
+    expect(noFrames.get('[data-testid="video-preview-time"]').text()).toBe(
+      '0:25',
+    )
+    expect(noFrames.find('[data-testid="video-preview-image"]').exists()).toBe(
+      false,
+    )
     noFrames.unmount()
 
     const noDuration = mountPlayer(previewFrames, 0)

@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import type { ParsedVideo } from '@domain/entities'
 import type { VideoFilterOptions, VideoSortOption } from '@domain/valueObjects'
 import { applyFilters } from './VideoFilterService'
+import { buildPreviewProducts } from '@test-utils/index'
 
 const buildVideo = (overrides: Partial<ParsedVideo> = {}): ParsedVideo => ({
   id: 'video-1',
@@ -10,6 +11,9 @@ const buildVideo = (overrides: Partial<ParsedVideo> = {}): ParsedVideo => ({
   duration: 120,
   thumbUrls: [],
   previewFrames: [],
+  motionClips: [],
+  keyframes: [],
+  previewVersions: {},
   tags: [],
   votes: 0,
   url: '',
@@ -20,7 +24,7 @@ const buildVideo = (overrides: Partial<ParsedVideo> = {}): ParsedVideo => ({
 const ids = (videos: ParsedVideo[]) => videos.map(({ id }) => id)
 
 describe('applyFilters', () => {
-  test('recognizes persisted Blob previews and legacy URLs without treating a single cover as ready', () => {
+  test('only complete motion qualifies as ready, not keyframes, legacy stills or covers', () => {
     const frame = {
       timestampSeconds: 1,
       blob: new Blob(['frame']),
@@ -39,16 +43,28 @@ describe('applyFilters', () => {
         thumbUrls: ['cover'],
       }),
       buildVideo({ id: 'missing' }),
+      buildVideo({ id: 'motion', ...buildPreviewProducts(120) }),
+      buildVideo({
+        id: 'keyframes',
+        ...buildPreviewProducts(120),
+        motionClips: [],
+      }),
     ]
 
     expect(
       ids(applyFilters({ videos, options: { previewAvailability: 'ready' } })),
-    ).toEqual(['blob-ready', 'legacy-ready'])
+    ).toEqual(['motion'])
     expect(
       ids(
         applyFilters({ videos, options: { previewAvailability: 'missing' } }),
       ),
-    ).toEqual(['cover-only', 'missing'])
+    ).toEqual([
+      'blob-ready',
+      'cover-only',
+      'keyframes',
+      'legacy-ready',
+      'missing',
+    ])
   })
 
   test('defaults to keep-visible and sorts each group by votes descending', () => {
@@ -159,6 +175,7 @@ describe('applyFilters', () => {
   test('combines search, duration, vote, and preview criteria with AND', () => {
     const matching = buildVideo({
       id: 'matching',
+      ...buildPreviewProducts(120),
       title: 'Demo.mp4',
       duration: 120,
       votes: 4,
@@ -166,6 +183,7 @@ describe('applyFilters', () => {
     })
     const wrongSearch = buildVideo({
       id: 'wrong-search',
+      ...buildPreviewProducts(120),
       title: 'Other.mp4',
       duration: 120,
       votes: 4,
@@ -173,6 +191,7 @@ describe('applyFilters', () => {
     })
     const wrongDuration = buildVideo({
       id: 'wrong-duration',
+      ...buildPreviewProducts(30),
       title: 'Demo.mp4',
       duration: 30,
       votes: 4,
@@ -180,6 +199,7 @@ describe('applyFilters', () => {
     })
     const wrongScore = buildVideo({
       id: 'wrong-score',
+      ...buildPreviewProducts(120),
       title: 'Demo.mp4',
       duration: 120,
       votes: 0,
@@ -215,11 +235,13 @@ describe('applyFilters', () => {
     expect(ids(result)).toEqual(['matching'])
   })
 
-  test('treats more than one thumbnail as ready and all others as missing', () => {
+  test('accepts a complete single short-video clip while still-only entries are missing', () => {
     const noPreviews = buildVideo({ id: 'none', thumbUrls: [] })
     const onePreview = buildVideo({ id: 'one', thumbUrls: ['thumb-1'] })
     const twoPreviews = buildVideo({
       id: 'two',
+      duration: 1,
+      ...buildPreviewProducts(1),
       thumbUrls: ['thumb-1', 'thumb-2'],
     })
     const videos = [noPreviews, onePreview, twoPreviews]

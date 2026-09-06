@@ -10,6 +10,12 @@ import type {
 } from '@app/usecases'
 import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import {
+  motionClipWindows,
+  keyframeTargets,
+  MOTION_PREVIEW_VERSION,
+  KEYFRAME_PREVIEW_VERSION,
+} from '@domain/services/videoPreviewPolicy'
+import {
   ADD_VIDEOS_USE_CASE_KEY,
   FILTER_VIDEOS_USE_CASE_KEY,
   LOGGER_KEY,
@@ -74,6 +80,7 @@ export const buildSessionRegistry = (
   overrides: Partial<IVideoSessionRegistry> = {},
 ): IVideoSessionRegistry => ({
   registerFile: vi.fn(),
+  getFile: vi.fn(() => null),
   unregisterFile: vi.fn(),
   acquireObjectUrl: vi.fn(() => null),
   releaseObjectUrl: vi.fn(),
@@ -107,7 +114,30 @@ export const buildParsedVideo = (
   url: '',
   pinned: false,
   previewFrames: [],
+  motionClips: [],
+  keyframes: [],
+  previewVersions: {},
   ...overrides,
+})
+
+export const buildPreviewProducts = (duration = 60) => ({
+  motionClips: motionClipWindows(duration).map(({ start, end }) => ({
+    timestampSeconds: start,
+    durationSeconds: end - start,
+    blob: new Blob(['clip'], { type: 'video/mp4' }),
+    width: 320,
+    height: 180,
+  })),
+  keyframes: keyframeTargets(duration).map((timestampSeconds) => ({
+    timestampSeconds,
+    blob: new Blob(['jpeg'], { type: 'image/jpeg' }),
+    width: 160,
+    height: 90,
+  })),
+  previewVersions: {
+    motionClips: MOTION_PREVIEW_VERSION,
+    keyframes: KEYFRAME_PREVIEW_VERSION,
+  },
 })
 
 export const createPresentationTestContext = (

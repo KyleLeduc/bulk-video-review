@@ -3,6 +3,7 @@ import {
   MetadataRepository,
   VideoAggregateRepository,
   VideoPreviewRepository,
+  VideoPreviewCacheRepository,
   VideoRepository,
 } from '@infra/repository'
 import {
@@ -16,6 +17,7 @@ import {
   VideoMetadataExtractorAdapter,
   VideoQueryAdapter,
   VideoThumbnailGeneratorAdapter,
+  MediabunnyVideoPreviewGenerator,
 } from '@infra/adapters'
 import {
   createLinearVideoIngestionUseCase,
@@ -23,12 +25,15 @@ import {
   createUpdateVideoThumbnailsUseCase,
   createUpdateVideoVotesUseCase,
   createWipeVideoDataUseCase,
+  UpdateVideoPreviewsUseCase,
 } from '@app/usecases'
 
 export function createVideoServices({
   databaseConnection,
+  previewMode = 'motion',
 }: {
   databaseConnection: DatabaseConnection
+  previewMode?: 'motion' | 'legacy-stills'
 }) {
   // Infrastructure dependencies
   const metadataRepository = new MetadataRepository(databaseConnection)
@@ -39,6 +44,11 @@ export function createVideoServices({
   )
   // Cross-cutting concern adapters
   const logger = new ConsoleLoggerAdapter()
+  // Versioned pipeline benchmarks explicitly retain the old cache and workload.
+  const previewCache =
+    previewMode === 'motion'
+      ? new VideoPreviewCacheRepository(logger)
+      : undefined
   const eventPublisher = new NoOpEventPublisher()
 
   const videoSessionRegistry = new VideoSessionRegistry(logger)
@@ -67,15 +77,28 @@ export function createVideoServices({
     logger,
     failureTracker: videoIngestionFailureTracker,
     previewRepository: videoPreviewRepository,
+    previewCache,
   })
 
-  const updateThumbUseCase = createUpdateVideoThumbnailsUseCase({
-    thumbnailGenerator: videoThumbnailGeneratorAdapter,
-    aggregateRepository: videoAggregateRepository,
-    sessionRegistry: videoSessionRegistry,
-    eventPublisher,
-    previewRepository: videoPreviewRepository,
-  })
+  const updateThumbUseCase =
+    previewMode === 'legacy-stills'
+      ? createUpdateVideoThumbnailsUseCase({
+          thumbnailGenerator: videoThumbnailGeneratorAdapter,
+          aggregateRepository: videoAggregateRepository,
+          sessionRegistry: videoSessionRegistry,
+          eventPublisher,
+          previewRepository: videoPreviewRepository,
+        })
+      : null
+  const updatePreviewsUseCase = previewCache
+    ? new UpdateVideoPreviewsUseCase(
+        new MediabunnyVideoPreviewGenerator(),
+        videoAggregateRepository,
+        videoSessionRegistry,
+        previewCache,
+        logger,
+      )
+    : null
 
   const updateVotesUseCase = createUpdateVideoVotesUseCase({
     aggregateRepository: videoAggregateRepository,
@@ -85,6 +108,7 @@ export function createVideoServices({
   const wipeVideoDataUseCase = createWipeVideoDataUseCase({
     repository: videoAggregateRepository,
     previewRepository: videoPreviewRepository,
+    previewCache,
   })
 
   const filterVideosUseCase = createFilterVideosUseCase()
@@ -96,6 +120,7 @@ export function createVideoServices({
     videoQueryAdapter,
     addVideosUseCase,
     updateThumbUseCase,
+    updatePreviewsUseCase,
     updateVotesUseCase,
     wipeVideoDataUseCase,
     filterVideosUseCase,

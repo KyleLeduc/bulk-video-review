@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { runExtractionBenchmark } from './runExtractionBenchmark'
 import * as dom from '../infrastructure/video/benchmark/domPreviewExtraction'
-import * as candidate from '../infrastructure/video/benchmark/previewWorkerClient'
+import * as candidate from '../infrastructure/video/extraction/previewWorkerClient'
 import {
   emptyMetrics,
   prepareTargets,
-} from '../infrastructure/video/benchmark/previewExtraction'
+} from '../infrastructure/video/extraction/previewExtraction'
 
 afterEach(() => {
   vi.restoreAllMocks()

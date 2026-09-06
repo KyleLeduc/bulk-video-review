@@ -1,6 +1,14 @@
 import type { ParsedVideo } from '@domain/entities'
+import {
+  hasCompleteKeyframes,
+  hasCompleteMotionClips,
+} from '@domain/services/videoPreviewPolicy'
 
-// The normal decile policy excludes the start/end: ten divisions, nine frames.
+export function hasCompleteVideoPreviews(video: ParsedVideo): boolean {
+  return hasCompleteMotionClips(video) && hasCompleteKeyframes(video)
+}
+
+// Legacy still benchmark policy: ten divisions, nine frames.
 export const DEFAULT_PREVIEW_FRAME_COUNT = 9
 
 export function previewFrameTarget(divisions = 10): number {

@@ -71,7 +71,10 @@ async function initialize() {
           import('../presentation/di/injectionKeys'),
         ])
         const connection = DatabaseConnection.forBenchmark(pairId)
-        const services = createVideoServices({ databaseConnection: connection })
+        const services = createVideoServices({
+          databaseConnection: connection,
+          previewMode: 'legacy-stills',
+        })
         const app = createApp(Trial, {
           connection,
           services,
@@ -81,7 +84,11 @@ async function initialize() {
         })
         app.use(createPinia())
         app.provide(keys.ADD_VIDEOS_USE_CASE_KEY, services.addVideosUseCase)
-        app.provide(keys.UPDATE_THUMB_USE_CASE_KEY, services.updateThumbUseCase)
+        if (services.updateThumbUseCase)
+          app.provide(
+            keys.UPDATE_THUMB_USE_CASE_KEY,
+            services.updateThumbUseCase,
+          )
         app.provide(keys.UPDATE_VOTES_USE_CASE_KEY, services.updateVotesUseCase)
         app.provide(keys.LOGGER_KEY, services.logger)
         app.provide(

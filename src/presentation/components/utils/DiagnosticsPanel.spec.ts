@@ -14,6 +14,21 @@ const diagnosticsPanelStyles =
   diagnosticsPanelSource.match(/<style scoped>([\s\S]*?)<\/style>/)?.[1] ?? ''
 
 describe('DiagnosticsPanel', () => {
+  test('shows focus pause explicitly and routes database wipe through queue cancellation', async () => {
+    const { global, mocks } = createPresentationTestContext()
+    const wrapper = mount(DiagnosticsPanel, { global })
+    const store = useVideoStore()
+    useAppStateStore().toggleDiagnosticsPanel(true)
+    store.setPreviewProcessingPaused(true)
+    await nextTick()
+    expect(wrapper.text()).toContain('Paused until focus returns')
+    const wipe = vi.spyOn(store, 'wipeVideoData')
+    await wrapper.get('[data-testid="wipe-database"]').trigger('click')
+    await flushPromises()
+    expect(wipe).toHaveBeenCalledOnce()
+    expect(mocks.useCases.wipeVideoDataUseCase.execute).toHaveBeenCalledOnce()
+    wrapper.unmount()
+  })
   let styleElement: HTMLStyleElement
 
   beforeEach(() => {

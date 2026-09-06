@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import type { VideoPreviewClip } from '../domain/entities'
+import { keyframeTargets } from '../domain/services/videoPreviewPolicy'
+import MotionPreview from '../presentation/components/MotionPreview.vue'
+import SeekPreviewTooltip from '../presentation/components/SeekPreviewTooltip.vue'
+import type { KeyframeWidth } from './runKeyframeBenchmark'
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
 import { planSteps, type ExtractionPreset } from './extractionPlans'
 import {
@@ -7,7 +12,7 @@ import {
   CLIP_SECONDS,
   type ClipSeconds,
   type ClipFrameRate,
-} from '../infrastructure/video/benchmark/clipExtraction'
+} from '../infrastructure/video/extraction/clipExtraction'
 import {
   runExtractionPlan,
   type ExtractionPlanReport,
@@ -26,7 +31,7 @@ const props = withDefaults(
   { visible: true },
 )
 const emit = defineEmits<{ active: [value: boolean] }>()
-const preset = ref<ExtractionPreset>('clips-duration-v1')
+const preset = ref<ExtractionPreset>('motion-keyframes-quality-v1')
 const running = ref(false)
 const progress = ref('Ready')
 const elapsed = ref(0)
@@ -48,8 +53,59 @@ const playbackPaused = ref(false)
 const playbackError = ref('')
 const activeVariant = computed(() => variants.value[variantIndex.value])
 const activeClip = computed(() => activeVariant.value?.clips[clipIndex.value])
-const isClipPlan = computed(() => preset.value.startsWith('clips-'))
+const isClipPlan = computed(() =>
+  steps.value.some((step) => step.workload === 'clips'),
+)
+const isKeyframePlan = computed(() =>
+  steps.value.some((step) => step.workload === 'keyframes'),
+)
 const steps = computed(() => planSteps(preset.value))
+type KeyframeVariant = {
+  maxWidth: KeyframeWidth
+  duration: number
+  bytes: number
+  frames: {
+    timestampSeconds: number
+    url: string
+    width: number
+    height: number
+  }[]
+}
+const keyframeVariants = shallowRef<KeyframeVariant[]>([])
+const motionClips = shallowRef<VideoPreviewClip[]>([])
+const comparisonSeconds = ref<number | null>(null)
+const comparisonDuration = computed(
+  () => keyframeVariants.value[0]?.duration ?? 0,
+)
+const comparisons = computed(() =>
+  ([120, 160, 240] as const).map((width) => ({
+    width,
+    variant: keyframeVariants.value.find(
+      (variant) => variant.maxWidth === width,
+    ),
+    failure: keyframeFailure(width),
+  })),
+)
+let sampleDisplayFailed = false
+
+function compareAtPointer(event: PointerEvent) {
+  const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  if (bounds.width > 0)
+    comparisonSeconds.value =
+      Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width)) *
+      comparisonDuration.value
+}
+function compareAtInput(event: Event) {
+  comparisonSeconds.value = Number((event.target as HTMLInputElement).value)
+}
+function keyframeFailure(width: number) {
+  const entry = completed.value.find(
+    (entry) =>
+      entry.step.workload === 'keyframes' && entry.step.maxWidth === width,
+  )
+  if (entry?.report.mode !== 'keyframe-extraction-v1') return 'Unavailable'
+  return `Unavailable: ${entry.report.rows.find((row) => row.file === 1)?.reason ?? 'no sample'}`
+}
 const exported = computed(() =>
   result.value ? JSON.stringify(result.value, null, 2) : '',
 )
@@ -68,6 +124,11 @@ function releaseClips() {
   for (const variant of variants.value)
     for (const clip of variant.clips) URL.revokeObjectURL(clip.url)
   variants.value = []
+  for (const variant of keyframeVariants.value)
+    for (const frame of variant.frames) URL.revokeObjectURL(frame.url)
+  keyframeVariants.value = []
+  motionClips.value = []
+  comparisonSeconds.value = null
   variantIndex.value = clipIndex.value = 0
   playbackError.value = ''
 }
@@ -135,11 +196,19 @@ function reportPlaybackError() {
 }
 function reset() {
   releaseClips()
+  sampleDisplayFailed = false
   result.value = undefined
   completed.value = []
   copyStatus.value = ''
 }
-watch(() => props.selectionId, reset)
+watch(
+  () => props.selectionId,
+  () => {
+    stop()
+    reset()
+  },
+)
+watch(preset, reset)
 watch(
   () => props.visible,
   (visible) => {
@@ -168,6 +237,13 @@ async function start() {
   playbackPaused.value =
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
   controller = new AbortController()
+  const selectionId = props.selectionId
+  const currentController = controller
+  const canPublish = () =>
+    !disposed &&
+    selectionId === props.selectionId &&
+    !currentController.signal.aborted &&
+    !sampleDisplayFailed
   running.value = true
   emit('active', true)
   const started = performance.now()
@@ -184,13 +260,26 @@ async function start() {
       preset: preset.value,
       signal: controller.signal,
       onProgress: (message) => {
-        if (!disposed) progress.value = message
+        if (!disposed && selectionId === props.selectionId)
+          progress.value = message
       },
       onStep: (entry) => {
-        if (!disposed) completed.value = [...completed.value, entry]
+        if (!disposed && selectionId === props.selectionId)
+          completed.value = [...completed.value, entry]
       },
       onClipSample: (sample, step) => {
-        if (disposed) return
+        if (!canPublish()) return
+        if (step.production) {
+          if (sample.file !== 1) throw new Error('Wrong comparison source')
+          motionClips.value = sample.output.clips.map((clip) => ({
+            timestampSeconds: clip.start,
+            durationSeconds: clip.duration,
+            blob: clip.blob,
+            width: sample.output.width,
+            height: sample.output.height,
+          }))
+          return
+        }
         const clips: ClipVariant['clips'] = []
         try {
           if (variants.value.length >= 4) throw new Error('Sample limit')
@@ -208,11 +297,48 @@ async function start() {
           })
         } catch (error) {
           for (const clip of clips) URL.revokeObjectURL(clip.url)
+          releaseClips()
+          sampleDisplayFailed = true
+          throw error
+        }
+      },
+      onKeyframeSample: (sample, step) => {
+        if (!canPublish()) return
+        const frames: KeyframeVariant['frames'] = []
+        try {
+          if (sample.file !== 1 || keyframeVariants.value.length >= 3)
+            throw new Error('Wrong comparison source or sample limit')
+          const targets = keyframeTargets(sample.duration)
+          for (const [index, blob] of sample.output.frames.entries())
+            frames.push({
+              timestampSeconds: targets[index],
+              url: URL.createObjectURL(blob),
+              width: sample.output.width,
+              height: sample.output.height,
+            })
+          keyframeVariants.value = [
+            ...keyframeVariants.value,
+            {
+              maxWidth: step.maxWidth,
+              duration: sample.duration,
+              bytes: sample.output.frames.reduce(
+                (sum, blob) => sum + blob.size,
+                0,
+              ),
+              frames,
+            },
+          ]
+        } catch (error) {
+          for (const frame of frames) URL.revokeObjectURL(frame.url)
+          releaseClips()
+          sampleDisplayFailed = true
           throw error
         }
       },
     })
-    if (!disposed) {
+    if (!disposed && selectionId === props.selectionId) {
+      if (report.status === 'interrupted' || currentController.signal.aborted)
+        releaseClips()
       result.value = report
       progress.value = `${report.status}${report.hidden ? ' — browser tab hidden; restart to run again. Partial results retained.' : ''}`
     }
@@ -257,9 +383,9 @@ function seconds(ms: number) {
   return `${(ms / 1000).toFixed(2)} s`
 }
 function batchTime(entry: PlanResult) {
-  return entry.report.mode === 'clip-extraction-custom-v1'
-    ? entry.report.wallMs
-    : entry.report.batches.reduce((n, batch) => n + batch.wallMs, 0)
+  return entry.report.mode === 'preview-extraction-custom-v1'
+    ? entry.report.batches.reduce((n, batch) => n + batch.wallMs, 0)
+    : entry.report.wallMs
 }
 onBeforeUnmount(() => {
   disposed = true
@@ -281,6 +407,9 @@ onBeforeUnmount(() => {
         data-test="plan-preset"
         :disabled="running || busy"
       >
+        <option value="motion-keyframes-quality-v1">
+          Motion + seek quality: 1.5 s · 20 FPS · 120 / 160 / 240 px
+        </option>
         <option value="clips-duration-v1">
           Clip duration: 0.5 / 1 / 1.5 / 2 s · 20 FPS
         </option>
@@ -303,7 +432,12 @@ onBeforeUnmount(() => {
       its settings; Manual config does not apply. Keep the browser tab visible.
       Stop retains partial results.
     </p>
-    <p v-if="isClipPlan">
+    <p v-if="isKeyframePlan">
+      Production clips plus seek thumbnails every 15 seconds, capped at 100.
+      Compare video 1 at the same tooltip size. Previews appear after all
+      measured work ends.
+    </p>
+    <p v-else-if="isClipPlan">
       Try one or two files: up to ten clips per video, muted, 320 px, 250
       kbit/s, one job.
       {{
@@ -320,7 +454,13 @@ onBeforeUnmount(() => {
     </p>
     <details>
       <summary>Preset details and limits</summary>
-      <p v-if="isClipPlan">
+      <p v-if="isKeyframePlan">
+        One job, no app cache. Up to ten silent 1.5-second clips at 20 FPS; JPEG
+        seek thumbnails at quality 0.72. Each worker allows 1 GiB of application
+        reads, 16 MiB encoded output and 120 seconds. Metadata preparation is
+        included in wall time. Read limits do not bound native decoder memory.
+      </p>
+      <p v-else-if="isClipPlan">
         AVC/MP4 output, or VP8/WebM if AVC encoding is unavailable. Buffered 1
         MiB reads; 1 GiB read limit per file; 2 MiB per clip, 16 MiB output per
         file; 120-second file deadline. Quality comparisons retain at most four
@@ -426,6 +566,117 @@ onBeforeUnmount(() => {
         </tbody>
       </table>
     </template>
+    <template v-for="(entry, index) in completed" :key="`keys-${index}`">
+      <table
+        v-if="entry.report.mode === 'keyframe-extraction-v1'"
+        data-test="keyframe-summary"
+      >
+        <caption>
+          {{
+            entry.step.id
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th>Video</th>
+            <th>Frames / expected</th>
+            <th>Encoded size</th>
+            <th>Output</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in entry.report.rows" :key="row.file">
+            <td>{{ row.file }}</td>
+            <td>{{ row.frames }} / {{ row.expectedFrames ?? '—' }}</td>
+            <td>{{ row.width ?? '—' }} × {{ row.height ?? '—' }}</td>
+            <td>{{ (row.outputBytes / 1024).toFixed(1) }} KiB</td>
+            <td>{{ row.status }} {{ row.reason ?? '' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
+    <section
+      v-if="
+        !running &&
+        result?.preset === 'motion-keyframes-quality-v1' &&
+        result.status !== 'interrupted' &&
+        !sampleDisplayFailed
+      "
+      data-test="keyframe-comparison"
+    >
+      <h4>Motion + seek quality — video 1</h4>
+      <div v-if="motionClips.length" class="quality-motion">
+        <img
+          v-if="keyframeVariants[0]?.frames[0]"
+          :src="keyframeVariants[0].frames[0].url"
+          alt=""
+        />
+        <MotionPreview
+          :clips="motionClips"
+          :active="visible && !busy && !playbackPaused"
+          @error="reportPlaybackError"
+        />
+      </div>
+      <p v-else>Motion unavailable for video 1.</p>
+      <button
+        v-if="motionClips.length"
+        data-test="quality-playback"
+        @click="playbackPaused = !playbackPaused"
+      >
+        {{ playbackPaused ? 'Resume previews' : 'Pause previews' }}
+      </button>
+      <p v-if="playbackError" role="status">{{ playbackError }}</p>
+      <p>
+        Hover or scrub the rail. Every width uses the production tooltip
+        viewport; only encoded image size changes.
+      </p>
+      <div class="quality-widths">
+        <div
+          v-for="comparison in comparisons"
+          :key="comparison.width"
+          :data-test="`keyframe-width-${comparison.width}`"
+          class="quality-width"
+        >
+          <strong>{{ comparison.width }} px</strong>
+          <template v-if="comparison.variant">
+            <p>
+              {{ comparison.variant.frames[0]?.width }} ×
+              {{ comparison.variant.frames[0]?.height }} ·
+              {{ comparison.variant.frames.length }} frames ·
+              {{ (comparison.variant.bytes / 1024).toFixed(1) }} KiB
+            </p>
+            <div class="quality-tooltip-space">
+              <div class="quality-tooltip-rail">
+                <SeekPreviewTooltip
+                  v-if="comparisonSeconds !== null"
+                  :frames="comparison.variant.frames"
+                  :seconds="comparisonSeconds"
+                  :duration="comparisonDuration"
+                />
+              </div>
+            </div>
+          </template>
+          <p v-else>{{ comparison.failure }} for video 1.</p>
+        </div>
+      </div>
+      <input
+        v-if="comparisonDuration"
+        data-test="keyframe-comparison-rail"
+        class="comparison-rail"
+        type="range"
+        min="0"
+        :max="comparisonDuration"
+        step="0.1"
+        :value="comparisonSeconds ?? 0"
+        aria-label="Compare seek thumbnail quality"
+        @pointermove="compareAtPointer"
+        @pointerleave="comparisonSeconds = null"
+        @input="compareAtInput"
+        @focus="comparisonSeconds = comparisonSeconds ?? 0"
+        @blur="comparisonSeconds = null"
+      />
+    </section>
     <details v-if="completed.some((entry) => entry.step.workload === 'clips')">
       <summary>Timing notes</summary>
       <p>
@@ -518,6 +769,41 @@ onBeforeUnmount(() => {
   padding: 1rem;
   margin: 1rem 0;
   overflow-x: auto;
+}
+.quality-motion {
+  position: relative;
+  width: 320px;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #111;
+}
+.quality-motion > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.quality-widths {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.quality-width {
+  width: 320px;
+  max-width: 100%;
+}
+.quality-tooltip-space {
+  position: relative;
+  height: 115px;
+}
+.quality-tooltip-rail {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 0;
+  border-bottom: 1px solid #ccd5df;
+}
+.comparison-rail {
+  width: 100%;
 }
 .controls,
 .clips {

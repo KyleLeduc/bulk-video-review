@@ -1,4 +1,5 @@
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
+import { readPlayerDuration } from '../infrastructure/video/benchmark/domPreviewExtraction'
 import {
   CLIP_FPS,
   CLIP_READ_BYTES,
@@ -9,14 +10,14 @@ import {
   type ClipSeconds,
   validateClipSeconds,
   validateClipFrameRate,
-} from '../infrastructure/video/benchmark/clipExtraction'
-import { extractClipsWithWorker } from '../infrastructure/video/benchmark/clipWorkerClient'
+} from '../infrastructure/video/extraction/clipExtraction'
+import { extractClipsWithWorker } from '../infrastructure/video/extraction/clipWorkerClient'
 import {
   EXTRACTION_DEADLINE_MS,
   MAX_OUTPUT_BYTES,
   safeFailure,
   type FailureReason,
-} from '../infrastructure/video/benchmark/previewExtraction'
+} from '../infrastructure/video/extraction/previewExtraction'
 
 export type ClipRow = {
   file: number
@@ -50,6 +51,7 @@ export type ClipReport = {
     maxClipBytes: number
     deadlineMs: number
     candidate: 'mediabunny@1.55.7'
+    samplingPolicy?: 'production-overview-v1'
   }
   rows: ClipRow[]
   wallMs: number
@@ -64,6 +66,8 @@ export async function runClipBenchmark(options: {
   signal: AbortSignal
   frameRate?: ClipFrameRate
   clipSeconds?: ClipSeconds
+  production?: true
+  sampleFile?: number
   onProgress?: (message: string) => void
   onSample?: (sample: ClipSample) => void
 }): Promise<ClipReport> {
@@ -99,6 +103,9 @@ export async function runClipBenchmark(options: {
       maxClipBytes: MAX_CLIP_BYTES,
       deadlineMs: EXTRACTION_DEADLINE_MS,
       candidate: 'mediabunny@1.55.7',
+      ...(options.production
+        ? { samplingPolicy: 'production-overview-v1' as const }
+        : {}),
     },
     rows: [],
     wallMs: 0,
@@ -126,11 +133,21 @@ export async function runClipBenchmark(options: {
     }
     const jobStarted = performance.now()
     try {
+      const motion = options.production
+        ? {
+            kind: 'motion' as const,
+            duration: await readPlayerDuration(
+              options.files[file],
+              options.signal,
+            ),
+          }
+        : undefined
       const output = await extractClipsWithWorker(
         options.files[file],
         options.signal,
         frameRate,
         clipSeconds,
+        motion,
       )
       options.signal.throwIfAborted()
       Object.assign(row, {
@@ -142,7 +159,8 @@ export async function runClipBenchmark(options: {
         codec: output.codec,
         metrics: output.metrics,
       })
-      sample = { file: file + 1, output }
+      if (options.sampleFile === undefined || options.sampleFile === file + 1)
+        sample = { file: file + 1, output }
     } catch (error) {
       row.reason = safeFailure(error)
       row.status = row.reason === 'aborted' ? 'aborted' : 'failed'

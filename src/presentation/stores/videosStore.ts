@@ -1,9 +1,19 @@
 import type { ParsedVideo } from '@domain/entities'
+import type { VideoPreviewProduct } from '@domain/repositories/IVideoPreviewCacheRepository'
+import type {
+  PreviewEnrichmentResult,
+  PreviewEnrichmentOptions,
+} from '@app/usecases/UpdateVideoPreviewsUseCase'
+import {
+  hasCompleteMotionClips,
+  hasCompleteKeyframes,
+  keyframeTargets,
+  motionClipWindows,
+} from '@domain/services/videoPreviewPolicy'
 import { defineStore } from 'pinia'
 import { computed, inject, reactive, ref, toRaw } from 'vue'
 import type {
   VideoIngestionProgress,
-  UpdateVideoThumbnailsUseCase,
   UpdateVideoVotesUseCase,
   VideoIngestionUseCase,
 } from '@app/usecases'
@@ -19,12 +29,15 @@ import { isBrowserPlayableVideoFile } from '@/shared/video/browserPlayableVideoT
 import {
   DEFAULT_PREVIEW_FRAME_COUNT,
   hasCompletePreviews,
+  hasCompleteVideoPreviews,
 } from '@app/services/previewCompleteness'
 import type { VideoImportItem } from '@domain/valueObjects'
 import {
   ADD_VIDEOS_USE_CASE_KEY,
   LOGGER_KEY,
   UPDATE_THUMB_USE_CASE_KEY,
+  UPDATE_PREVIEWS_USE_CASE_KEY,
+  WIPE_VIDEO_DATA_USE_CASE_KEY,
   UPDATE_VOTES_USE_CASE_KEY,
   VIDEO_SESSION_REGISTRY_KEY,
 } from '@presentation/di/injectionKeys'
@@ -81,7 +94,10 @@ function snapshotPhases(phases: PhaseMeasurements): PhaseMeasurements {
 
 export type ThumbnailJobDiagnostic = {
   state: ThumbnailJobState
-  stage?: VideoPreviewGenerationProgress['stage']
+  stage?: VideoPreviewGenerationProgress['stage'] | 'generating'
+  product?: VideoPreviewProduct['kind']
+  failures?: PreviewEnrichmentResult['failures']
+  cacheFailures?: PreviewEnrichmentResult['cacheFailures']
   startedAtMs?: number
   completedAtMs?: number
   elapsedMs?: number
@@ -135,6 +151,8 @@ type PreviewRunSnapshot = {
   outputBytes: number
   dimensions: string[]
   failureStages: string[]
+  productFailures: string[]
+  cacheFailures: string[]
   timing: {
     startedAtMs: number | null
     completedAtMs: number | null
@@ -190,8 +208,6 @@ const MAX_THUMBNAIL_CONCURRENCY = 4
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max)
 
-const hasReadyThumbnails = hasCompletePreviews
-
 const isAbortError = (error: unknown) =>
   (error as { name?: unknown } | null)?.name === 'AbortError'
 
@@ -222,10 +238,20 @@ export const useVideoStore = defineStore('videos', () => {
     'AddVideosUseCase',
   )
 
-  const updateThumbUseCase = resolveDependency<UpdateVideoThumbnailsUseCase>(
-    inject(UPDATE_THUMB_USE_CASE_KEY),
-    'UpdateVideoThumbnailsUseCase',
-  )
+  const updatePreviewsUseCase = inject(UPDATE_PREVIEWS_USE_CASE_KEY, undefined)
+  const updateThumbUseCase = inject(UPDATE_THUMB_USE_CASE_KEY, undefined)
+  if (!updatePreviewsUseCase && !updateThumbUseCase)
+    throw new Error('Preview generation dependency is missing')
+  const wipeVideoDataUseCase = inject(WIPE_VIDEO_DATA_USE_CASE_KEY, undefined)
+  // The legacy branch is used only by explicitly versioned still-pipeline benchmarks.
+  const hasReadyThumbnails = updatePreviewsUseCase
+    ? hasCompleteVideoPreviews
+    : hasCompletePreviews
+  const expectedPreviewCount = (video: ParsedVideo) =>
+    updatePreviewsUseCase
+      ? motionClipWindows(video.duration).length +
+        keyframeTargets(video.duration).length
+      : DEFAULT_PREVIEW_FRAME_COUNT
 
   const updateVotesUseCase = resolveDependency<UpdateVideoVotesUseCase>(
     inject(UPDATE_VOTES_USE_CASE_KEY),
@@ -357,9 +383,11 @@ export const useVideoStore = defineStore('videos', () => {
     getSession(displayedSessionId.value),
   )
   const isPreviewProcessingPaused = ref(false)
+  const isWiping = ref(false)
   const isThumbnailDrainPaused = computed(
     () =>
       isPreviewProcessingPaused.value ||
+      isWiping.value ||
       activeIngestionSessionId.value !== null ||
       queuedIngestionCount.value > 0,
   )
@@ -486,6 +514,22 @@ export const useVideoStore = defineStore('videos', () => {
           ),
         ),
       ).sort(),
+      productFailures: [
+        ...new Set(
+          previewDiagnostics.flatMap((diagnostic) =>
+            Object.entries(diagnostic.failures ?? {}).map(
+              ([kind, reason]) => `${kind}:${reason}`,
+            ),
+          ),
+        ),
+      ].sort(),
+      cacheFailures: [
+        ...new Set(
+          previewDiagnostics.flatMap(
+            (diagnostic) => diagnostic.cacheFailures ?? [],
+          ),
+        ),
+      ].sort(),
       timing: {
         startedAtMs: session.previewStartedAtMs,
         completedAtMs: session.previewCompletedAtMs,
@@ -744,6 +788,7 @@ export const useVideoStore = defineStore('videos', () => {
 
   const startNextQueuedIngestion = () => {
     if (
+      isWiping.value ||
       activeIngestionSessionId.value !== null ||
       activeThumbnailJobs.value > 0
     ) {
@@ -895,35 +940,57 @@ export const useVideoStore = defineStore('videos', () => {
         stage: 'loading',
         startedAtMs,
         completedFrames: 0,
-        totalFrames: DEFAULT_PREVIEW_FRAME_COUNT,
+        totalFrames: expectedPreviewCount(video),
       })
       refreshThumbnailSessions(sessionIds)
 
-      void updateThumbUseCase
-        .execute(video, {
-          signal: abortController.signal,
-          onTiming: (timing) => {
-            if (acceptingTimings) {
-              measurementSessions.forEach((session) =>
-                recordPhaseTiming(session.previewMeasurements, timing),
-              )
-            }
-          },
-          onProgress: (progress) => {
-            if (!ownsAttempt() || abortController.signal.aborted) {
-              return
-            }
+      const options = {
+        signal: abortController.signal,
+        onTiming: (timing: VideoProcessingTiming) => {
+          if (acceptingTimings) {
+            measurementSessions.forEach((session) =>
+              recordPhaseTiming(session.previewMeasurements, timing),
+            )
+          }
+        },
+        onProduct: (product: VideoPreviewProduct) => {
+          if (!ownsAttempt() || abortController.signal.aborted) return
+          const current = toRaw(videoMap.get(nextVideoId))
+          if (current)
+            videoMap.set(nextVideoId, mergePreviewProduct(current, product))
+        },
+        onProgress: (
+          progress:
+            | VideoPreviewGenerationProgress
+            | Parameters<
+                NonNullable<PreviewEnrichmentOptions['onProgress']>
+              >[0],
+        ) => {
+          if (!ownsAttempt() || abortController.signal.aborted) {
+            return
+          }
 
-            const currentDiagnostic = thumbnailJobDiagnostics.get(nextVideoId)
-            thumbnailJobDiagnostics.set(nextVideoId, {
-              ...currentDiagnostic,
-              state: 'processing',
-              startedAtMs,
-              ...progress,
-            })
-          },
-        })
-        .then((updated) => {
+          const currentDiagnostic = thumbnailJobDiagnostics.get(nextVideoId)
+          thumbnailJobDiagnostics.set(nextVideoId, {
+            ...currentDiagnostic,
+            state: 'processing',
+            startedAtMs,
+            ...('kind' in progress
+              ? {
+                  stage: progress.stage,
+                  product: progress.kind,
+                  completedFrames: progress.completed,
+                  totalFrames: progress.total,
+                }
+              : progress),
+          })
+        },
+      }
+      const work = updatePreviewsUseCase
+        ? updatePreviewsUseCase.execute(video, options)
+        : updateThumbUseCase!.execute(video, options)
+      void work
+        .then((result) => {
           acceptingTimings = false
           if (!ownsAttempt()) return
           // A cancelled adapter may still resolve. Never publish that stale result.
@@ -934,6 +1001,39 @@ export const useVideoStore = defineStore('videos', () => {
             clearThumbnailTracking(nextVideoId)
             return
           }
+
+          if ('failures' in result) {
+            const ready = hasReadyThumbnails(currentVideo)
+            const state = ready ? 'ready' : 'failed'
+            if (ready) attemptOutcome = 'completed'
+            thumbnailJobState.set(nextVideoId, state)
+            const products = [
+              ...currentVideo.motionClips,
+              ...currentVideo.keyframes,
+            ]
+            const completedAtMs = Date.now()
+            thumbnailJobDiagnostics.set(nextVideoId, {
+              state,
+              startedAtMs,
+              completedAtMs,
+              elapsedMs: completedAtMs - startedAtMs,
+              completedFrames: products.length,
+              totalFrames: expectedPreviewCount(currentVideo),
+              outputBytes: products.reduce(
+                (sum, frame) => sum + frame.blob.size,
+                0,
+              ),
+              failures: result.failures,
+              cacheFailures: result.cacheFailures,
+              error: ready
+                ? undefined
+                : Object.entries(result.failures)
+                    .map(([kind, reason]) => `${kind}: ${reason}`)
+                    .join('; ') || 'Incomplete preview products',
+            })
+            return
+          }
+          const updated = result
 
           if (hasReadyThumbnails(updated)) {
             if (!abortController.signal.aborted) attemptOutcome = 'completed'
@@ -1073,6 +1173,7 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   const queueThumbnailJob = (videoId: string, priority = false) => {
+    if (isWiping.value) return Promise.resolve()
     const video = toRaw(videoMap.get(videoId))
     if (!video) {
       return Promise.resolve()
@@ -1139,11 +1240,46 @@ export const useVideoStore = defineStore('videos', () => {
     votes: currentVideo.votes,
   })
 
+  const mergePreviewProduct = (
+    current: ParsedVideo,
+    product: VideoPreviewProduct,
+  ): ParsedVideo => {
+    const candidate = {
+      ...current,
+      [product.kind]: product.items,
+      previewVersions: {
+        ...current.previewVersions,
+        [product.kind]: product.version,
+      },
+    }
+    const complete =
+      product.kind === 'motionClips'
+        ? hasCompleteMotionClips
+        : hasCompleteKeyframes
+    return complete(candidate) ? candidate : current
+  }
+
   function addVideos(videos: ParsedVideo[]) {
     videos.forEach((video) => {
       const existing = toRaw(videoMap.get(video.id))
       if (existing) {
-        if (!hasReadyThumbnails(existing) && hasReadyThumbnails(video)) {
+        if (updatePreviewsUseCase) {
+          let hydrated = existing
+          for (const kind of ['motionClips', 'keyframes'] as const) {
+            const complete =
+              kind === 'motionClips'
+                ? hasCompleteMotionClips
+                : hasCompleteKeyframes
+            if (!complete(hydrated) && complete(video)) {
+              hydrated = mergePreviewProduct(hydrated, {
+                kind,
+                version: video.previewVersions[kind]!,
+                items: video[kind],
+              } as VideoPreviewProduct)
+            }
+          }
+          videoMap.set(video.id, hydrated)
+        } else if (!hasReadyThumbnails(existing) && hasReadyThumbnails(video)) {
           videoMap.set(video.id, {
             ...existing,
             previewFrames: video.previewFrames,
@@ -1216,6 +1352,7 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   async function addVideosFromFiles(files: FileList) {
+    if (isWiping.value) throw new Error('Wait for the database wipe to finish')
     const selectedFiles = Array.from(files)
     const items: VideoImportItem[] = selectedFiles
       .filter(isBrowserPlayableVideoFile)
@@ -1250,7 +1387,27 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   function requestThumbnailWarmup(id: string) {
+    if (thumbnailJobState.get(id) === 'failed') return
     void queueThumbnailJob(id, true)
+  }
+
+  async function wipeVideoData() {
+    if (!wipeVideoDataUseCase)
+      throw new Error('WipeVideoDataUseCase dependency is missing')
+    if (isWiping.value || isIngesting.value || queuedIngestionCount.value > 0)
+      throw new Error(
+        'Wait for foreground ingestion to finish before wiping data',
+      )
+    isWiping.value = true
+    clearThumbnailPumpTimer()
+    for (const id of videoMap.keys()) clearThumbnailTracking(id)
+    try {
+      await wipeVideoDataUseCase.execute()
+      for (const id of videoMap.keys()) releaseVideoResources(id)
+      videoMap.clear()
+    } finally {
+      isWiping.value = false
+    }
   }
 
   function setThumbnailConcurrencyOverride(value: number | null) {
@@ -1325,8 +1482,13 @@ export const useVideoStore = defineStore('videos', () => {
       status: session.status,
       measurements: {
         version: 1 as const,
-        backend: 'dom' as const,
-        workersEnabled: false,
+        backend: updatePreviewsUseCase
+          ? ('mediabunny' as const)
+          : ('dom' as const),
+        workersEnabled: !!updatePreviewsUseCase,
+        ...(updatePreviewsUseCase
+          ? { foregroundBackend: 'dom', previewPhaseTimingsAvailable: false }
+          : {}),
         fallbackReason: null,
         foregroundCancellationSupported: false,
         foreground: snapshotPhases(session.foregroundMeasurements),
@@ -1393,6 +1555,12 @@ export const useVideoStore = defineStore('videos', () => {
         outputBytes: previewReport.outputBytes,
         dimensions: [...previewReport.dimensions],
         failureStages: [...previewReport.failureStages],
+        ...(updatePreviewsUseCase
+          ? {
+              productFailures: [...previewReport.productFailures],
+              cacheFailures: [...previewReport.cacheFailures],
+            }
+          : {}),
         timing: { ...previewReport.timing },
       },
       environment: {
@@ -1423,6 +1591,8 @@ export const useVideoStore = defineStore('videos', () => {
     queuedIngestionCount,
     isThumbnailDrainPaused,
     isPreviewProcessingPaused,
+    isWiping,
+    wipeVideoData,
     setPreviewProcessingPaused,
     thumbnailConcurrencyOverride,
     autoThumbnailConcurrency,

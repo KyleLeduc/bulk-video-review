@@ -15,6 +15,10 @@ export class VideoSessionRegistry implements IVideoSessionRegistry {
     this.files.set(videoId, file)
   }
 
+  getFile(videoId: string): File | null {
+    return this.files.get(videoId) ?? null
+  }
+
   unregisterFile(videoId: string): void {
     this.releaseAllUrls(videoId)
     this.files.delete(videoId)

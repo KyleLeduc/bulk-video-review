@@ -8,8 +8,8 @@ import {
   watch,
 } from 'vue'
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
-import type { BenchmarkReaderMode } from '../infrastructure/video/benchmark/benchmarkFileReader'
-import type { PreviewCount } from '../infrastructure/video/benchmark/previewExtraction'
+import type { FileReaderMode } from '../infrastructure/video/extraction/fileReader'
+import type { PreviewCount } from '../infrastructure/video/extraction/previewExtraction'
 import ExtractionPlanPanel from './ExtractionPlanPanel.vue'
 import {
   runExtractionBenchmark,
@@ -28,7 +28,7 @@ const execution = ref<ExtractionExecution>('paired')
 const jobs = ref<1 | 2 | 4>(1)
 const previewCount = ref<PreviewCount>(9)
 const runPreviewCount = ref<PreviewCount>(9)
-const readerMode = ref<BenchmarkReaderMode>('direct')
+const readerMode = ref<FileReaderMode>('direct')
 watch(execution, (value) => {
   if (value === 'paired') jobs.value = 1
 })

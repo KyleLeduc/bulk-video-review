@@ -3,6 +3,9 @@ import { afterEach, expect, it, vi } from 'vitest'
 import ExtractionPlanPanel from './ExtractionPlanPanel.vue'
 import * as runner from './runExtractionBenchmark'
 import { planSteps } from './extractionPlans'
+import MotionPreview from '../presentation/components/MotionPreview.vue'
+import SeekPreviewTooltip from '../presentation/components/SeekPreviewTooltip.vue'
+import { emptyMetrics } from '../infrastructure/video/extraction/previewExtraction'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -15,6 +18,159 @@ const props = {
   disabled: false,
   busy: false,
 }
+it.each([false, true])(
+  'compares fixed-source keyframes at the shared viewport and cleans allocations (URL failure=%s)',
+  async (allocationFailure) => {
+    let urls = 0
+    const create = vi.spyOn(URL, 'createObjectURL').mockImplementation(() => {
+      if (allocationFailure && urls === 1) throw new Error('allocation')
+      return `blob:quality-${++urls}`
+    })
+    const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    let finish = () => {}
+    vi.spyOn(runner, 'runExtractionPlan').mockImplementation(
+      async (options) => {
+        expect(options.preset).toBe('motion-keyframes-quality-v1')
+        options.onClipSample?.(
+          {
+            file: 1,
+            output: {
+              clips: [
+                {
+                  blob: new Blob(['mp4'], { type: 'video/mp4' }),
+                  start: 0,
+                  duration: 1.5,
+                },
+              ],
+              codec: 'avc',
+              width: 320,
+              height: 180,
+              readBytes: 1,
+              readCalls: 1,
+              metrics: {
+                setupMs: 0,
+                conversionMs: 1,
+                firstClipMs: 1,
+                totalMs: 1,
+                readMs: 0,
+                readMaxMs: 0,
+              },
+            },
+          },
+          {
+            id: 'motion',
+            pass: 1,
+            workload: 'clips',
+            execution: 'mediabunny',
+            jobs: 1,
+            production: true,
+            frameRate: 20,
+            clipSeconds: 1.5,
+          },
+        )
+        const result = {
+          ...report(),
+          preset: 'motion-keyframes-quality-v1' as const,
+          plannedSteps: planSteps('motion-keyframes-quality-v1'),
+        }
+        for (const maxWidth of [120, 160, 240] as const) {
+          try {
+            if (maxWidth === 160) continue // Fixed file failure: must remain missing, not use a different source.
+            options.onKeyframeSample?.(
+              {
+                file: 1,
+                duration: 30,
+                output: {
+                  frames: [
+                    new Blob(['first'], { type: 'image/jpeg' }),
+                    new Blob(['second'], { type: 'image/jpeg' }),
+                  ],
+                  width: maxWidth,
+                  height: (maxWidth * 9) / 16,
+                  readBytes: 1024,
+                  readCalls: 1,
+                  metrics: emptyMetrics(),
+                },
+              },
+              {
+                id: `keys-${maxWidth}`,
+                pass: 1,
+                workload: 'keyframes',
+                execution: 'mediabunny',
+                jobs: 1,
+                maxWidth,
+              },
+            )
+          } catch {
+            result.errors = ['display-failed']
+          }
+        }
+        await new Promise<void>((resolve) => {
+          finish = resolve
+        })
+        return result
+      },
+    )
+    const wrapper = mount(ExtractionPlanPanel, {
+      props,
+      global: { stubs: { MotionPreview: true } },
+    })
+    await wrapper
+      .get('[data-test=plan-preset]')
+      .setValue('motion-keyframes-quality-v1')
+    await wrapper.get('[data-test=plan-start]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-test=keyframe-comparison]').exists()).toBe(false)
+    expect(wrapper.findComponent(MotionPreview).exists()).toBe(false)
+    finish()
+    await flushPromises()
+    if (allocationFailure) {
+      expect(wrapper.find('[data-test=keyframe-comparison]').exists()).toBe(
+        false,
+      )
+      expect(wrapper.findComponent(MotionPreview).exists()).toBe(false)
+      expect(revoke).toHaveBeenCalledWith('blob:quality-1')
+      expect(wrapper.text()).toContain('display-failed')
+    } else {
+      expect(wrapper.findAllComponents(MotionPreview)).toHaveLength(1)
+      expect(wrapper.text()).toContain('video 1')
+      expect(wrapper.get('[data-test=keyframe-width-160]').text()).toContain(
+        'Unavailable',
+      )
+      const rail = wrapper.get('[data-test=keyframe-comparison-rail]')
+      vi.spyOn(rail.element, 'getBoundingClientRect').mockReturnValue({
+        left: 0,
+        width: 100,
+      } as DOMRect)
+      await rail.trigger('pointermove', { clientX: 45 })
+      const tooltips = wrapper.findAllComponents(SeekPreviewTooltip)
+      expect(tooltips).toHaveLength(2)
+      expect(
+        tooltips.every((tooltip) =>
+          tooltip.element.parentElement?.parentElement?.classList.contains(
+            'quality-tooltip-space',
+          ),
+        ),
+      ).toBe(true)
+      expect(
+        tooltips.every((tooltip) => tooltip.props('seconds') === 13.5),
+      ).toBe(true)
+      expect(
+        tooltips.map((tooltip) => tooltip.get('img').attributes('src')),
+      ).toEqual(['blob:quality-2', 'blob:quality-4'])
+      await wrapper.setProps({ visible: false })
+      expect(wrapper.getComponent(MotionPreview).props('active')).toBe(false)
+      await wrapper.setProps({ selectionId: 'other' })
+      expect(wrapper.find('[data-test=keyframe-comparison]').exists()).toBe(
+        false,
+      )
+      expect(revoke).toHaveBeenCalledTimes(
+        create.mock.results.filter((result) => result.type === 'return').length,
+      )
+    }
+    wrapper.unmount()
+  },
+)
 it.each(['stale play rejection', 'media error'] as const)(
   'handles %s without silent playback failure',
   async (failure) => {
@@ -241,7 +397,7 @@ it.each([false, true])(
     const wrapper = mount(ExtractionPlanPanel, { props })
     expect(
       wrapper.get<HTMLSelectElement>('[data-test=plan-preset]').element.value,
-    ).toBe('clips-duration-v1')
+    ).toBe('motion-keyframes-quality-v1')
     await wrapper.get('[data-test=plan-start]').trigger('click')
     await flushPromises()
     const video = wrapper.get<HTMLVideoElement>('video').element
