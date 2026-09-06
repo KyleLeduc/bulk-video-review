@@ -521,6 +521,7 @@ export async function runExtractionPlan(
                 : await runClipBenchmark({
                     ...common,
                     frameRate: step.frameRate,
+                    clipSeconds: step.clipSeconds,
                     onSample: (value) => {
                       if (clipSamples.length >= 4)
                         throw new Error('Sample limit')

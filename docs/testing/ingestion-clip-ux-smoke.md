@@ -1,6 +1,6 @@
 # Focus recovery and clip-quality smoke checkpoint
 
-Scope: `feat/video-benchmark-view`, following build `5dc829f`. Further speed
+Scope: `feat/video-benchmark-view`, following builds `5dc829f` and `f3d3f1f`. Further speed
 benchmarking is deferred until master integration. This checkpoint does not
 enable clips in normal ingestion/gallery or change the main video player.
 
@@ -27,29 +27,51 @@ checkpointed. Genuinely unrecoverable failures remain explicit.
 
 1. Open `/benchmark/`, select the extraction lab, choose one or two files with
    representative motion and acknowledge the parser/decoder memory limitation.
-2. Run **Clip quality: 10 / 20 / 24 / 30 FPS**. The preset owns all its settings;
-   manual still settings have no effect. Keep this benchmark visible throughout.
-3. After completion, compare the FPS variants. Each produces up to ten muted
-   three-second clips at 320 px / 250 kbit/s. Only one video plays at once, advancing
-   through the selected array and wrapping to its start.
+2. On **Test runner**, run the default **Clip duration: 0.5 / 1 / 1.5 / 2 s · 20 FPS**.
+   The owner selected 20 FPS; compare duration before changing bitrate/resolution.
+   The preset owns its settings; **Manual config** has no effect. Keep this
+   benchmark visible throughout. Tabs lock until extraction stops or completes.
+3. After completion, compare the duration variants. Each produces up to ten muted
+   clips at 20 FPS / 320 px / 250 kbit/s, using matching source positions and counts.
+   Short sources clamp clip ends. Only one video plays at once, advancing through
+   the selected array and wrapping to its start. Older three-second presets remain
+   available without changes to their recorded settings.
 4. Check smoothness, detail, jumps between segments and blank/flashing transitions.
    There must be no native controls, click-to-pause/seek, keyboard media focus or
-   picture-in-picture control. Use the external Pause/Resume and FPS controls.
+   picture-in-picture control. Use the external Pause/Resume and variant controls.
 5. Check reduced-motion mode starts paused. Retry a playback failure with Resume;
    it must show a useful message rather than silently displaying a blank player.
 6. Reselect files or start another run: old samples disappear and their object URLs
    are released. Stop keeps partial numeric JSON. Copy/download excludes file names,
    clip content and source timestamps. Manual still controls/results stay together
-   in **Manual still comparison**.
+   on **Manual config**. Switching tabs preserves both panels' settings/results,
+   pauses hidden clip playback, and resumes it on return unless explicitly paused
+   or reduced motion is selected. Check Arrow/Home/End tab navigation too.
+
+The supplied `f3d3f1f` report (`preview-extraction-custom-v1`, `hidden: true`, five
+passed nine-frame jobs, sixth aborted) matches intentional **benchmark cancellation**.
+Completed rows remain; unstarted files are not processed and the run will not resume.
+Restart the benchmark while visible. This does not validate or invalidate normal
+gallery focus recovery; use the normal-app steps above for that acceptance.
 
 Compare the same file ordinal across variants; a failed file can cause a different
 last-successful sample to be retained. FPS is a conversion target; a lower-FPS source
 cannot supply additional unique frames. Fixed bitrate may trade per-frame detail
-for smoother motion. Choose a preferred rate before a separate bitrate experiment.
+for smoother motion.
 
 ## Evidence and remaining acceptance
 
-- Unit suite: **540/540 passed** across 63 files. Lint, app/test type-check,
+- Duration/tabs checkpoint (September 6): **574/574 unit tests passed** across
+  63 files; lint, app/test type-check, changed Cypress-spec type-check, production
+  build and whitespace checks passed. Native headless Chrome 152 and Edge 152 each
+  passed both duration/tab and manual-extraction smoke specs. The duration check
+  verified actual muxed playback lengths for all four variants, array cycling,
+  hidden-panel pause/resume, settings retention and safe export/cancellation.
+- New JUnit/download artifacts use `duration-tabs-20260906-chrome-*` and
+  `duration-tabs-20260906-edge-*` under the same ignored primary-checkout artifact
+  directory below. Independent duration/tab review found no Critical/Important
+  issues. Manual owner acceptance of preferred duration remains open.
+- Previous focus/FPS checkpoint: **540/540 passed** across 63 files. Lint, app/test type-check,
   changed Cypress-spec type-check, production build and whitespace checks passed.
 - Native headless **Chrome 152.0.7977.64** and **Edge 152.0.4191.53**: five
   correctness checks per browser covering focus recovery (two cases), quality

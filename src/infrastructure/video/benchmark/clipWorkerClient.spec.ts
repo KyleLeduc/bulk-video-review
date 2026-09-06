@@ -25,13 +25,52 @@ function setup() {
   return worker
 }
 const file = new File(['private'], 'private.mp4')
+it.each([0.5, 1, 1.5, 2] as const)(
+  'sends %s-second clips at 20 FPS',
+  async (clipSeconds) => {
+    const worker = setup()
+    const controller = new AbortController()
+    const promise = extractClipsWithWorker(
+      file,
+      controller.signal,
+      20,
+      clipSeconds,
+    )
+    expect(worker.postMessage).toHaveBeenCalledWith({
+      file,
+      frameRate: 20,
+      clipSeconds,
+    })
+    controller.abort()
+    await expect(promise).rejects.toMatchObject({ name: 'AbortError' })
+  },
+)
+it.each([0, 0.25, 4, NaN, '1', null])(
+  'rejects invalid clip seconds %s before dispatch',
+  async (seconds) => {
+    const worker = setup()
+    await expect(
+      extractClipsWithWorker(
+        file,
+        new AbortController().signal,
+        20,
+        seconds as never,
+      ),
+    ).rejects.toThrow('invalid-metadata')
+    expect(worker.postMessage).not.toHaveBeenCalled()
+  },
+)
 it.each([10, 20, 24, 30] as const)(
   'sends the chosen %i FPS to the worker',
   async (fps) => {
     const worker = setup()
     const controller = new AbortController()
     const promise = extractClipsWithWorker(file, controller.signal, fps)
-    expect(worker.postMessage).toHaveBeenCalledWith({ file, frameRate: fps })
+    expect(worker.postMessage).toHaveBeenCalledWith({
+      file,
+      frameRate: fps,
+      clipSeconds: 3,
+    })
     controller.abort()
     await expect(promise).rejects.toMatchObject({ name: 'AbortError' })
   },
@@ -46,32 +85,45 @@ it.each([0, 60, NaN, '24', null])(
     expect(worker.postMessage).not.toHaveBeenCalled()
   },
 )
-it('validates clips and terminates the disposable worker', async () => {
-  const worker = setup()
-  const promise = extractClipsWithWorker(file, new AbortController().signal)
-  const output = {
-    clips: [
-      { blob: new Blob(['mp4'], { type: 'video/mp4' }), start: 0, duration: 3 },
-    ],
-    width: 320,
-    height: 180,
-    codec: 'avc',
-    readBytes: 4,
-    readCalls: 1,
-    metrics: {
-      setupMs: 1,
-      conversionMs: 2,
-      firstClipMs: 3,
-      totalMs: 4,
-      readMs: 1,
-      readMaxMs: 1,
-    },
-  }
-  worker.onmessage?.({ data: { ok: true, output } } as MessageEvent)
-  await expect(promise).resolves.toEqual(output)
-  expect(worker.terminate).toHaveBeenCalledOnce()
-  expect(worker.onmessage).toBeNull()
-})
+it.each([3, 0.5] as const)(
+  'validates clips against requested %s seconds and terminates the worker',
+  async (seconds) => {
+    const worker = setup()
+    const promise = extractClipsWithWorker(
+      file,
+      new AbortController().signal,
+      20,
+      seconds,
+    )
+    const output = {
+      clips: [
+        {
+          blob: new Blob(['mp4'], { type: 'video/mp4' }),
+          start: 0,
+          duration: 3,
+        },
+      ],
+      width: 320,
+      height: 180,
+      codec: 'avc',
+      readBytes: 4,
+      readCalls: 1,
+      metrics: {
+        setupMs: 1,
+        conversionMs: 2,
+        firstClipMs: 3,
+        totalMs: 4,
+        readMs: 1,
+        readMaxMs: 1,
+      },
+    }
+    worker.onmessage?.({ data: { ok: true, output } } as MessageEvent)
+    if (seconds === 3) await expect(promise).resolves.toEqual(output)
+    else await expect(promise).rejects.toThrow('output-invalid')
+    expect(worker.terminate).toHaveBeenCalledOnce()
+    expect(worker.onmessage).toBeNull()
+  },
+)
 it('terminates on abort and never starts when already aborted', async () => {
   const worker = setup()
   const controller = new AbortController()

@@ -84,7 +84,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
   vi.resetModules()
 })
-async function run(frameRate: unknown) {
+async function run(frameRate: unknown, clipSeconds: unknown = 3) {
   state.now = 0
   const postMessage = vi.fn()
   const worker = {
@@ -100,10 +100,34 @@ async function run(frameRate: unknown) {
   vi.spyOn(performance, 'now').mockImplementation(() => state.now)
   await import('./clipExtraction.worker')
   await worker.onmessage?.({
-    data: { file: new File(['mp4'], 'private.mp4'), frameRate },
+    data: { file: new File(['mp4'], 'private.mp4'), frameRate, clipSeconds },
   } as MessageEvent)
   return postMessage.mock.calls[0][0]
 }
+it.each([0.5, 1, 1.5, 2])(
+  'trims and reports %s seconds at 20 FPS',
+  async (clipSeconds) => {
+    state.encoderAvailable = true
+    const reply = await run(20, clipSeconds)
+    expect(reply.ok).toBe(true)
+    expect(reply.output.clips[0].duration).toBe(clipSeconds)
+    expect(state.options).toMatchObject({
+      trim: { start: 0, end: clipSeconds },
+      video: { frameRate: 20 },
+    })
+  },
+)
+it.each([null, 0, 0.25, 4, NaN, '1'])(
+  'rejects invalid clip seconds %s before conversion',
+  async (clipSeconds) => {
+    state.options = undefined
+    expect(await run(20, clipSeconds)).toEqual({
+      ok: false,
+      reason: 'invalid-metadata',
+    })
+    expect(state.options).toBeUndefined()
+  },
+)
 it.each([10, 20, 24, 30])(
   'uses %i FPS, measures cleanup and strips source tags/audio',
   async (frameRate) => {

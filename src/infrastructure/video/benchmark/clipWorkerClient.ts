@@ -5,6 +5,9 @@ import {
 } from './previewExtraction'
 import {
   CLIP_FPS,
+  CLIP_SECONDS,
+  validateClipSeconds,
+  type ClipSeconds,
   validateClipFrameRate,
   validateClipOutput,
   type ClipFrameRate,
@@ -15,6 +18,7 @@ export function extractClipsWithWorker(
   file: File,
   signal: AbortSignal,
   frameRate: ClipFrameRate = CLIP_FPS,
+  clipSeconds: ClipSeconds = CLIP_SECONDS,
 ): Promise<ClipOutput> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
@@ -22,6 +26,7 @@ export function extractClipsWithWorker(
       return
     }
     validateClipFrameRate(frameRate)
+    validateClipSeconds(clipSeconds)
     let worker: Worker
     try {
       worker = new Worker(
@@ -55,13 +60,13 @@ export function extractClipsWithWorker(
     worker.onmessage = (event) => {
       try {
         if (event.data?.ok !== true) throw workerFailure(event.data?.reason)
-        finish(validateClipOutput(event.data.output))
+        finish(validateClipOutput(event.data.output, clipSeconds))
       } catch (error) {
         finish(undefined, error)
       }
     }
     try {
-      worker.postMessage({ file, frameRate })
+      worker.postMessage({ file, frameRate, clipSeconds })
     } catch {
       finish(undefined, new ExtractionError('extraction-failed'))
     }

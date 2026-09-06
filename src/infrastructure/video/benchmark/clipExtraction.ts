@@ -5,6 +5,13 @@ import {
 } from './previewExtraction'
 
 export const CLIP_SECONDS = 3
+export const CLIP_DURATIONS = [0.5, 1, 1.5, 2] as const
+export type ClipSeconds = (typeof CLIP_DURATIONS)[number] | typeof CLIP_SECONDS
+export function validateClipSeconds(value: unknown): ClipSeconds {
+  if (![...CLIP_DURATIONS, CLIP_SECONDS].includes(value as ClipSeconds))
+    throw new ExtractionError('invalid-metadata')
+  return value as ClipSeconds
+}
 export const CLIP_FPS = 10
 export const CLIP_FRAME_RATES = [10, 20, 24, 30] as const
 export type ClipFrameRate = (typeof CLIP_FRAME_RATES)[number]
@@ -33,13 +40,18 @@ export type ClipOutput = {
   }
 }
 
-export function clipWindows(duration: number): ClipWindow[] {
+export function clipWindows(
+  duration: number,
+  clipSeconds: ClipSeconds = CLIP_SECONDS,
+): ClipWindow[] {
+  validateClipSeconds(clipSeconds)
   if (!Number.isFinite(duration) || duration <= 0)
     throw new ExtractionError('invalid-metadata')
+  // Hold starts/count fixed across duration variants, including short media.
   const count = Math.min(10, Math.max(1, Math.floor(duration / CLIP_SECONDS)))
   return Array.from({ length: count }, (_, i) => {
     const start = (duration / count) * i
-    return { start, end: Math.min(duration, start + CLIP_SECONDS) }
+    return { start, end: Math.min(duration, start + clipSeconds) }
   })
 }
 
@@ -76,7 +88,11 @@ export function boundedClipBuffer(limit: number) {
   }
 }
 
-export function validateClipOutput(value: unknown): ClipOutput {
+export function validateClipOutput(
+  value: unknown,
+  clipSeconds: ClipSeconds = CLIP_SECONDS,
+): ClipOutput {
+  validateClipSeconds(clipSeconds)
   const output = value as ClipOutput | undefined
   if (
     !output ||
@@ -105,7 +121,7 @@ export function validateClipOutput(value: unknown): ClipOutput {
         clip.start >= 0 &&
         Number.isFinite(clip.duration) &&
         clip.duration > 0 &&
-        clip.duration <= CLIP_SECONDS + 1e-6 &&
+        clip.duration <= clipSeconds + 1e-6 &&
         (i === 0 ||
           clip.start >= clips[i - 1].start + clips[i - 1].duration - 1e-6),
     )

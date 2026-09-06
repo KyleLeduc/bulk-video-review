@@ -47,55 +47,71 @@ function setup() {
   return { order, request }
 }
 describe('versioned extraction plans', () => {
-  it('runs and labels all four clip quality variants before publishing any samples', async () => {
-    setup()
-    const extract = vi
-      .spyOn(clips, 'extractClipsWithWorker')
-      .mockResolvedValue({
-        clips: [
-          {
-            blob: new Blob(['private'], { type: 'video/mp4' }),
-            start: 0,
-            duration: 3,
+  it.each(['clips-quality-v1', 'clips-duration-v1'] as const)(
+    'runs and labels all four %s variants before publishing any samples',
+    async (preset) => {
+      setup()
+      const extract = vi
+        .spyOn(clips, 'extractClipsWithWorker')
+        .mockResolvedValue({
+          clips: [
+            {
+              blob: new Blob(['private'], { type: 'video/mp4' }),
+              start: 0,
+              duration: 3,
+            },
+          ],
+          width: 320,
+          height: 180,
+          codec: 'avc',
+          readBytes: 4,
+          readCalls: 1,
+          metrics: {
+            setupMs: 1,
+            conversionMs: 2,
+            firstClipMs: 3,
+            totalMs: 4,
+            readMs: 1,
+            readMaxMs: 1,
           },
-        ],
-        width: 320,
-        height: 180,
-        codec: 'avc',
-        readBytes: 4,
-        readCalls: 1,
-        metrics: {
-          setupMs: 1,
-          conversionMs: 2,
-          firstClipMs: 3,
-          totalMs: 4,
-          readMs: 1,
-          readMaxMs: 1,
-        },
+        })
+      const samples = vi.fn<
+        NonNullable<Parameters<typeof runExtractionPlan>[0]['onClipSample']>
+      >(() => expect(extract).toHaveBeenCalledTimes(4))
+      const result = await runExtractionPlan({
+        ...options(),
+        preset,
+        onClipSample: samples,
       })
-    const samples = vi.fn<
-      NonNullable<Parameters<typeof runExtractionPlan>[0]['onClipSample']>
-    >(() => expect(extract).toHaveBeenCalledTimes(4))
-    const result = await runExtractionPlan({
-      ...options(),
-      preset: 'clips-quality-v1',
-      onClipSample: samples,
-    })
-    expect(result.status).toBe('completed')
-    expect(extract.mock.calls.map((call) => call[2])).toEqual([10, 20, 24, 30])
-    expect(
-      result.results.map((entry) =>
-        entry.report.mode === 'clip-extraction-custom-v1'
-          ? entry.report.settings.frameRate
-          : null,
-      ),
-    ).toEqual([10, 20, 24, 30])
-    expect(samples).toHaveBeenCalledTimes(4)
-    expect(samples.mock.calls.map((call) => call[1].frameRate)).toEqual([
-      10, 20, 24, 30,
-    ])
-    expect(JSON.stringify(result)).not.toMatch(/private|"blob":|"start":/)
-  })
+      expect(result.status).toBe('completed')
+      const frameRates =
+        preset === 'clips-duration-v1' ? [20, 20, 20, 20] : [10, 20, 24, 30]
+      const durations =
+        preset === 'clips-duration-v1' ? [0.5, 1, 1.5, 2] : [3, 3, 3, 3]
+      expect(extract.mock.calls.map((call) => call[2])).toEqual(frameRates)
+      expect(extract.mock.calls.map((call) => call[3])).toEqual(durations)
+      expect(
+        result.results.map((entry) =>
+          entry.report.mode === 'clip-extraction-custom-v1'
+            ? entry.report.settings.clipSeconds
+            : null,
+        ),
+      ).toEqual(durations)
+      expect(
+        result.results.map((entry) =>
+          entry.report.mode === 'clip-extraction-custom-v1'
+            ? entry.report.settings.frameRate
+            : null,
+        ),
+      ).toEqual(frameRates)
+      expect(samples).toHaveBeenCalledTimes(4)
+      expect(samples.mock.calls.map((call) => call[1].frameRate)).toEqual(
+        frameRates,
+      )
+      expect(new Set(result.plannedSteps.map((step) => step.id)).size).toBe(4)
+      expect(JSON.stringify(result)).not.toMatch(/private|"blob":|"start":/)
+    },
+  )
   it('covers the full matrix with balanced reversed passes', () => {
     const steps = planSteps('still-matrix-v1')
     expect(steps).toHaveLength(16)

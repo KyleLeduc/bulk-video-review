@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  ref,
+  shallowRef,
+  watch,
+} from 'vue'
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
 import type { BenchmarkReaderMode } from '../infrastructure/video/benchmark/benchmarkFileReader'
 import type { PreviewCount } from '../infrastructure/video/benchmark/previewExtraction'
@@ -28,6 +35,27 @@ watch(execution, (value) => {
 const acknowledged = ref(false)
 const active = ref(false)
 const planActive = ref(false)
+const selectedTab = ref<'runner' | 'manual'>('runner')
+const runnerTab = ref<HTMLButtonElement>()
+const manualTab = ref<HTMLButtonElement>()
+async function navigateTabs(event: KeyboardEvent) {
+  if (
+    active.value ||
+    !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)
+  )
+    return
+  event.preventDefault()
+  selectedTab.value =
+    event.key === 'Home'
+      ? 'runner'
+      : event.key === 'End'
+        ? 'manual'
+        : selectedTab.value === 'runner'
+          ? 'manual'
+          : 'runner'
+  await nextTick()
+  ;(selectedTab.value === 'runner' ? runnerTab.value : manualTab.value)?.focus()
+}
 const progress = ref('Choose local files to begin')
 const rows = shallowRef<ExtractionRow[]>([])
 const result = shallowRef<ExtractionReport>()
@@ -76,7 +104,7 @@ function planActivity(value: boolean) {
     releaseSamples()
     rows.value = []
     result.value = undefined
-    progress.value = 'Automatic plan active above'
+    progress.value = 'Test runner active'
   }
 }
 const beforeUnload = (event: BeforeUnloadEvent) => {
@@ -138,7 +166,9 @@ async function start() {
       result.value = report
       progress.value =
         report.status +
-        (report.hidden ? ' — tab was hidden; exclude this run' : '')
+        (report.hidden
+          ? ' — browser tab hidden; restart to run again. Partial results retained.'
+          : '')
     }
   } catch {
     if (!disposed)
@@ -186,7 +216,7 @@ onBeforeUnmount(() => {
     <p class="warning">
       Use trusted files and keep this tab visible. Memory is not hard-capped;
       large or malformed media can freeze the tab. Hiding the tab cancels the
-      run.
+      run without resuming. Normal gallery previews pause and resume separately.
     </p>
     <fieldset :disabled="active">
       <legend>Shared inputs</legend>
@@ -220,16 +250,65 @@ onBeforeUnmount(() => {
         metrics are unavailable.
       </p>
     </details>
-    <ExtractionPlanPanel
-      :files="files"
-      :selection-id="selectionId"
-      :build="build"
-      :disabled="!capable || !files.length || !acknowledged"
-      :busy="active"
-      @active="planActivity"
-    />
-    <details data-test="manual-extraction">
-      <summary>Manual still comparison</summary>
+    <div
+      role="tablist"
+      aria-label="Extraction mode"
+      class="controls tabs"
+      @keydown="navigateTabs"
+    >
+      <button
+        ref="runnerTab"
+        id="extraction-runner-tab"
+        data-test="extraction-runner-tab"
+        type="button"
+        role="tab"
+        aria-controls="extraction-runner-panel"
+        :aria-selected="selectedTab === 'runner'"
+        :tabindex="selectedTab === 'runner' ? 0 : -1"
+        :disabled="active"
+        @click="selectedTab = 'runner'"
+      >
+        Test runner
+      </button>
+      <button
+        ref="manualTab"
+        id="extraction-manual-tab"
+        data-test="extraction-manual-tab"
+        type="button"
+        role="tab"
+        aria-controls="extraction-manual-panel"
+        :aria-selected="selectedTab === 'manual'"
+        :tabindex="selectedTab === 'manual' ? 0 : -1"
+        :disabled="active"
+        @click="selectedTab = 'manual'"
+      >
+        Manual config
+      </button>
+    </div>
+    <div
+      v-show="selectedTab === 'runner'"
+      id="extraction-runner-panel"
+      role="tabpanel"
+      aria-labelledby="extraction-runner-tab"
+    >
+      <ExtractionPlanPanel
+        :files="files"
+        :selection-id="selectionId"
+        :build="build"
+        :disabled="!capable || !files.length || !acknowledged"
+        :busy="active"
+        :visible="selectedTab === 'runner'"
+        @active="planActivity"
+      />
+    </div>
+    <section
+      v-show="selectedTab === 'manual'"
+      id="extraction-manual-panel"
+      role="tabpanel"
+      aria-labelledby="extraction-manual-tab"
+      data-test="manual-extraction"
+    >
+      <h3>Manual still comparison</h3>
       <fieldset :disabled="active">
         <legend>Manual settings</legend>
         <label
@@ -417,7 +496,7 @@ onBeforeUnmount(() => {
           :value="exported"
         />
       </label>
-    </details>
+    </section>
     <p>
       <a
         href="/third-party/mediabunny/index.html"
@@ -462,6 +541,14 @@ button {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+.tabs {
+  margin-top: 1rem;
+  border-bottom: 1px solid #ccd5df;
+}
+.tabs [aria-selected='true'] {
+  font-weight: 700;
+  border-bottom: 3px solid #225b98;
 }
 .table-scroll {
   overflow-x: auto;

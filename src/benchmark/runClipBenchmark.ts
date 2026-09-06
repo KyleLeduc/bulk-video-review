@@ -6,6 +6,8 @@ import {
   MAX_CLIP_BYTES,
   type ClipOutput,
   type ClipFrameRate,
+  type ClipSeconds,
+  validateClipSeconds,
   validateClipFrameRate,
 } from '../infrastructure/video/benchmark/clipExtraction'
 import { extractClipsWithWorker } from '../infrastructure/video/benchmark/clipWorkerClient'
@@ -36,7 +38,7 @@ export type ClipReport = {
   identity: { build: BuildIdentity; userAgent: string; cacheScope: string }
   settings: {
     jobs: 1
-    clipSeconds: 3
+    clipSeconds: ClipSeconds
     maxClips: 10
     frameRate: ClipFrameRate
     maxDimension: 320
@@ -61,10 +63,12 @@ export async function runClipBenchmark(options: {
   build: BuildIdentity
   signal: AbortSignal
   frameRate?: ClipFrameRate
+  clipSeconds?: ClipSeconds
   onProgress?: (message: string) => void
   onSample?: (sample: ClipSample) => void
 }): Promise<ClipReport> {
   const frameRate = validateClipFrameRate(options.frameRate ?? CLIP_FPS)
+  const clipSeconds = validateClipSeconds(options.clipSeconds ?? CLIP_SECONDS)
   const started = performance.now()
   const report: ClipReport = {
     schemaVersion: 1,
@@ -83,7 +87,7 @@ export async function runClipBenchmark(options: {
     },
     settings: {
       jobs: 1,
-      clipSeconds: CLIP_SECONDS,
+      clipSeconds,
       maxClips: 10,
       frameRate,
       maxDimension: 320,
@@ -106,7 +110,7 @@ export async function runClipBenchmark(options: {
     file++
   ) {
     options.onProgress?.(
-      `Video ${file + 1}/${options.files.length} · three-second clips`,
+      `Video ${file + 1}/${options.files.length} · ${clipSeconds}-second clips · ${frameRate} FPS`,
     )
     const row: ClipRow = {
       file: file + 1,
@@ -126,6 +130,7 @@ export async function runClipBenchmark(options: {
         options.files[file],
         options.signal,
         frameRate,
+        clipSeconds,
       )
       options.signal.throwIfAborted()
       Object.assign(row, {

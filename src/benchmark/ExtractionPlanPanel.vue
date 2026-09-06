@@ -4,6 +4,8 @@ import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
 import { planSteps, type ExtractionPreset } from './extractionPlans'
 import {
   CLIP_FPS,
+  CLIP_SECONDS,
+  type ClipSeconds,
   type ClipFrameRate,
 } from '../infrastructure/video/benchmark/clipExtraction'
 import {
@@ -12,15 +14,19 @@ import {
   type PlanResult,
 } from './runExtractionBenchmark'
 
-const props = defineProps<{
-  files: File[]
-  selectionId: string
-  build: BuildIdentity
-  disabled: boolean
-  busy: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    files: File[]
+    selectionId: string
+    build: BuildIdentity
+    disabled: boolean
+    busy: boolean
+    visible?: boolean
+  }>(),
+  { visible: true },
+)
 const emit = defineEmits<{ active: [value: boolean] }>()
-const preset = ref<ExtractionPreset>('clips-quality-v1')
+const preset = ref<ExtractionPreset>('clips-duration-v1')
 const running = ref(false)
 const progress = ref('Ready')
 const elapsed = ref(0)
@@ -31,6 +37,7 @@ const copyStatus = ref('')
 type ClipVariant = {
   file: number
   frameRate: ClipFrameRate
+  clipSeconds: ClipSeconds
   clips: { url: string; start: number; duration: number }[]
 }
 const variants = ref<ClipVariant[]>([])
@@ -67,7 +74,7 @@ function releaseClips() {
 async function playCurrent() {
   const player = video.value
   const source = activeClip.value?.url
-  if (!player || !source || playbackPaused.value) return
+  if (!player || !source || playbackPaused.value || !props.visible) return
   const attempt = ++playbackAttempt
   try {
     player.muted = true
@@ -77,7 +84,8 @@ async function playCurrent() {
       disposed ||
       attempt !== playbackAttempt ||
       source !== activeClip.value?.url ||
-      playbackPaused.value
+      playbackPaused.value ||
+      !props.visible
     )
       return
     playbackPaused.value = true
@@ -97,7 +105,7 @@ watch(
   { flush: 'post' },
 )
 function advanceClip() {
-  if (playbackPaused.value || !activeVariant.value) return
+  if (playbackPaused.value || !activeVariant.value || !props.visible) return
   clipIndex.value = (clipIndex.value + 1) % activeVariant.value.clips.length
   if (activeVariant.value.clips.length === 1) {
     if (video.value) video.value.currentTime = 0
@@ -123,7 +131,7 @@ function reportPlaybackError() {
   video.value?.pause()
   playbackPaused.value = true
   playbackError.value =
-    'This clip could not be played. Try Resume previews or another FPS variant.'
+    'This clip could not be played. Try Resume previews or another variant.'
 }
 function reset() {
   releaseClips()
@@ -132,6 +140,15 @@ function reset() {
   copyStatus.value = ''
 }
 watch(() => props.selectionId, reset)
+watch(
+  () => props.visible,
+  (visible) => {
+    playbackAttempt++
+    if (!visible) video.value?.pause()
+    else void playCurrent()
+  },
+  { flush: 'post' },
+)
 watch(
   () => props.busy,
   (busy) => {
@@ -186,6 +203,7 @@ async function start() {
           variants.value.push({
             file: sample.file,
             frameRate: step.frameRate ?? CLIP_FPS,
+            clipSeconds: step.clipSeconds ?? CLIP_SECONDS,
             clips,
           })
         } catch (error) {
@@ -196,7 +214,7 @@ async function start() {
     })
     if (!disposed) {
       result.value = report
-      progress.value = `${report.status}${report.hidden ? ' — hidden tab; exclude this plan' : ''}`
+      progress.value = `${report.status}${report.hidden ? ' — browser tab hidden; restart to run again. Partial results retained.' : ''}`
     }
   } catch {
     if (!disposed)
@@ -263,6 +281,9 @@ onBeforeUnmount(() => {
         data-test="plan-preset"
         :disabled="running || busy"
       >
+        <option value="clips-duration-v1">
+          Clip duration: 0.5 / 1 / 1.5 / 2 s · 20 FPS
+        </option>
         <option value="clips-quality-v1">
           Clip quality: 10 / 20 / 24 / 30 FPS
         </option>
@@ -279,17 +300,22 @@ onBeforeUnmount(() => {
     </label>
     <p>
       {{ steps.length }} configurations on the selected files. This preset owns
-      all its settings; manual settings below do not apply. Keep the tab
-      visible. Stop retains partial numeric results.
+      its settings; Manual config does not apply. Keep the browser tab visible.
+      Stop retains partial results.
     </p>
     <p v-if="isClipPlan">
-      Try one or two files: up to ten 3-second clips per video, muted, 320 px,
-      250 kbit/s, one job.
+      Try one or two files: up to ten clips per video, muted, 320 px, 250
+      kbit/s, one job.
       {{
-        preset === 'clips-quality-v1'
-          ? 'Compare motion at 10, 20, 24 and 30 FPS.'
-          : 'Original 10 FPS baseline.'
+        preset === 'clips-duration-v1'
+          ? 'Compare 0.5, 1, 1.5 and 2 seconds at 20 FPS, with matching source positions.'
+          : preset === 'clips-quality-v1'
+            ? 'Compare motion at 10, 20, 24 and 30 FPS.'
+            : 'Original 10 FPS baseline.'
       }}
+      <template v-if="preset !== 'clips-duration-v1'"
+        >3 seconds per clip.</template
+      >
       Previews appear after the plan finishes.
     </p>
     <details>
@@ -415,7 +441,8 @@ onBeforeUnmount(() => {
       data-test="clip-samples"
     >
       <h4>
-        Motion preview — {{ activeVariant.frameRate }} FPS · video
+        Motion preview — {{ activeVariant.clipSeconds }} s ·
+        {{ activeVariant.frameRate }} FPS · video
         {{ activeVariant.file }}
       </h4>
       <label v-if="variants.length > 1"
@@ -430,7 +457,8 @@ onBeforeUnmount(() => {
             :key="index"
             :value="index"
           >
-            {{ variant.frameRate }} FPS · video {{ variant.file }}
+            {{ variant.clipSeconds }} s · {{ variant.frameRate }} FPS · video
+            {{ variant.file }}
           </option>
         </select>
       </label>
@@ -443,7 +471,7 @@ onBeforeUnmount(() => {
           ref="video"
           :src="activeClip.url"
           muted
-          :autoplay="!playbackPaused"
+          :autoplay="!playbackPaused && visible"
           playsinline
           disablepictureinpicture
           disableremoteplayback

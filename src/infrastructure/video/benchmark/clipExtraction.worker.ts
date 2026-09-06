@@ -15,6 +15,7 @@ import {
   clipDimensions,
   clipWindows,
   validateClipFrameRate,
+  validateClipSeconds,
   MAX_CLIP_BYTES,
   validateClipOutput,
   type ClipOutput,
@@ -29,7 +30,7 @@ import {
 
 // One file per disposable worker; the client terminates it on cancellation/deadline.
 self.onmessage = async (
-  event: MessageEvent<{ file: File; frameRate: unknown }>,
+  event: MessageEvent<{ file: File; frameRate: unknown; clipSeconds: unknown }>,
 ) => {
   const started = performance.now()
   let input: Input | undefined
@@ -37,6 +38,7 @@ self.onmessage = async (
   let reply: { ok: true; output: ClipOutput } | { ok: false; reason: string }
   try {
     const frameRate = validateClipFrameRate(event.data?.frameRate)
+    const clipSeconds = validateClipSeconds(event.data?.clipSeconds)
     if (
       typeof VideoEncoder === 'undefined' ||
       typeof VideoDecoder === 'undefined' ||
@@ -71,6 +73,7 @@ self.onmessage = async (
     const startTime = Math.max(0, await track.getFirstTimestamp())
     const windows = clipWindows(
       (await track.computeDuration()) - startTime,
+      clipSeconds,
     ).map((window) => ({
       start: window.start + startTime,
       end: window.end + startTime,
@@ -146,14 +149,17 @@ self.onmessage = async (
     metrics.totalMs = performance.now() - started
     reply = {
       ok: true,
-      output: validateClipOutput({
-        clips,
-        ...dimensions,
-        codec,
-        metrics,
-        readBytes: reader.readBytes,
-        readCalls: reader.readCalls,
-      }),
+      output: validateClipOutput(
+        {
+          clips,
+          ...dimensions,
+          codec,
+          metrics,
+          readBytes: reader.readBytes,
+          readCalls: reader.readCalls,
+        },
+        clipSeconds,
+      ),
     }
   } catch (error) {
     reply = { ok: false, reason: safeFailure(error) }

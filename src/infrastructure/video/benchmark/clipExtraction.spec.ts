@@ -7,6 +7,32 @@ import {
 } from './clipExtraction'
 
 describe('three-second clip policy and output boundary', () => {
+  it.each([0.5, 1, 1.5, 2] as const)(
+    'compares %s-second windows at the same source starts',
+    (seconds) => {
+      for (const duration of [2, 8, 33.3, 100]) {
+        const baseline = clipWindows(duration)
+        const windows = clipWindows(duration, seconds)
+        expect(windows.map((window) => window.start)).toEqual(
+          baseline.map((window) => window.start),
+        )
+        expect(
+          windows.every(
+            (window) => Math.abs(window.end - window.start - seconds) < 1e-6,
+          ),
+        ).toBe(true)
+      }
+      expect(clipWindows(0.2, seconds)).toEqual([{ start: 0, end: 0.2 }])
+    },
+  )
+  it.each([0, -1, 0.25, 4, NaN, Infinity, '1', null])(
+    'rejects invalid clip duration %s',
+    (seconds) => {
+      expect(() => clipWindows(30, seconds as never)).toThrow(
+        'invalid-metadata',
+      )
+    },
+  )
   it('spreads ten full clips across long videos without duplicate clamped windows', () => {
     const windows = clipWindows(100)
     expect(windows).toHaveLength(10)
@@ -70,6 +96,7 @@ describe('three-second clip policy and output boundary', () => {
       },
     }
     expect(() => validateClipOutput(output)).not.toThrow()
+    expect(() => validateClipOutput(output, 0.5)).toThrow('output-invalid')
     output.clips[0].duration = 3.01
     expect(() => validateClipOutput(output)).toThrow('output-invalid')
   })

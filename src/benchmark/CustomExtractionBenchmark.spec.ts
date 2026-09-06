@@ -8,15 +8,23 @@ afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
-it('groups automatic plans before collapsed manual settings with independent validation', async () => {
+it('separates runner and manual tabs with retained settings and independent validation', async () => {
   const wrapper = mount(CustomExtractionBenchmark, {
+    attachTo: document.body,
     props: {
       build: { revision: null, dirty: null, assetsSha256: null },
       capable: true,
     },
   })
-  const manual = wrapper.get('details[data-test=manual-extraction]')
-  expect(manual.attributes('open')).toBeUndefined()
+  const manual = wrapper.get('[data-test=manual-extraction]')
+  const runnerTab = wrapper.get('[data-test=extraction-runner-tab]')
+  const manualTab = wrapper.get('[data-test=extraction-manual-tab]')
+  expect(runnerTab.attributes('aria-selected')).toBe('true')
+  expect(manual.isVisible()).toBe(false)
+  await runnerTab.trigger('keydown', { key: 'ArrowRight' })
+  expect(manualTab.attributes('aria-selected')).toBe('true')
+  expect(manual.isVisible()).toBe(true)
+  expect(wrapper.get('[data-test=plan-start]').isVisible()).toBe(false)
   expect(manual.find('[data-test=extraction-repetitions]').exists()).toBe(true)
   expect(manual.find('[data-test=extraction-start]').exists()).toBe(true)
   expect(manual.find('[data-test=plan-start]').exists()).toBe(false)
@@ -28,6 +36,14 @@ it('groups automatic plans before collapsed manual settings with independent val
   await picker.trigger('change')
   await wrapper.get('[data-test=memory-ack]').setValue(true)
   await wrapper.get('[data-test=extraction-repetitions]').setValue(0)
+  await manualTab.trigger('keydown', { key: 'Home' })
+  expect(runnerTab.attributes('aria-selected')).toBe('true')
+  expect(wrapper.get('[data-test=plan-start]').isVisible()).toBe(true)
+  await runnerTab.trigger('keydown', { key: 'End' })
+  expect(
+    wrapper.get<HTMLInputElement>('[data-test=extraction-repetitions]').element
+      .value,
+  ).toBe('0')
   expect(
     wrapper.get('[data-test=extraction-start]').attributes('disabled'),
   ).toBeDefined()
@@ -73,6 +89,8 @@ it('keeps the visible table in launch order when concurrent jobs finish out of o
   await picker.trigger('change')
   await wrapper.get('[data-test=memory-ack]').setValue(true)
   await wrapper.get('[data-test=extraction-start]').trigger('click')
+  for (const tab of wrapper.findAll('[role=tab]'))
+    expect(tab.attributes('disabled')).toBeDefined()
   expect(
     wrapper.findAll('tbody tr').map((row) => row.findAll('td')[1].text()),
   ).toEqual(['1', '2'])

@@ -181,13 +181,18 @@ it.each([false, true])(
     vi.spyOn(URL, 'createObjectURL').mockImplementation(
       () => `blob:clip-${++url}`,
     )
-    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined)
-    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
+    const play = vi
+      .spyOn(HTMLMediaElement.prototype, 'play')
+      .mockResolvedValue(undefined)
+    const pause = vi
+      .spyOn(HTMLMediaElement.prototype, 'pause')
+      .mockImplementation(() => {})
     vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {})
     const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
     vi.spyOn(runner, 'runExtractionPlan').mockImplementation(
       async (options) => {
-        for (const frameRate of [10, 24] as const) {
+        for (const clipSeconds of [0.5, 2] as const) {
+          const frameRate = 20
           options.onClipSample?.(
             {
               file: 1,
@@ -196,12 +201,12 @@ it.each([false, true])(
                   {
                     blob: new Blob(['mp4'], { type: 'video/mp4' }),
                     start: 0,
-                    duration: 3,
+                    duration: clipSeconds,
                   },
                   {
                     blob: new Blob(['mp4-2'], { type: 'video/mp4' }),
                     start: 6,
-                    duration: 3,
+                    duration: clipSeconds,
                   },
                 ],
                 codec: 'avc',
@@ -220,12 +225,13 @@ it.each([false, true])(
               },
             },
             {
-              id: `quality-${frameRate}`,
+              id: `duration-${clipSeconds}`,
               pass: 1,
               workload: 'clips',
               execution: 'mediabunny',
               jobs: 1,
               frameRate,
+              clipSeconds,
             },
           )
         }
@@ -233,7 +239,9 @@ it.each([false, true])(
       },
     )
     const wrapper = mount(ExtractionPlanPanel, { props })
-    await wrapper.get('[data-test=plan-preset]').setValue('clips-3s-v1')
+    expect(
+      wrapper.get<HTMLSelectElement>('[data-test=plan-preset]').element.value,
+    ).toBe('clips-duration-v1')
     await wrapper.get('[data-test=plan-start]').trigger('click')
     await flushPromises()
     const video = wrapper.get<HTMLVideoElement>('video').element
@@ -244,6 +252,20 @@ it.each([false, true])(
     expect(video.controls).toBe(false)
     expect(video.tabIndex).toBe(-1)
     expect(video.src).toContain('blob:clip-1')
+    expect(wrapper.get('[data-test=clip-variant]').text()).toContain(
+      '0.5 s · 20 FPS',
+    )
+    pause.mockClear()
+    play.mockClear()
+    await wrapper.setProps({ visible: false })
+    expect(pause).toHaveBeenCalled()
+    expect(video.autoplay).toBe(false)
+    await wrapper.get('video').trigger('loadeddata')
+    await wrapper.get('video').trigger('ended')
+    expect(play).not.toHaveBeenCalled()
+    expect(video.src).toContain('blob:clip-1')
+    await wrapper.setProps({ visible: true })
+    expect(play.mock.calls.length > 0).toBe(!reducedMotion)
     if (reducedMotion) {
       expect(wrapper.get('[data-test=clip-playback]').text()).toContain(
         'Resume',
@@ -259,7 +281,9 @@ it.each([false, true])(
     expect(video.src).toContain('blob:clip-1')
     await wrapper.get('[data-test=clip-variant]').setValue('1')
     expect(video.src).toContain('blob:clip-3')
-    expect(wrapper.get('[data-test=clip-samples]').text()).toContain('24 FPS')
+    expect(wrapper.get('[data-test=clip-samples]').text()).toContain(
+      '2 s · 20 FPS',
+    )
     await wrapper.get('[data-test=clip-playback]').trigger('click')
     expect(wrapper.get('[data-test=clip-playback]').text()).toContain('Resume')
     expect(
