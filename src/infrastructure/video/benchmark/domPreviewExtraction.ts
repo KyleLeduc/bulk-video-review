@@ -11,6 +11,8 @@ import {
   MAX_OUTPUT_BYTES,
   validateExtraction,
   emptyMetrics,
+  checkPreviewCount,
+  type PreviewCount,
   type PreparedExtraction,
   type ExtractionOutput,
 } from './previewExtraction'
@@ -18,12 +20,18 @@ import {
 export async function prepareFile(
   file: File,
   signal: AbortSignal,
+  count: PreviewCount = 9,
 ): Promise<PreparedExtraction> {
   const url = URL.createObjectURL(file)
   let video: HTMLVideoElement | null = null
   try {
     video = await loadVideoElement(url, { signal })
-    return prepareTargets(video.duration, video.videoWidth, video.videoHeight)
+    return prepareTargets(
+      video.duration,
+      video.videoWidth,
+      video.videoHeight,
+      count,
+    )
   } finally {
     disposeVideoElement(video)
     URL.revokeObjectURL(url)
@@ -34,6 +42,8 @@ export async function extractWithDom(
   prepared: PreparedExtraction,
   signal: AbortSignal,
 ): Promise<ExtractionOutput> {
+  const count = prepared.targets.length
+  checkPreviewCount(count)
   const started = performance.now()
   const metrics = emptyMetrics()
   const url = URL.createObjectURL(file)
@@ -44,6 +54,7 @@ export async function extractWithDom(
       video.duration,
       video.videoWidth,
       video.videoHeight,
+      count,
     )
     if (JSON.stringify(current) !== JSON.stringify(prepared))
       throw new ExtractionError('invalid-metadata')

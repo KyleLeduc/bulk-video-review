@@ -4,9 +4,57 @@ import {
   validateExtraction,
   safeFailure,
   validateMetrics,
+  readBudgetForCount,
 } from './previewExtraction'
 
 describe('custom extraction policy', () => {
+  it('prepares 100 evenly spaced fractional targets without rounding short videos', () => {
+    const prepared = prepareTargets(5, 320, 180, 100)
+    expect(prepared.targets).toHaveLength(100)
+    expect(new Set(prepared.targets).size).toBe(100)
+    expect(prepared.targets[0]).toBeCloseTo(5 / 101)
+    expect(prepared.targets[99]).toBeCloseTo(500 / 101)
+    expect(prepared.width).toBe(320)
+    for (const count of [0, 10, 99, 101, Infinity, NaN]) {
+      expect(() => prepareTargets(5, 320, 180, count as never)).toThrow()
+      expect(() => readBudgetForCount(count)).toThrow()
+    }
+    expect(readBudgetForCount(9)).toBe(256 * 1024 * 1024)
+    expect(readBudgetForCount(100)).toBe(1024 * 1024 * 1024)
+  })
+  it('validates dense count and its bounded read budget without relaxing output limits', () => {
+    const prepared = prepareTargets(100, 320, 180, 100)
+    const result = {
+      frames: Array(100).fill(new Blob(['jpeg'], { type: 'image/jpeg' })),
+      width: 320,
+      height: 180,
+      readBytes: 1024 * 1024 * 1024,
+      readCalls: 100,
+    }
+    expect(validateExtraction(result, prepared)).toEqual(result)
+    expect(() =>
+      validateExtraction(
+        { ...result, frames: result.frames.slice(1) },
+        prepared,
+      ),
+    ).toThrow()
+    expect(() =>
+      validateExtraction(
+        { ...result, readBytes: result.readBytes + 1 },
+        prepared,
+      ),
+    ).toThrow()
+    expect(() =>
+      validateExtraction(result, prepareTargets(100, 320, 180)),
+    ).toThrow()
+    const large = new Blob([new Uint8Array(200000)], { type: 'image/jpeg' })
+    expect(() =>
+      validateExtraction(
+        { ...result, frames: Array(100).fill(large) },
+        prepared,
+      ),
+    ).toThrow()
+  })
   it('requires finite stage evidence and strips arbitrary metric properties', () => {
     const metrics = {
       setupMs: 2,

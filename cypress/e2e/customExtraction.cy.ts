@@ -18,7 +18,9 @@ describe('Custom extraction built-runtime smoke', () => {
         const json = String(value)
         const result = JSON.parse(json)
         expect(result.mode).to.equal('preview-extraction-custom-v1')
-        expect(result.schemaVersion).to.equal(3)
+        expect(result.schemaVersion).to.equal(4)
+        expect(result.settings.previewCount).to.equal(9)
+        expect(result.settings.samplingPolicy).to.equal('integer-deciles')
         expect(result.settings.readerMode).to.equal('direct')
         expect(result.settings.samples).to.equal('after-run')
         expect(result.status).to.equal('completed')
@@ -141,6 +143,68 @@ describe('Custom extraction built-runtime smoke', () => {
       cy.get('section .samples img').should('have.length', 9)
       cy.get('[data-test=extraction-batches]').should('contain', '2 / 2')
     }
+    cy.get('[data-test=extraction-files]').selectFile([
+      'cypress/fixtures/videos/short-blue.mp4',
+      'cypress/fixtures/videos/long-red.mp4',
+      'cypress/fixtures/videos/short-blue.mp4',
+      'cypress/fixtures/videos/long-red.mp4',
+    ])
+    cy.get('[data-test=extraction-count]').select('100')
+    cy.get('[data-test=extraction-jobs]').select('4')
+    for (const [backend, readerMode] of [
+      ['dom', null],
+      ['mediabunny', 'direct'],
+      ['mediabunny', 'buffered-1mib'],
+    ] as const) {
+      cy.get('[data-test=extraction-execution]').select(backend)
+      if (readerMode) cy.get('[data-test=extraction-reader]').select(readerMode)
+      cy.get('[data-test=extraction-start]').click()
+      cy.get('[data-test=extraction-json]', { timeout: 120000 })
+        .invoke('val')
+        .should((value) => {
+          const result = JSON.parse(String(value))
+          expect(result.status).to.equal('completed')
+          expect(result.settings).to.include({
+            previewCount: 100,
+            jobs: 4,
+            samplingPolicy: 'fractional-even',
+            maxReadBytes: readerMode ? 1024 * 1024 * 1024 : null,
+            maxOutputBytes: 16 * 1024 * 1024,
+          })
+          expect(result.rows).to.have.length(4)
+          for (const row of result.rows) {
+            expect(row.status).to.equal('passed')
+            expect(row.frames).to.equal(100)
+            expect(row.backend).to.equal(backend)
+          }
+          expect(result.rows[3].startedAtMs).to.be.lessThan(
+            Math.min(
+              ...result.rows.map(
+                (row: { finishedAtMs: number }) => row.finishedAtMs,
+              ),
+            ),
+          )
+          expect(result.batches[0]).to.include({
+            peakActiveJobs: 4,
+            completed: 4,
+            failed: 0,
+            aborted: 0,
+          })
+        })
+      cy.get('section .samples img')
+        .should('have.length', 100)
+        .each((image) => {
+          cy.wrap(image).should((element) => {
+            const img = element[0] as HTMLImageElement
+            expect(img.complete).to.equal(true)
+            expect(img.naturalWidth).to.equal(160)
+            expect(img.naturalHeight).to.equal(90)
+          })
+        })
+    }
+    // Changing controls must not relabel the completed run's frame denominator.
+    cy.get('[data-test=extraction-count]').select('9')
+    cy.get('tbody').should('contain', '100/100')
     cy.get('[data-test=extraction-start]').click()
     cy.get('[data-test=extraction-stop]').click()
     cy.get('[data-test=extraction-json]')

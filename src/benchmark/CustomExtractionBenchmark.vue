@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
 import type { BenchmarkReaderMode } from '../infrastructure/video/benchmark/benchmarkFileReader'
+import type { PreviewCount } from '../infrastructure/video/benchmark/previewExtraction'
 import {
   runExtractionBenchmark,
   type ExtractionReport,
@@ -16,7 +17,9 @@ const files = shallowRef<File[]>([])
 const selectionId = ref('')
 const repetitions = ref(3)
 const execution = ref<ExtractionExecution>('paired')
-const jobs = ref<1 | 2>(1)
+const jobs = ref<1 | 2 | 4>(1)
+const previewCount = ref<PreviewCount>(9)
+const runPreviewCount = ref<PreviewCount>(9)
 const readerMode = ref<BenchmarkReaderMode>('direct')
 watch(execution, (value) => {
   if (value === 'paired') jobs.value = 1
@@ -74,6 +77,7 @@ async function start() {
   result.value = undefined
   copyStatus.value = ''
   controller = new AbortController()
+  runPreviewCount.value = previewCount.value
   active.value = true
   emit('active', true)
   window.addEventListener('beforeunload', beforeUnload)
@@ -85,6 +89,7 @@ async function start() {
       execution: execution.value,
       jobs: execution.value === 'paired' ? 1 : jobs.value,
       readerMode: readerMode.value,
+      previewCount: runPreviewCount.value,
       build: props.build,
       signal: controller.signal,
       onProgress: (message) => {
@@ -205,8 +210,24 @@ onBeforeUnmount(() => {
         >
           <option :value="1">1 job</option>
           <option :value="2">2 jobs (more memory)</option>
+          <option :value="4">4 jobs (higher resource pressure)</option>
         </select>
       </label>
+      <label
+        >Previews per video
+        <select v-model.number="previewCount" data-test="extraction-count">
+          <option :value="9">9 stills (existing baseline)</option>
+          <option :value="100">100 stills (dense scrub test)</option>
+        </select>
+      </label>
+      <p>
+        Nine previews keep the existing whole-second decile targets. One hundred
+        use evenly spaced fractional times; short videos may still yield
+        repeated source frames. Candidate cumulative read limit per file:
+        {{ previewCount === 9 ? '256 MiB' : '1 GiB' }}; JPEG output limit: 16
+        MiB. These are not memory caps. Dense extraction still has a 120-second
+        deadline.
+      </p>
       <label
         >Mediabunny reader
         <select
@@ -224,9 +245,10 @@ onBeforeUnmount(() => {
         Compare the same job count and selection; DOM is unaffected.
       </p>
       <p>
-        Two jobs use separate media elements or workers, but share disk and
-        decoder/GPU resources. Memory pressure can roughly double; speedup is
-        not guaranteed.
+        Concurrent jobs use separate media elements or workers, but share disk
+        and decoder/GPU resources. More jobs and previews increase memory
+        pressure; speedup is not guaranteed. Start small before testing four
+        jobs.
       </p>
       <label
         >Repetitions
@@ -245,8 +267,8 @@ onBeforeUnmount(() => {
     </fieldset>
     <p>
       Paired mode runs one file/method at a time and alternates method order
-      each repetition. Standalone modes run only the selected method with one or
-      two concurrent files. Both use the same nine DOM-derived target times,
+      each repetition. Standalone modes run only the selected method with one,
+      two or four concurrent files. Both use the same selected target times,
       JPEG quality 0.72 and maximum width 480 (no upscaling). DOM metadata
       preparation is recorded separately, outside extraction timing. Jobs
       include fresh media/worker startup, loading, seeking/decoding and
@@ -336,7 +358,7 @@ onBeforeUnmount(() => {
               }}
             </td>
             <td>{{ (row.wallMs / 1000).toFixed(3) }} s</td>
-            <td>{{ row.frames }}/9</td>
+            <td>{{ row.frames }}/{{ runPreviewCount }}</td>
             <td>{{ row.status }} {{ row.reason ?? '' }}</td>
           </tr>
         </tbody>

@@ -1,6 +1,10 @@
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
 import {
   EXTRACTION_DEADLINE_MS,
+  MAX_OUTPUT_BYTES,
+  checkPreviewCount,
+  readBudgetForCount,
+  type PreviewCount,
   ExtractionError,
   safeFailure,
   validateExtraction,
@@ -47,7 +51,7 @@ export type ExtractionBatch = {
 }
 export type ExtractionReport = {
   errors: 'display-failed'[]
-  schemaVersion: 3
+  schemaVersion: 4
   mode: 'preview-extraction-custom-v1'
   status: 'completed' | 'failed' | 'interrupted'
   hidden: boolean
@@ -55,7 +59,11 @@ export type ExtractionReport = {
   identity: { build: BuildIdentity; userAgent: string; cacheScope: string }
   settings: {
     repetitions: number
-    jobs: 1 | 2
+    jobs: 1 | 2 | 4
+    previewCount: PreviewCount
+    samplingPolicy: 'integer-deciles' | 'fractional-even'
+    maxReadBytes: number | null
+    maxOutputBytes: number
     execution: ExtractionExecution
     samples: 'after-run'
     readerMode: BenchmarkReaderMode | null
@@ -71,7 +79,8 @@ type Options = {
   selectionId: string
   repetitions: number
   execution?: ExtractionExecution
-  jobs?: 1 | 2
+  jobs?: 1 | 2 | 4
+  previewCount?: PreviewCount
   readerMode?: BenchmarkReaderMode
   build: BuildIdentity
   signal: AbortSignal
@@ -114,18 +123,20 @@ export async function runExtractionBenchmark(
   const execution = options.execution ?? 'paired'
   const jobs = options.jobs ?? 1
   const readerMode = options.readerMode ?? 'direct'
+  const previewCount = options.previewCount ?? 9
+  checkPreviewCount(previewCount)
   if (
     !Number.isInteger(options.repetitions) ||
     options.repetitions < 1 ||
     options.repetitions > 5 ||
     !options.files.length ||
     !['paired', 'dom', 'mediabunny'].includes(execution) ||
-    ![1, 2].includes(jobs) ||
+    ![1, 2, 4].includes(jobs) ||
     !['direct', 'buffered-1mib'].includes(readerMode) ||
     (execution === 'paired' && jobs !== 1)
   )
     throw new Error(
-      'Choose files, a supported reader, 1–5 repetitions and 1–2 jobs; paired comparisons require one job',
+      'Choose files, a supported reader, 1–5 repetitions and 1, 2 or 4 jobs; paired comparisons require one job',
     )
   if (!navigator.locks) throw new Error('Web Locks unavailable')
   return navigator.locks.request(
@@ -147,7 +158,7 @@ export async function runExtractionBenchmark(
       if (options.signal.aborted || hidden) abort()
       const report: ExtractionReport = {
         errors: [],
-        schemaVersion: 3,
+        schemaVersion: 4,
         mode: 'preview-extraction-custom-v1',
         status: 'completed',
         hidden,
@@ -165,6 +176,12 @@ export async function runExtractionBenchmark(
         settings: {
           repetitions: options.repetitions,
           jobs,
+          previewCount,
+          samplingPolicy:
+            previewCount === 9 ? 'integer-deciles' : 'fractional-even',
+          maxReadBytes:
+            execution === 'dom' ? null : readBudgetForCount(previewCount),
+          maxOutputBytes: MAX_OUTPUT_BYTES,
           execution,
           samples: 'after-run',
           readerMode: execution === 'dom' ? null : readerMode,
@@ -200,7 +217,7 @@ export async function runExtractionBenchmark(
           let reason: FailureReason | null = null
           try {
             prepared[file] = await timedJob(controller.signal, (signal) =>
-              prepareFile(options.files[file], signal),
+              prepareFile(options.files[file], signal, previewCount),
             )
           } catch (error) {
             reason = safeFailure(error)
@@ -257,7 +274,20 @@ export async function runExtractionBenchmark(
                   ),
             )
             validateExtraction(output, targets)
-            row.metrics = validateMetrics(output.metrics)
+            const metrics = validateMetrics(output.metrics)
+            // DOM cannot provide reader or worker evidence; never export invented counters.
+            if (
+              backend === 'dom' &&
+              [
+                output.readBytes,
+                output.readCalls,
+                metrics.readMs,
+                metrics.readMaxMs,
+                metrics.workerOverheadMs,
+              ].some((value) => value !== null)
+            )
+              throw new ExtractionError('output-invalid')
+            row.metrics = metrics
             row.status = 'passed'
             row.frames = output.frames.length
             row.outputBytes = output.frames.reduce(

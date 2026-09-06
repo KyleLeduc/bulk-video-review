@@ -1,6 +1,7 @@
 import {
   ExtractionError,
-  MAX_READ_BYTES,
+  readBudgetForCount,
+  type PreviewCount,
   type ExtractionMetrics,
 } from './previewExtraction'
 
@@ -12,7 +13,9 @@ export function createBenchmarkFileReader(
   file: Blob,
   mode: BenchmarkReaderMode,
   metrics: ExtractionMetrics,
+  count: PreviewCount = 9,
 ) {
+  const readBudget = readBudgetForCount(count)
   if (mode !== 'direct' && mode !== 'buffered-1mib')
     throw new ExtractionError('unsupported')
   let readBytes = 0
@@ -23,7 +26,7 @@ export function createBenchmarkFileReader(
   metrics.readMs = metrics.readMaxMs = 0
 
   async function physicalRead(start: number, end: number) {
-    if (readBytes + end - start > MAX_READ_BYTES)
+    if (readBytes + end - start > readBudget)
       throw new ExtractionError('read-limit')
     // Reserve before awaiting; failed reads still consume the budget.
     readBytes += end - start

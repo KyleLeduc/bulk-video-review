@@ -36,8 +36,9 @@ vi.mock('mediabunny', () => ({
     }
   },
   CanvasSink: class {
-    async *canvasesAtTimestamps() {
-      for (let i = 0; i < 9; i++) yield { canvas: new OffscreenCanvas(160, 90) }
+    async *canvasesAtTimestamps(targets: number[]) {
+      for (let i = 0; i < targets.length; i++)
+        yield { canvas: new OffscreenCanvas(160, 90) }
     }
   },
 }))
@@ -46,12 +47,14 @@ afterEach(() => {
   vi.resetModules()
 })
 it.each([
-  { fail: false, readerMode: 'direct' },
-  { fail: false, readerMode: 'buffered-1mib' },
-  { fail: true, readerMode: 'direct' },
+  { fail: false, readerMode: 'direct', count: 9 },
+  { fail: false, readerMode: 'buffered-1mib', count: 9 },
+  { fail: false, readerMode: 'direct', count: 100 },
+  { fail: false, readerMode: 'buffered-1mib', count: 100 },
+  { fail: true, readerMode: 'direct', count: 9 },
 ])(
   'uses selected reader and disposes before publishing ($readerMode, failure=$fail)',
-  async ({ fail, readerMode }) => {
+  async ({ fail, readerMode, count }) => {
     state.events = []
     state.fail = fail
     const host = {
@@ -78,7 +81,10 @@ it.each([
         prepared: {
           width: 160,
           height: 90,
-          targets: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+          targets: Array.from(
+            { length: count },
+            (_, i) => (i + 1) / (count + 1),
+          ),
         },
       },
     })
@@ -93,5 +99,9 @@ it.each([
         },
       })
     expect(JSON.stringify(reply)).not.toContain('private input')
+    if (!fail)
+      expect(
+        (reply[0] as { output: { frames: Blob[] } }).output.frames,
+      ).toHaveLength(count)
   },
 )

@@ -5,6 +5,7 @@ import {
 } from './benchmarkFileReader'
 import {
   checkDimensions,
+  checkPreviewCount,
   ExtractionError,
   MAX_OUTPUT_BYTES,
   safeFailure,
@@ -38,18 +39,21 @@ self.onmessage = async (
     const { file, prepared } = event.data
     if (
       !(file instanceof File) ||
-      prepared.targets.length !== 9 ||
+      !Array.isArray(prepared?.targets) ||
       !prepared.targets.every(
         (n, i, list) =>
           Number.isFinite(n) && n >= 0 && (i === 0 || n >= list[i - 1]),
       )
     )
       throw new ExtractionError('invalid-metadata')
+    const count = prepared.targets.length
+    checkPreviewCount(count)
     checkDimensions(prepared.width, prepared.height)
     const reader = createBenchmarkFileReader(
       file,
       event.data.readerMode ?? 'direct',
       metrics,
+      count,
     )
     input = new Input({
       formats: [MP4],

@@ -1,6 +1,17 @@
 export const EXTRACTION_DEADLINE_MS = 120000
 export const MAX_OUTPUT_BYTES = 16 * 1024 * 1024
 export const MAX_READ_BYTES = 256 * 1024 * 1024
+export type PreviewCount = 9 | 100
+export function checkPreviewCount(
+  count: number,
+): asserts count is PreviewCount {
+  if (count !== 9 && count !== 100)
+    throw new ExtractionError('invalid-metadata')
+}
+export function readBudgetForCount(count: number): number {
+  checkPreviewCount(count)
+  return count === 9 ? MAX_READ_BYTES : 1024 * 1024 * 1024
+}
 export type ExtractionMetrics = {
   setupMs: number
   extractionMs: number
@@ -87,14 +98,18 @@ export function prepareTargets(
   duration: number,
   width: number,
   height: number,
+  count: PreviewCount = 9,
 ): PreparedExtraction {
+  checkPreviewCount(count)
   checkDimensions(width, height)
   if (!Number.isFinite(duration) || duration <= 0)
     throw new ExtractionError('invalid-metadata')
   const scale = Math.min(1, 480 / width)
   return {
-    targets: Array.from({ length: 9 }, (_, i) =>
-      Math.floor((duration / 10) * (i + 1)),
+    targets: Array.from({ length: count }, (_, i) =>
+      count === 9
+        ? Math.floor((duration / 10) * (i + 1))
+        : (duration / (count + 1)) * (i + 1),
     ),
     width: Math.max(1, Math.round(width * scale)),
     height: Math.max(1, Math.round(height * scale)),
@@ -104,13 +119,14 @@ export function validateExtraction(
   value: unknown,
   prepared: PreparedExtraction,
 ): ExtractionOutput {
+  const readBudget = readBudgetForCount(prepared.targets.length)
   const output = value as ExtractionOutput | undefined
   if (
     !output ||
     output.width !== prepared.width ||
     output.height !== prepared.height ||
     !Array.isArray(output.frames) ||
-    output.frames.length !== 9 ||
+    output.frames.length !== prepared.targets.length ||
     !output.frames.every(
       (blob) =>
         blob instanceof Blob && blob.type === 'image/jpeg' && blob.size > 0,
@@ -119,7 +135,7 @@ export function validateExtraction(
     ![output.readBytes, output.readCalls].every(
       (n) => n === null || (Number.isSafeInteger(n) && n >= 0),
     ) ||
-    (output.readBytes !== null && output.readBytes > MAX_READ_BYTES)
+    (output.readBytes !== null && output.readBytes > readBudget)
   )
     throw new ExtractionError('output-invalid')
   return output

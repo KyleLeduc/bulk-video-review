@@ -25,6 +25,26 @@ it('keeps direct reads exact and counts actual I/O', async () => {
   expect(reader.readCalls).toBe(2)
   expect(metrics.readMs).toBeGreaterThanOrEqual(0)
 })
+it.each(['direct', 'buffered-1mib'] as const)(
+  'enforces the explicit dense read budget before I/O (%s)',
+  async (mode) => {
+    const file = {
+      size: 2 ** 31,
+      slice: vi.fn(() => {
+        throw new Error('I/O failed')
+      }),
+    } as unknown as Blob
+    const reader = createBenchmarkFileReader(file, mode, emptyMetrics(), 100)
+    for (let i = 0; i < 64; i++)
+      await expect(reader.read(0, 16 * block)).rejects.toThrow('I/O failed')
+    await expect(reader.read(0, 1)).rejects.toThrow('read-limit')
+    expect(reader.readBytes).toBe(1024 * block)
+    expect(file.slice).toHaveBeenCalledTimes(64)
+    expect(() =>
+      createBenchmarkFileReader(file, mode, emptyMetrics(), 101 as never),
+    ).toThrow()
+  },
+)
 it('shares one window for concurrent adjacent reads and returns isolated exact bytes', async () => {
   const { file, slice, metrics, data } = fixture()
   const reader = createBenchmarkFileReader(file, 'buffered-1mib', metrics)
