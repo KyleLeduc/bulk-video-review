@@ -51,6 +51,12 @@ function resolveDependency<T>(dependency: T | undefined, name: string): T {
 }
 
 type ThumbnailJobState = 'queued' | 'processing' | 'ready' | 'failed'
+type PreviewProductKind = VideoPreviewProduct['kind']
+type PreviewProductState = ThumbnailJobState | 'missing'
+type PreviewProductCounts = Record<PreviewProductState, number> & {
+  total: number
+}
+type PreviewProductsSnapshot = Record<PreviewProductKind, PreviewProductCounts>
 type PhaseMeasurements = Partial<
   Record<
     VideoProcessingPhase,
@@ -142,6 +148,7 @@ type ThumbnailCountsSnapshot = {
 }
 
 type PreviewRunSnapshot = {
+  products?: PreviewProductsSnapshot
   concurrency: ConcurrencySnapshot
   counts: ThumbnailCountsSnapshot
   peakActiveJobs: number
@@ -280,6 +287,7 @@ export const useVideoStore = defineStore('videos', () => {
   const thumbnailVideoSessionIds = reactive(new Map<string, Set<string>>())
   const thumbnailQueue = reactive<string[]>([])
   const thumbnailPriorityQueue = reactive<string[]>([])
+  const openPreviewVideoIds = reactive<string[]>([])
   const thumbnailJobPromises = new Map<string, Promise<void>>()
   const thumbnailJobResolvers = new Map<string, () => void>()
   const thumbnailJobDiagnostics = reactive(
@@ -480,6 +488,9 @@ export const useVideoStore = defineStore('videos', () => {
     )
 
     return {
+      ...(updatePreviewsUseCase
+        ? { products: summarizeSessionProducts(session) }
+        : {}),
       concurrency: { ...session.previewConcurrency },
       counts: { ...summary },
       peakActiveJobs: session.previewPeakActiveCount,
@@ -579,6 +590,71 @@ export const useVideoStore = defineStore('videos', () => {
       isActive: pendingCount > 0,
     }
   })
+
+  const getPreviewProductState = (
+    videoId: string,
+    kind: PreviewProductKind,
+  ): PreviewProductState | null => {
+    if (!updatePreviewsUseCase) return null
+    const video = videoMap.get(videoId)
+    if (!video) return 'missing'
+    const complete =
+      kind === 'motionClips' ? hasCompleteMotionClips : hasCompleteKeyframes
+    if (complete(video)) return 'ready'
+    const diagnostic = thumbnailJobDiagnostics.get(videoId)
+    const state = thumbnailJobState.get(videoId)
+    if (diagnostic?.failures?.[kind] || state === 'failed') return 'failed'
+    if (state === 'processing' && diagnostic?.product === kind)
+      return 'processing'
+    return state === 'queued' || state === 'processing' ? 'queued' : 'missing'
+  }
+
+  const summarizeSessionProducts = (
+    session: Pick<IngestionSession, 'thumbnailVideoIds'>,
+  ): PreviewProductsSnapshot => {
+    const count = (kind: PreviewProductKind): PreviewProductCounts => {
+      const counts = {
+        ready: 0,
+        queued: 0,
+        processing: 0,
+        failed: 0,
+        missing: 0,
+        total: session.thumbnailVideoIds.length,
+      }
+      for (const id of session.thumbnailVideoIds) {
+        const state = getPreviewProductState(id, kind)
+        if (state) counts[state]++
+      }
+      return counts
+    }
+    return { motionClips: count('motionClips'), keyframes: count('keyframes') }
+  }
+
+  const previewProductProgress = computed(() => {
+    if (!updatePreviewsUseCase) return null
+    const session = displayedIngestionSession.value
+    return (
+      session?.previewReportSnapshot?.products ??
+      summarizeSessionProducts(session ?? { thumbnailVideoIds: [] })
+    )
+  })
+
+  const activePreviewProducts = computed(() =>
+    [...thumbnailJobState].flatMap(([videoId, state]) => {
+      const diagnostic = thumbnailJobDiagnostics.get(videoId)
+      const video = videoMap.get(videoId)
+      return state === 'processing' && diagnostic?.product && video
+        ? [
+            {
+              videoId,
+              title: video.title,
+              product: diagnostic.product,
+              stage: diagnostic.stage,
+            },
+          ]
+        : []
+    }),
+  )
 
   const refreshSessionPreviewLifecycle = (sessionId: string | null) => {
     const session = getSession(sessionId)
@@ -779,6 +855,8 @@ export const useVideoStore = defineStore('videos', () => {
     controller?.abort()
 
     removeQueuedThumbnailJob(videoId)
+    const openIndex = openPreviewVideoIds.indexOf(videoId)
+    if (openIndex >= 0) openPreviewVideoIds.splice(openIndex, 1)
     const sessionIds = removeTrackedIngestionThumbnailVideo(videoId)
     thumbnailJobState.delete(videoId)
     thumbnailJobDiagnostics.delete(videoId)
@@ -868,8 +946,51 @@ export const useVideoStore = defineStore('videos', () => {
     }
   }
 
-  const getNextThumbnailConcurrency = () => {
-    const nextVideoId = thumbnailPriorityQueue[0] ?? thumbnailQueue[0]
+  const pendingPreviewProducts = (
+    videoId: string,
+    failures = thumbnailJobDiagnostics.get(videoId)?.failures,
+  ): PreviewProductKind[] => {
+    const video = videoMap.get(videoId)
+    if (!video) return []
+    const pending: PreviewProductKind[] = []
+    if (!hasCompleteMotionClips(video) && !failures?.motionClips)
+      pending.push('motionClips')
+    if (!hasCompleteKeyframes(video) && !failures?.keyframes)
+      pending.push('keyframes')
+    return pending
+  }
+
+  const getNextThumbnailJob = ():
+    | {
+        videoId: string
+        product?: PreviewProductKind
+      }
+    | undefined => {
+    const candidates = [...thumbnailPriorityQueue, ...thumbnailQueue]
+    if (!updatePreviewsUseCase) {
+      return candidates[0] ? { videoId: candidates[0] } : undefined
+    }
+    // Keep FIFO membership through both products; processing entries are ineligible.
+    const pending = new Map(
+      candidates
+        .filter((id) => thumbnailJobState.get(id) === 'queued')
+        .map((id) => [id, pendingPreviewProducts(id)]),
+    )
+    const openVideoId = openPreviewVideoIds.find((id) =>
+      pending.get(id)?.includes('keyframes'),
+    )
+    if (openVideoId) return { videoId: openVideoId, product: 'keyframes' }
+    for (const product of ['motionClips', 'keyframes'] as const) {
+      for (const [videoId, products] of pending) {
+        if (products.includes(product)) return { videoId, product }
+      }
+    }
+    // A source can become complete or disappear while queued; let the pump retire it.
+    const videoId = pending.keys().next().value
+    return videoId ? { videoId } : undefined
+  }
+
+  const getNextThumbnailConcurrency = (nextVideoId?: string) => {
     const sessionLimits = nextVideoId
       ? getThumbnailSessionIds(nextVideoId).flatMap((sessionId) => {
           const session = getSession(sessionId)
@@ -889,13 +1010,18 @@ export const useVideoStore = defineStore('videos', () => {
       return
     }
 
-    while (activeThumbnailJobs.value < getNextThumbnailConcurrency()) {
-      const nextVideoId =
-        thumbnailPriorityQueue.shift() ?? thumbnailQueue.shift()
-
-      if (!nextVideoId) {
+    for (
+      let nextJob = getNextThumbnailJob();
+      nextJob;
+      nextJob = getNextThumbnailJob()
+    ) {
+      if (
+        activeThumbnailJobs.value >=
+        getNextThumbnailConcurrency(nextJob.videoId)
+      )
         break
-      }
+      const { videoId: nextVideoId, product } = nextJob
+      if (!updatePreviewsUseCase) removeQueuedThumbnailJob(nextVideoId)
 
       const sessionIds = getThumbnailSessionIds(nextVideoId)
 
@@ -906,6 +1032,7 @@ export const useVideoStore = defineStore('videos', () => {
       }
 
       if (hasReadyThumbnails(video)) {
+        removeQueuedThumbnailJob(nextVideoId)
         thumbnailJobState.set(nextVideoId, 'ready')
         settleThumbnailJob(nextVideoId)
         refreshThumbnailSessions(sessionIds)
@@ -913,6 +1040,14 @@ export const useVideoStore = defineStore('videos', () => {
       }
 
       if (thumbnailJobState.get(nextVideoId) !== 'queued') {
+        continue
+      }
+
+      if (updatePreviewsUseCase && !product) {
+        removeQueuedThumbnailJob(nextVideoId)
+        thumbnailJobState.set(nextVideoId, 'failed')
+        settleThumbnailJob(nextVideoId)
+        refreshThumbnailSessions(sessionIds)
         continue
       }
 
@@ -936,8 +1071,11 @@ export const useVideoStore = defineStore('videos', () => {
       thumbnailJobState.set(nextVideoId, 'processing')
       thumbnailJobAbortControllers.set(nextVideoId, abortController)
       thumbnailJobDiagnostics.set(nextVideoId, {
+        failures: thumbnailJobDiagnostics.get(nextVideoId)?.failures,
+        cacheFailures: thumbnailJobDiagnostics.get(nextVideoId)?.cacheFailures,
         state: 'processing',
         stage: 'loading',
+        product,
         startedAtMs,
         completedFrames: 0,
         totalFrames: expectedPreviewCount(video),
@@ -987,7 +1125,7 @@ export const useVideoStore = defineStore('videos', () => {
         },
       }
       const work = updatePreviewsUseCase
-        ? updatePreviewsUseCase.execute(video, options)
+        ? updatePreviewsUseCase.execute(video, { ...options, product })
         : updateThumbUseCase!.execute(video, options)
       void work
         .then((result) => {
@@ -1004,13 +1142,27 @@ export const useVideoStore = defineStore('videos', () => {
 
           if ('failures' in result) {
             const ready = hasReadyThumbnails(currentVideo)
-            const state = ready ? 'ready' : 'failed'
-            if (ready) attemptOutcome = 'completed'
-            thumbnailJobState.set(nextVideoId, state)
+            const prior = thumbnailJobDiagnostics.get(nextVideoId)
+            const failures = { ...prior?.failures, ...result.failures }
+            if (product && !result.failures[product]) {
+              const complete =
+                product === 'motionClips'
+                  ? hasCompleteMotionClips(currentVideo)
+                  : hasCompleteKeyframes(currentVideo)
+              if (!complete) failures[product] = 'output-invalid'
+            }
+            if (product && !failures[product]) attemptOutcome = 'completed'
             const products = [
               ...currentVideo.motionClips,
               ...currentVideo.keyframes,
             ]
+            const hasPendingProduct =
+              pendingPreviewProducts(nextVideoId, failures).length > 0
+            const state = ready
+              ? 'ready'
+              : hasPendingProduct
+                ? 'queued'
+                : 'failed'
             const completedAtMs = Date.now()
             thumbnailJobDiagnostics.set(nextVideoId, {
               state,
@@ -1023,14 +1175,22 @@ export const useVideoStore = defineStore('videos', () => {
                 (sum, frame) => sum + frame.blob.size,
                 0,
               ),
-              failures: result.failures,
-              cacheFailures: result.cacheFailures,
+              failures,
+              cacheFailures: [
+                ...new Set([
+                  ...(prior?.cacheFailures ?? []),
+                  ...result.cacheFailures,
+                ]),
+              ],
               error: ready
                 ? undefined
-                : Object.entries(result.failures)
+                : Object.entries(failures)
                     .map(([kind, reason]) => `${kind}: ${reason}`)
-                    .join('; ') || 'Incomplete preview products',
+                    .join('; ') || undefined,
             })
+            thumbnailJobState.set(nextVideoId, state)
+            // A product boundary yields the worker slot, not the whole video's promise.
+            shouldSettleJob = !hasPendingProduct
             return
           }
           const updated = result
@@ -1141,7 +1301,10 @@ export const useVideoStore = defineStore('videos', () => {
           })
           if (ownsAttempt()) {
             thumbnailJobAbortControllers.delete(nextVideoId)
-            if (shouldSettleJob) settleThumbnailJob(nextVideoId)
+            if (shouldSettleJob) {
+              removeQueuedThumbnailJob(nextVideoId)
+              settleThumbnailJob(nextVideoId)
+            }
           }
           activeThumbnailJobs.value = Math.max(activeThumbnailJobs.value - 1, 0)
           refreshThumbnailSessions(sessionIds)
@@ -1180,9 +1343,27 @@ export const useVideoStore = defineStore('videos', () => {
     }
 
     if (hasReadyThumbnails(video)) {
-      if (thumbnailJobState.has(videoId)) {
+      // Published products can still be saving. Only retire an inactive job here.
+      const activePromise = thumbnailJobAbortControllers.has(videoId)
+        ? thumbnailJobPromises.get(videoId)
+        : undefined
+      if (activePromise) return activePromise
+      const state = thumbnailJobState.get(videoId)
+      if (state && state !== 'ready') {
         thumbnailJobState.set(videoId, 'ready')
+        thumbnailJobDiagnostics.set(videoId, {
+          ...thumbnailJobDiagnostics.get(videoId),
+          state: 'ready',
+          stage: undefined,
+          product: undefined,
+          error: undefined,
+          failures: undefined,
+          completedFrames: expectedPreviewCount(video),
+          totalFrames: expectedPreviewCount(video),
+        })
       }
+      removeQueuedThumbnailJob(videoId)
+      settleThumbnailJob(videoId)
       refreshThumbnailOwningSessions(videoId)
       return Promise.resolve()
     }
@@ -1389,6 +1570,19 @@ export const useVideoStore = defineStore('videos', () => {
   function requestThumbnailWarmup(id: string) {
     if (thumbnailJobState.get(id) === 'failed') return
     void queueThumbnailJob(id, true)
+  }
+
+  function setVideoPreviewOpen(id: string, open: boolean) {
+    if (!updatePreviewsUseCase || isWiping.value) return
+    const index = openPreviewVideoIds.indexOf(id)
+    if (!open) {
+      if (index >= 0) openPreviewVideoIds.splice(index, 1)
+      return
+    }
+    if (!videoMap.has(id) || index >= 0) return
+    openPreviewVideoIds.unshift(id)
+    if (thumbnailJobState.get(id) !== 'failed') void queueThumbnailJob(id)
+    scheduleThumbnailPump(true)
   }
 
   async function wipeVideoData() {
@@ -1614,6 +1808,10 @@ export const useVideoStore = defineStore('videos', () => {
     togglePinVideo,
     requestThumbnailWarmup,
     updateVideoThumbnails,
+    setVideoPreviewOpen,
+    getPreviewProductState,
+    previewProductProgress,
+    activePreviewProducts,
     updateVotes,
   }
 })

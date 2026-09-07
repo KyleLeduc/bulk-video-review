@@ -41,6 +41,13 @@ Priorities:
 - Inside a worktree, prefer `npm run worktree -- up`, `npm run worktree -- ps`, `npm run worktree -- stop`, and `npm run worktree -- remove` rather than raw git or plain `npm run dev`.
 - The legacy `dev:worktree`, `dev:status`, `dev:stop`, `worktree:add`, and `worktree:bootstrap` scripts remain as compatibility wrappers around the central CLI.
 
+## Feature acceptance before integration
+
+- Approved feature implementation includes the bounded commit, push, exact-SHA CI, and deployment/smoke workflow on the **existing preprod** by default. Continue until the owner can smoke-test the feature branch before the final handoff; do not stop at local tests or ask again for routine release steps. Honor explicit stop points, prepare-only, and read-only/planning requests.
+- Publish the feature commit, require successful trusted push CI for that exact SHA, and deploy its immutable image through the existing homelab runbook. Verify deployed identity, readiness, HTTPS, and available automated browser smoke; preserve the rollback release and operator browser data. Do not require integration first or create a new sandbox unless requested.
+- Report progress while working, but say “ready to smoke-test” only after deployment and the available automated checks are verified. Provide the URL, exact build, focused test steps, and remaining human/native acceptance. If a gate fails or new authority/input is required, report the blocker instead of claiming readiness.
+- This standing authority does not include production, master integration, destructive cleanup, or unrelated infrastructure changes. Integrate only after preprod acceptance and separate integration authorization. A squash creates a new SHA: rerun CI and validate its final release image. Follow worktree closeout rules only after verified integration.
+
 ## Change discipline
 
 Before making non-trivial changes:

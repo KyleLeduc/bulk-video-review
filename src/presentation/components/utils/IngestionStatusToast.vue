@@ -40,7 +40,58 @@
       </div>
     </div>
 
-    <div class="ingestion-toast__meter" aria-hidden="true">
+    <section
+      v-if="isShowingThumbnailProgress && previewProductProgress"
+      class="product-progress"
+      aria-label="Preview products"
+    >
+      <p class="eyebrow">This import</p>
+      <div
+        v-for="product in productRows"
+        :key="product.kind"
+        class="product-progress__row"
+      >
+        <p>
+          {{ product.label }} ready {{ product.ready }} / {{ product.total }}
+        </p>
+        <progress
+          :value="product.ready"
+          :max="product.total || 1"
+          :aria-label="`${product.label} ready`"
+        />
+        <small
+          >Queued {{ product.queued }} · Working {{ product.processing }} ·
+          Unavailable {{ product.failed }}</small
+        >
+      </div>
+      <template v-if="!isThumbnailDrainPaused">
+        <p v-if="activePreviewProducts.length" class="eyebrow">
+          Active work across all videos
+        </p>
+        <p
+          v-for="job in activePreviewProducts"
+          :key="job.videoId"
+          class="product-progress__active"
+          role="status"
+        >
+          {{
+            job.stage === 'persisting'
+              ? 'Saving'
+              : job.stage === 'loading'
+                ? 'Preparing'
+                : 'Generating'
+          }}
+          {{ job.product === 'motionClips' ? 'clips' : 'seek thumbnails' }} —
+          {{ job.title }}
+        </p>
+      </template>
+    </section>
+
+    <div
+      v-if="!isShowingThumbnailProgress || !previewProductProgress"
+      class="ingestion-toast__meter"
+      aria-hidden="true"
+    >
       <template v-if="isShowingThumbnailProgress">
         <span
           class="segment segment--generated"
@@ -83,7 +134,11 @@
       </template>
     </div>
 
-    <div class="ingestion-toast__legend" aria-label="Ingestion status colors">
+    <div
+      v-if="!isShowingThumbnailProgress || !previewProductProgress"
+      class="ingestion-toast__legend"
+      aria-label="Ingestion status colors"
+    >
       <template v-if="isShowingThumbnailProgress">
         <span class="legend-item">
           <span
@@ -126,7 +181,10 @@
       </template>
     </div>
 
-    <div class="ingestion-toast__stats">
+    <div
+      v-if="!isShowingThumbnailProgress || !previewProductProgress"
+      class="ingestion-toast__stats"
+    >
       <template v-if="isShowingThumbnailProgress">
         <span>
           Generated {{ thumbnailGenerationProgress.generatedCount }} /
@@ -178,7 +236,25 @@ const {
   isPreviewProcessingPaused,
   shouldShowProgressToast,
   thumbnailGenerationProgress,
+  previewProductProgress,
+  activePreviewProducts,
 } = storeToRefs(videoStore)
+const productRows = computed(() =>
+  previewProductProgress.value
+    ? [
+        {
+          kind: 'motionClips',
+          label: 'Clips',
+          ...previewProductProgress.value.motionClips,
+        },
+        {
+          kind: 'keyframes',
+          label: 'Seek thumbnails',
+          ...previewProductProgress.value.keyframes,
+        },
+      ]
+    : [],
+)
 const dismissed = ref(false)
 const isLingering = ref(false)
 const nowMs = ref(Date.now())
@@ -333,6 +409,13 @@ const progressHeadline = computed(() => {
   }
 
   if (isShowingThumbnailProgress.value) {
+    if (previewProductProgress.value) {
+      if (thumbnailGenerationProgress.value.isActive)
+        return 'Preparing previews'
+      return thumbnailGenerationProgress.value.failedCount > 0
+        ? 'Previews finished with issues'
+        : 'Previews complete'
+    }
     return `Generated ${thumbnailGenerationProgress.value.generatedCount} / ${thumbnailGenerationProgress.value.total}`
   }
 
@@ -443,6 +526,31 @@ h2 {
   color: rgba(238, 244, 251, 0.75);
   font-size: 0.9rem;
   text-align: right;
+}
+
+.product-progress {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.product-progress__row p,
+.product-progress__active {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.product-progress__row progress {
+  width: 100%;
+  height: 0.6rem;
+  accent-color: #67d7ff;
+}
+
+.product-progress__row small {
+  color: rgba(238, 244, 251, 0.75);
+}
+
+.product-progress__active {
+  font-size: 0.85rem;
 }
 
 .ingestion-toast__meter {

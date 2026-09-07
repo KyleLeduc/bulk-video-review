@@ -16,15 +16,16 @@ import {
   createMockFileList,
 } from '@test-utils/index'
 import { UPDATE_PREVIEWS_USE_CASE_KEY } from '@presentation/di/injectionKeys'
+import IngestionStatusToast from '@presentation/components/utils/IngestionStatusToast.vue'
 import { useVideoStore } from './videosStore'
 
 const Harness = defineComponent({
   setup: () => ({ store: useVideoStore() }),
   template: '<div />',
 })
-const video = () =>
+const video = (id = 'v') =>
   buildParsedVideo({
-    id: 'v',
+    id,
     duration: 60,
     url: 'blob:original',
     thumbUrls: Array(9).fill('legacy'),
@@ -45,12 +46,19 @@ const keyframes = () =>
     height: 90,
   }))
 function setup() {
-  const file = new File(['v'], 'v.mp4', { type: 'video/mp4' })
+  const files = new Map<string, File>()
   const context = createPresentationTestContext({
-    sessionRegistry: { getFile: vi.fn(() => file) },
+    sessionRegistry: {
+      getFile: vi.fn((id: string) => {
+        if (!files.has(id)) files.set(id, new File(['v'], `${id}.mp4`))
+        return files.get(id)!
+      }),
+    },
   })
   const generator = {
-    generateMotionClips: vi.fn(async () => clips()),
+    generateMotionClips: vi.fn<
+      (file: File) => Promise<ReturnType<typeof clips>>
+    >(async () => clips()),
     generateKeyframes: vi.fn<
       (
         _file: File,
@@ -66,7 +74,7 @@ function setup() {
   }
   const useCase = new UpdateVideoPreviewsUseCase(
     generator,
-    { getVideo: vi.fn(async () => video()) },
+    { getVideo: vi.fn(async (id: string) => video(id)) },
     context.mocks.sessionRegistry,
     cache,
     context.mocks.logger,
@@ -80,6 +88,228 @@ function setup() {
 afterEach(() => vi.restoreAllMocks())
 
 describe('motion preview queue integration', () => {
+  test('reports separate ready products and active stage while the seek product is still running', async () => {
+    const { store, generator, mocks, global, wrapper } = setup()
+    vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue(
+      'probably',
+    )
+    vi.mocked(mocks.useCases.addVideosUseCase.execute).mockImplementation(
+      async function* () {
+        yield {
+          type: 'progress',
+          progress: {
+            total: 1,
+            scanned: 1,
+            existingCount: 0,
+            newCount: 1,
+            knownErrorCount: 0,
+            createdCount: 1,
+            failedCount: 0,
+            completedCount: 1,
+            phase: 'complete',
+          },
+        }
+        yield { type: 'video', video: video() }
+      },
+    )
+    let finishSeeks!: () => void
+    generator.generateKeyframes.mockImplementationOnce(async () => {
+      await new Promise<void>((resolve) => {
+        finishSeeks = resolve
+      })
+      return keyframes()
+    })
+    const toast = mount(IngestionStatusToast, { global })
+    await store.addVideosFromFiles(
+      createMockFileList(new File(['v'], 'v.mp4', { type: 'video/mp4' })),
+    )
+    const pending = store.updateVideoThumbnails('v')
+    await flushPromises()
+    expect(store.previewProductProgress).toMatchObject({
+      motionClips: { ready: 1, total: 1 },
+      keyframes: { ready: 0, processing: 1, total: 1 },
+    })
+    expect(toast.text()).toContain('Clips ready 1 / 1')
+    expect(toast.text()).toContain('Seek thumbnails ready 0 / 1')
+    expect(toast.text()).toContain('This import')
+    expect(toast.text()).toContain('Active work across all videos')
+    expect(toast.text()).toContain('Generating seek thumbnails')
+    expect(store.getThumbnailJobState('v')).toBe('processing')
+    expect(store.getThumbnailJobDiagnostic('v')?.error).toBeUndefined()
+    expect(store.getThumbnailJobDiagnostic('v')?.completedAtMs).toBeUndefined()
+    finishSeeks()
+    await pending
+    await flushPromises()
+    expect(store.previewProductProgress?.keyframes.ready).toBe(1)
+    expect(toast.text()).toContain('Previews complete')
+    toast.unmount()
+    wrapper.unmount()
+  })
+
+  test('retains motion failure and cache warning across seek dispatch, then explicit retry only retries motion', async () => {
+    const { store, generator, cache, wrapper } = setup()
+    generator.generateMotionClips.mockRejectedValueOnce(
+      Object.assign(new Error('no codec'), { reason: 'unsupported' }),
+    )
+    cache.putProduct.mockRejectedValueOnce(new Error('full'))
+    await store.updateVideoThumbnails('v')
+    expect(store.getThumbnailJobDiagnostic('v')).toMatchObject({
+      state: 'failed',
+      failures: { motionClips: 'unsupported' },
+      cacheFailures: ['keyframes'],
+    })
+    store.setVideoPreviewOpen('v', true)
+    await flushPromises()
+    expect(generator.generateMotionClips).toHaveBeenCalledOnce()
+    await store.updateVideoThumbnails('v')
+    expect(generator.generateMotionClips).toHaveBeenCalledTimes(2)
+    expect(generator.generateKeyframes).toHaveBeenCalledOnce()
+    expect(store.getThumbnailJobState('v')).toBe('ready')
+    wrapper.unmount()
+  })
+
+  test('generates clips for the whole 20-video batch before background seek thumbnails', async () => {
+    const { store, generator, wrapper } = setup()
+    const ids = Array.from({ length: 20 }, (_, i) => `video-${i}`)
+    const order: string[] = []
+    store.addVideos(ids.map(video))
+    generator.generateMotionClips.mockImplementation(async (file) => {
+      order.push(`clips:${file.name}`)
+      return clips()
+    })
+    generator.generateKeyframes.mockImplementation(async (file) => {
+      order.push(`seeks:${file.name}`)
+      return keyframes()
+    })
+    store.setPreviewProcessingPaused(true)
+    const pending = ids.map((id) => store.updateVideoThumbnails(id))
+    store.setPreviewProcessingPaused(false)
+    await Promise.all(pending)
+    expect(order).toEqual([
+      ...ids.map((id) => `clips:${id}.mp4`),
+      ...ids.map((id) => `seeks:${id}.mp4`),
+    ])
+    expect(ids.map((id) => store.getThumbnailJobState(id))).toEqual(
+      Array(20).fill('ready'),
+    )
+    wrapper.unmount()
+  })
+
+  test.each(['unchanged', 'close newest', 'reopen older'])(
+    'newest open video gets seeks next without aborting the active product: %s',
+    async (openChange) => {
+      const { store, generator, wrapper } = setup()
+      store.addVideos(['b', 'c'].map(video))
+      const order: string[] = []
+      let finishFirst!: () => void
+      generator.generateMotionClips.mockImplementation(async (file) => {
+        order.push(`clips:${file.name}`)
+        if (file.name === 'v.mp4')
+          await new Promise<void>((resolve) => {
+            finishFirst = resolve
+          })
+        return clips()
+      })
+      generator.generateKeyframes.mockImplementation(async (file) => {
+        order.push(`seeks:${file.name}`)
+        return keyframes()
+      })
+      store.setPreviewProcessingPaused(true)
+      const pending = ['v', 'b', 'c'].map((id) =>
+        store.updateVideoThumbnails(id),
+      )
+      store.setPreviewProcessingPaused(false)
+      await flushPromises()
+      expect(order).toEqual(['clips:v.mp4'])
+      store.setVideoPreviewOpen('b', true)
+      store.setVideoPreviewOpen('c', true)
+      store.setVideoPreviewOpen('b', true) // Repeated open is not a new opening.
+      if (openChange === 'close newest') store.setVideoPreviewOpen('c', false)
+      if (openChange === 'reopen older') {
+        store.setVideoPreviewOpen('b', false)
+        store.setVideoPreviewOpen('b', true)
+      }
+      await flushPromises()
+      expect(order).toEqual(['clips:v.mp4'])
+      finishFirst()
+      await Promise.all(pending)
+      expect(order).toEqual(
+        openChange === 'close newest'
+          ? [
+              'clips:v.mp4',
+              'seeks:b.mp4',
+              'clips:b.mp4',
+              'clips:c.mp4',
+              'seeks:v.mp4',
+              'seeks:c.mp4',
+            ]
+          : [
+              'clips:v.mp4',
+              ...(openChange === 'reopen older'
+                ? ['seeks:b.mp4', 'seeks:c.mp4']
+                : ['seeks:c.mp4', 'seeks:b.mp4']),
+              'clips:b.mp4',
+              'clips:c.mp4',
+              'seeks:v.mp4',
+            ],
+      )
+      expect(new Set(order).size).toBe(6)
+      wrapper.unmount()
+    },
+  )
+
+  test('promotion respects concurrency and never runs two products for one video simultaneously', async () => {
+    const { store, generator, wrapper } = setup()
+    store.addVideos(['b', 'c'].map(video))
+    store.setThumbnailConcurrencyOverride(2)
+    const active = new Map<string, () => void>()
+    const order: string[] = []
+    const holdProduct = async (file: File, kind: string) => {
+      expect(active.has(file.name)).toBe(false)
+      order.push(`${kind}:${file.name}`)
+      await new Promise<void>((resolve) => {
+        active.set(file.name, () => {
+          active.delete(file.name)
+          resolve()
+        })
+      })
+    }
+    generator.generateMotionClips.mockImplementation(async (file) => {
+      await holdProduct(file, 'clips')
+      return clips()
+    })
+    generator.generateKeyframes.mockImplementation(async (file) => {
+      await holdProduct(file, 'seeks')
+      return keyframes()
+    })
+    store.setPreviewProcessingPaused(true)
+    const pending = ['v', 'b', 'c'].map((id) => store.updateVideoThumbnails(id))
+    store.setPreviewProcessingPaused(false)
+    await flushPromises()
+    expect(order).toEqual(['clips:v.mp4', 'clips:b.mp4'])
+    store.setVideoPreviewOpen('b', true)
+    store.setVideoPreviewOpen('c', true)
+    active.get('v.mp4')!()
+    await flushPromises()
+    expect(order.at(-1)).toBe('seeks:c.mp4')
+    expect(active.size).toBe(2)
+    active.get('b.mp4')!()
+    await flushPromises()
+    expect(order.at(-1)).toBe('seeks:b.mp4')
+    active.get('c.mp4')!()
+    await flushPromises()
+    expect(order.at(-1)).toBe('clips:c.mp4')
+    active.get('b.mp4')!()
+    await flushPromises()
+    expect(order.at(-1)).toBe('seeks:v.mp4')
+    active.get('c.mp4')!()
+    active.get('v.mp4')!()
+    await Promise.all(pending)
+    expect(new Set(order).size).toBe(6)
+    expect(active.size).toBe(0)
+    wrapper.unmount()
+  })
+
   test('reports the worker preview backend and product failures without fabricated phase timings', async () => {
     const { store, generator, cache, mocks, wrapper } = setup()
     vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue(
@@ -227,6 +457,70 @@ describe('motion preview queue integration', () => {
     )
     expect(store.allVideos[0].keyframes).toHaveLength(4)
     expect(store.allVideos[0].pinned).toBe(true)
+    wrapper.unmount()
+  })
+
+  test('retires a paused queued promise when reselecting supplies complete cached products and the player opens', async () => {
+    const { store, generator, wrapper } = setup()
+    store.setPreviewProcessingPaused(true)
+    const settled = vi.fn()
+    const pending = store.updateVideoThumbnails('v').then(settled)
+    store.addVideos([
+      {
+        ...video(),
+        motionClips: clips(),
+        keyframes: keyframes(),
+        previewVersions: {
+          motionClips: MOTION_PREVIEW_VERSION,
+          keyframes: KEYFRAME_PREVIEW_VERSION,
+        },
+      },
+    ])
+    store.setVideoPreviewOpen('v', true)
+    store.setPreviewProcessingPaused(false)
+    await flushPromises()
+    expect(settled).toHaveBeenCalledOnce()
+    await pending
+    expect(store.getThumbnailJobState('v')).toBe('ready')
+    expect(generator.generateMotionClips).not.toHaveBeenCalled()
+    expect(generator.generateKeyframes).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  test('opening a fully published video does not retire its still-active cache write', async () => {
+    const { store, cache, wrapper } = setup()
+    let finishSave!: () => void
+    cache.putProduct
+      .mockImplementationOnce(async () => {})
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            finishSave = resolve
+          }),
+      )
+    const settled = vi.fn()
+    const pending = store.updateVideoThumbnails('v').then(settled)
+    await flushPromises()
+    expect(store.allVideos[0].keyframes).toHaveLength(4)
+    store.setVideoPreviewOpen('v', true)
+    await flushPromises()
+    expect(store.getThumbnailJobState('v')).toBe('processing')
+    expect(store.activePreviewProducts[0]?.stage).toBe('persisting')
+    expect(settled).not.toHaveBeenCalled()
+    finishSave()
+    await pending
+    expect(store.getThumbnailJobState('v')).toBe('ready')
+    wrapper.unmount()
+  })
+
+  test('opening a ready video retains its cache warnings and completed diagnostic', async () => {
+    const { store, cache, wrapper } = setup()
+    cache.putProduct.mockRejectedValue(new Error('cache full'))
+    await store.updateVideoThumbnails('v')
+    const diagnostic = { ...store.getThumbnailJobDiagnostic('v') }
+    expect(diagnostic.cacheFailures).toEqual(['motionClips', 'keyframes'])
+    store.setVideoPreviewOpen('v', true)
+    expect(store.getThumbnailJobDiagnostic('v')).toEqual(diagnostic)
     wrapper.unmount()
   })
 

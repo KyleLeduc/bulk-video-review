@@ -18,6 +18,8 @@ import {
 type ProductKind = VideoPreviewProduct['kind']
 export type PreviewEnrichmentOptions = {
   signal?: AbortSignal
+  /** A scheduler may yield between complete products; omitted preserves batch callers. */
+  product?: ProductKind
   /** Caller must also check its queue/controller ownership before merging this product. */
   onProduct?: (product: VideoPreviewProduct) => void
   onProgress?: (progress: {
@@ -90,7 +92,10 @@ export class UpdateVideoPreviewsUseCase {
       if (!aggregate) throw interrupted()
     }
 
-    for (const kind of ['motionClips', 'keyframes'] as const) {
+    const products: ProductKind[] = options.product
+      ? [options.product]
+      : ['motionClips', 'keyframes']
+    for (const kind of products) {
       assertOwned()
       const complete =
         kind === 'motionClips' ? hasCompleteMotionClips : hasCompleteKeyframes

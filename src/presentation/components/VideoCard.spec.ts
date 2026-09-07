@@ -7,8 +7,71 @@ import {
   createPresentationTestContext,
 } from '@test-utils/index'
 import VideoCard from './VideoCard.vue'
+import { UPDATE_PREVIEWS_USE_CASE_KEY } from '@presentation/di/injectionKeys'
+import {
+  motionClipWindows,
+  MOTION_PREVIEW_VERSION,
+} from '@domain/services/videoPreviewPolicy'
 
 describe('VideoCard', () => {
+  test('opening, closing and unmounting a player update seek priority, including pin-open', async () => {
+    const video = buildParsedVideo({ id: 'priority-video' })
+    const { global } = createPresentationTestContext()
+    const wrapper = mount(VideoCard, {
+      props: { video },
+      global,
+      shallow: true,
+    })
+    const store = useVideoStore()
+    const open = vi.spyOn(store, 'setVideoPreviewOpen')
+    await wrapper.get('[data-testid="video-view-toggle"]').trigger('click')
+    expect(open).toHaveBeenLastCalledWith(video.id, true)
+    await wrapper.get('[data-testid="video-view-toggle"]').trigger('click')
+    expect(open).toHaveBeenLastCalledWith(video.id, false)
+    await wrapper.get('.pin').trigger('click')
+    expect(open).toHaveBeenLastCalledWith(video.id, true)
+    wrapper.unmount()
+    expect(open).toHaveBeenLastCalledWith(video.id, false)
+  })
+
+  test('shows clips ready and seeks queued without the orange clip-work border', async () => {
+    const video = buildParsedVideo({
+      id: 'ready-clips',
+      duration: 60,
+      previewVersions: { motionClips: MOTION_PREVIEW_VERSION },
+      motionClips: motionClipWindows(60).map(({ start, end }) => ({
+        timestampSeconds: start,
+        durationSeconds: end - start,
+        width: 320,
+        height: 180,
+        blob: new Blob(['clip'], { type: 'video/mp4' }),
+      })),
+    })
+    const context = createPresentationTestContext()
+    context.global.provide[UPDATE_PREVIEWS_USE_CASE_KEY as symbol] = {
+      execute: vi.fn(),
+    }
+    const wrapper = mount(VideoCard, {
+      props: { video },
+      global: context.global,
+      shallow: true,
+    })
+    const store = useVideoStore()
+    store.addVideos([video])
+    store.setPreviewProcessingPaused(true)
+    void store.updateVideoThumbnails(video.id)
+    await wrapper.vm.$nextTick()
+    expect(
+      wrapper.get('[data-testid="video-preview-status"]').text(),
+    ).toContain('Clips ready')
+    expect(wrapper.text()).toContain('Seek thumbnails paused')
+    expect(wrapper.find('.thumbnail-activity-ring--active').exists()).toBe(
+      false,
+    )
+    store.removeVideo(video.id)
+    wrapper.unmount()
+  })
+
   test('renders the thumbnail inside the media frame by default', () => {
     const video = buildParsedVideo({ id: 'id-1', thumbUrls: [] })
     const { global } = createPresentationTestContext({

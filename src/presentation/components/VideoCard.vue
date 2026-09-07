@@ -33,6 +33,13 @@
         />
       </div>
 
+      <p
+        v-if="previewStatusLabel"
+        class="preview-status"
+        data-testid="video-preview-status"
+      >
+        {{ previewStatusLabel }}
+      </p>
       <div class="cardNav">
         <div class="pin" @click="handlePinVideo">📌</div>
         <button
@@ -184,6 +191,15 @@ const state = reactive<State>({
   showVideo: false,
 })
 
+watch(
+  () => [props.video.id, state.showVideo] as const,
+  ([id, open], previous) => {
+    if (previous && previous[0] !== id)
+      videoStore.setVideoPreviewOpen(previous[0], false)
+    videoStore.setVideoPreviewOpen(id, open)
+  },
+)
+
 type DisplayPreviewFrame = {
   timestampSeconds: number
   url: string
@@ -252,6 +268,31 @@ const isThumbnailJobActive = computed(
     thumbnailJobState.value === 'queued' ||
     thumbnailJobState.value === 'processing',
 )
+const isClipJobActive = computed(() => {
+  const state = videoStore.getPreviewProductState(props.video.id, 'motionClips')
+  return state === null
+    ? isThumbnailJobActive.value
+    : state === 'queued' || state === 'processing'
+})
+const previewStatusLabel = computed(() => {
+  if (!thumbnailJobState.value || hasCompleteVideoPreviews(props.video))
+    return ''
+  const clips = videoStore.getPreviewProductState(props.video.id, 'motionClips')
+  const seeks = videoStore.getPreviewProductState(props.video.id, 'keyframes')
+  if (!clips || !seeks) return ''
+  const label = (state: string) => {
+    if (state === 'queued' || state === 'processing') {
+      if (videoStore.isPreviewProcessingPaused) return 'paused'
+      return state === 'processing' ? 'generating' : 'queued'
+    }
+    return state === 'failed'
+      ? 'unavailable'
+      : state === 'missing'
+        ? 'not generated'
+        : 'ready'
+  }
+  return `Clips ${label(clips)} · Seek thumbnails ${label(seeks)}`
+})
 const isHoverArming = computed(
   () =>
     !isThumbnailJobActive.value &&
@@ -259,14 +300,18 @@ const isHoverArming = computed(
     hoverWarmupProgress.value < 1,
 )
 const thumbnailActivityProgress = computed(() =>
-  isThumbnailJobActive.value ? 1 : hoverWarmupProgress.value,
+  isClipJobActive.value
+    ? 1
+    : isThumbnailJobActive.value
+      ? 0
+      : hoverWarmupProgress.value,
 )
 const showThumbnailActivityRing = computed(
   () => thumbnailActivityProgress.value > 0,
 )
 const thumbnailActivityRingClasses = computed(() => ({
   'thumbnail-activity-ring--hover': isHoverArming.value,
-  'thumbnail-activity-ring--active': isThumbnailJobActive.value,
+  'thumbnail-activity-ring--active': isClipJobActive.value,
 }))
 const cardClasses = computed(() => ({
   'card--hover-arming': isHoverArming.value,
@@ -342,6 +387,7 @@ const stopThumbRotation = () => {
 }
 
 onBeforeUnmount(() => {
+  videoStore.setVideoPreviewOpen(props.video.id, false)
   stopThumbRotation()
   previewObjectUrls.forEach((url) => URL.revokeObjectURL(url))
   previewObjectUrls.clear()
@@ -518,6 +564,15 @@ function formatDurationWithSeconds(duration: number): string {
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #05070a;
+}
+
+.preview-status {
+  margin: 0;
+  padding: 0.25rem 0.4rem;
+  color: #dbe7ef;
+  background: #17212b;
+  font-size: 0.7rem;
+  line-height: 1.4;
 }
 
 .cardMedia :deep(.video-player-shell) {

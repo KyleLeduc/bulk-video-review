@@ -99,6 +99,19 @@ it('publishes and caches each complete product independently without changing re
     },
   ])
 })
+it('generates only the requested product so the scheduler can yield between products', async () => {
+  const s = setup()
+  const result = await s.useCase.execute(s.video, {
+    product: 'keyframes',
+    onProduct: s.onProduct,
+  })
+  expect(s.generator.generateMotionClips).not.toHaveBeenCalled()
+  expect(s.generator.generateKeyframes).toHaveBeenCalledOnce()
+  expect(result.video.keyframes).toEqual(s.keyframes)
+  expect(result.video.motionClips).toEqual([])
+  expect(s.cache.putProduct).toHaveBeenCalledOnce()
+  expect(result.failures).toEqual({})
+})
 it('retains completed motion even when cache fails and keyframes abort; resume only generates missing keyframes', async () => {
   const s = setup()
   s.cache.putProduct.mockRejectedValue(
