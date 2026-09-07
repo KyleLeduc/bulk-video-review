@@ -3,6 +3,7 @@ import { defineComponent, toRaw } from 'vue'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { UpdateVideoPreviewsUseCase } from '@app/usecases'
 import type { PreviewEnrichmentOptions } from '@app/usecases/UpdateVideoPreviewsUseCase'
+import type { VideoPreviewOptions } from '@app/ports/IVideoPreviewGenerator'
 import type { VideoPreviewProduct } from '@domain/repositories/IVideoPreviewCacheRepository'
 import {
   keyframeTargets,
@@ -64,7 +65,7 @@ function setup() {
     generateKeyframes: vi.fn<
       (
         _file: File,
-        _options: { signal: AbortSignal },
+        _options: VideoPreviewOptions,
       ) => Promise<ReturnType<typeof keyframes>>
     >(async () => keyframes()),
   }
@@ -94,6 +95,66 @@ function setup() {
 afterEach(() => vi.restoreAllMocks())
 
 describe('motion preview queue integration', () => {
+  test('diagnostic maintenance cannot start over paused pending work and blocks new work until it settles', async () => {
+    const { store, wrapper } = setup()
+    store.setPreviewProcessingPaused(true)
+    void store.updateVideoThumbnails('v')
+    const work = vi.fn()
+    await expect(store.runDiagnosticWork('backup', work)).rejects.toThrow(
+      /pending/i,
+    )
+    expect(work).not.toHaveBeenCalled()
+    store.removeVideo('v')
+    let finish!: () => void
+    const pending = store.runDiagnosticWork(
+      'backup',
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve
+        }),
+    )
+    expect(store.isDiagnosticsBusy).toBe(true)
+    await expect(
+      store.addVideosFromFiles(createMockFileList(new File(['a'], 'a.mp4'))),
+    ).rejects.toThrow(/diagnostic/i)
+    finish()
+    await pending
+    expect(store.isDiagnosticsBusy).toBe(false)
+    wrapper.unmount()
+  })
+  test('retains clip progress while seeks run and exposes each item without leaking names into reports', async () => {
+    const { store, generator, wrapper } = setup()
+    let finish!: () => void
+    generator.generateKeyframes.mockImplementationOnce(
+      (_file, options) =>
+        new Promise((resolve) => {
+          options.onProgress?.({
+            completed: 2,
+            total: 4,
+            diagnostics: { stage: 'encode', readBytes: 400 },
+          })
+          finish = () => resolve(keyframes())
+        }),
+    )
+    const pending = store.updateVideoThumbnails('v')
+    await flushPromises()
+    expect(store.getThumbnailJobDiagnostic('v')?.products).toMatchObject({
+      motionClips: { state: 'ready', completed: 10, total: 10 },
+      keyframes: {
+        state: 'processing',
+        completed: 2,
+        total: 4,
+        diagnostics: { readBytes: 400 },
+      },
+    })
+    expect(store.previewJobItems[0]).toMatchObject({ videoId: 'v' })
+    finish()
+    await pending
+    expect(
+      store.getThumbnailJobDiagnostic('v')?.products?.keyframes,
+    ).toMatchObject({ state: 'ready', completed: 4 })
+    wrapper.unmount()
+  })
   test.each([3, 60])(
     'reports matching fallback totals for a %s second source',
     async (duration) => {
@@ -569,7 +630,28 @@ describe('motion preview queue integration', () => {
     expect(report.backgroundPreviews).toMatchObject({
       productFailures: ['keyframes:generation-failed'],
       cacheFailures: ['motionClips'],
+      productFailureCounts: { 'keyframes:generation-failed': 1 },
     })
+    expect(report.identity).toMatchObject({
+      containsPrivateFilenames: false,
+      sourceLocation: null,
+    })
+    expect(report.measurements.previewPhaseTimings).toEqual({
+      metadataMs: null,
+      decodeMs: null,
+      encodeMs: null,
+      persistenceMs: null,
+    })
+    expect(JSON.stringify(report)).not.toContain('v.mp4')
+    expect(JSON.stringify(report)).not.toContain('decode failed')
+    const frozen = JSON.stringify(report)
+    store.getThumbnailJobDiagnostic('v')!.products!.motionClips!.completed = 1
+    expect(JSON.stringify(report)).toBe(frozen)
+    report.backgroundPreviews.products!.motionClips.ready = 999
+    expect(
+      store.createIngestionRunReport('ingestion-1')!.backgroundPreviews
+        .products!.motionClips.ready,
+    ).not.toBe(999)
     wrapper.unmount()
   })
   test('does not enqueue hover or explicit preview work while wiping', async () => {
@@ -743,6 +825,30 @@ describe('motion preview queue integration', () => {
     finishSave()
     await pending
     expect(store.getThumbnailJobState('v')).toBe('ready')
+    wrapper.unmount()
+  })
+
+  test('a published clip product does not remain queued after an interrupted save and seek completion', async () => {
+    const { store, cache, wrapper } = setup()
+    let rejectSave!: (error: unknown) => void
+    cache.putProduct.mockImplementationOnce(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectSave = reject
+        }),
+    )
+    const pending = store.updateVideoThumbnails('v')
+    await flushPromises()
+    expect(store.activePreviewProducts[0]?.stage).toBe('persisting')
+    store.setPreviewProcessingPaused(true)
+    rejectSave(new DOMException('Cancelled', 'AbortError'))
+    await flushPromises()
+    store.setPreviewProcessingPaused(false)
+    await pending
+    expect(store.previewJobItems[0].products.motionClips.state).toBe('ready')
+    expect(
+      store.getThumbnailJobDiagnostic('v')?.products?.motionClips?.state,
+    ).toBe('ready')
     wrapper.unmount()
   })
 

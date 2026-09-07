@@ -13,6 +13,7 @@ import {
   hasCompleteMotionFallback,
 } from '@domain/services/videoPreviewPolicy'
 import type { ILogger } from '@app/ports'
+import { libraryMaintenance } from '@infra/database/libraryMaintenance'
 
 export const PREVIEW_CACHE_DATABASE = 'BVRPreviewCache-v1'
 export const PREVIEW_CACHE_BYTES = 256 * 1024 * 1024
@@ -88,7 +89,13 @@ export class VideoPreviewCacheRepository
     return this.writeEpoch
   }
 
-  private connect(): Promise<IDBDatabase> {
+  /** Only the composition-root recovery adapter may bypass the normal access latch. */
+  connectForMaintenance(): Promise<IDBDatabase> {
+    return this.connect(true)
+  }
+
+  private connect(maintenance = false): Promise<IDBDatabase> {
+    if (!maintenance) libraryMaintenance.assertAvailable()
     if (this.connection) return this.connection
     const opening = new Promise<IDBDatabase>((resolve, reject) => {
       let finished = false
@@ -141,6 +148,7 @@ export class VideoPreviewCacheRepository
     work: (store: IDBObjectStore, fail: (error: unknown) => void) => void,
     signal?: AbortSignal,
   ): Promise<void> {
+    libraryMaintenance.assertAvailable()
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE, 'readwrite')
       this.writes.add(transaction)

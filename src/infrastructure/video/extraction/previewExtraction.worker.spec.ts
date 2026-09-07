@@ -142,7 +142,7 @@ it.each([
   },
 )
 
-async function runKeyframes() {
+async function runKeyframes(progress = false) {
   state.fail = false
   const host = { onmessage: null as unknown, postMessage: vi.fn() }
   vi.stubGlobal('self', host)
@@ -162,10 +162,22 @@ async function runKeyframes() {
       kind: 'keyframes',
       duration: 60,
       maxWidth: 160,
+      progress,
     },
   })
-  return host.postMessage.mock.calls[0][0]
+  return progress
+    ? host.postMessage.mock.calls.map((call) => call[0])
+    : host.postMessage.mock.calls[0][0]
 }
+it('emits real encoded seek counts before final completion', async () => {
+  const replies = await runKeyframes(true)
+  expect(
+    replies
+      .filter((reply: { type?: string }) => reply.type === 'progress')
+      .map((reply: { completed: number }) => reply.completed),
+  ).toEqual([1, 2, 3, 4])
+  expect(replies.at(-1)).toMatchObject({ ok: true })
+})
 it('extracts a distinct keyframe workload with player-time targets and small dimensions', async () => {
   const reply = await runKeyframes()
   expect(state.sinkTargets).toEqual([0, 15, 30, 45])

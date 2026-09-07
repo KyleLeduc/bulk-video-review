@@ -140,7 +140,7 @@
           <dd>{{ runReport?.backgroundPreviews.outputBytes ?? 0 }}</dd>
         </div>
         <div>
-          <dt>Active avg / video</dt>
+          <dt>Active avg / handled video</dt>
           <dd data-testid="thumbnail-average-per-video">
             {{
               formatSecondsPerVideo(
@@ -182,12 +182,73 @@
         Current setting: {{ effectiveThumbnailConcurrency }} workers. Applies to
         the next import. Runs after primary ingestion.
       </p>
+      <template v-if="videoStore.previewJobItems.length">
+        <label class="panel-label" for="previewItemFilter">Items</label>
+        <select id="previewItemFilter" v-model="previewItemFilter">
+          <option value="pending">Pending</option>
+          <option value="failed">Unavailable or fallback</option>
+          <option value="all">All</option>
+        </select>
+        <p class="muted">
+          Showing {{ visiblePreviewItems.length }} of
+          {{ filteredPreviewItems.length }} matching items.
+        </p>
+        <button
+          type="button"
+          :disabled="previewPage === 0"
+          @click="previewPage--"
+        >
+          Previous items
+        </button>
+        <button
+          type="button"
+          data-testid="preview-next-page"
+          :disabled="(previewPage + 1) * 50 >= filteredPreviewItems.length"
+          @click="previewPage++"
+        >
+          Next items
+        </button>
+        <article
+          v-for="item in visiblePreviewItems"
+          :key="item.videoId"
+          data-testid="preview-item"
+          class="preview-item"
+        >
+          <strong>{{ item.title }}</strong>
+          <div v-for="kind in previewKinds" :key="kind">
+            <span
+              >{{ kind === 'motionClips' ? 'Clips' : 'Seek' }}:
+              {{ item.products[kind].completed }}/{{
+                item.products[kind].total
+              }}
+              · {{ item.products[kind].state
+              }}<template v-if="item.products[kind].state === 'processing'">
+                ({{ item.products[kind].stage ?? 'generating' }})</template
+              ></span
+            >
+            <progress
+              :aria-label="`${kind === 'motionClips' ? 'Clips' : 'Seek'} for ${item.title}`"
+              :value="item.products[kind].completed"
+              :max="Math.max(item.products[kind].total, 1)"
+            />
+            <small v-if="item.products[kind].reason">{{
+              item.products[kind].reason
+            }}</small>
+          </div>
+        </article>
+      </template>
     </section>
 
     <section class="panel-section">
       <h2>Run report</h2>
       <template v-if="runReport">
-        <p>Backend: DOM (workers disabled)</p>
+        <p>
+          {{
+            runReport.measurements.workersEnabled
+              ? 'Previews: Mediabunny workers · Covers: DOM'
+              : 'Backend: DOM (workers disabled)'
+          }}
+        </p>
         <table class="phase-timings">
           <caption>
             Phase work
@@ -242,6 +303,13 @@
         >
           Copy report JSON
         </button>
+        <button type="button" @click="refreshReportJson">
+          Refresh report JSON
+        </button>
+        <p class="muted">
+          JSON is a snapshot; refresh or copy for current progress. Filenames
+          are excluded. Storage location is not detected.
+        </p>
         <p v-if="copyStatus" role="status" class="muted">
           {{ copyStatus }}
         </p>
@@ -256,6 +324,8 @@
       <p v-else>No ingestion run recorded.</p>
     </section>
 
+    <FileAuditPanel />
+    <LibraryBackupPanel />
     <section class="panel-section">
       <h2>Database</h2>
       <button
@@ -264,6 +334,7 @@
         :disabled="
           !wipeVideoDataUseCase ||
           videoStore.isWiping ||
+          videoStore.isDiagnosticsBusy ||
           videoStore.isIngesting ||
           queuedIngestionCount > 0
         "
@@ -276,6 +347,8 @@
 </template>
 
 <script setup lang="ts">
+import FileAuditPanel from './FileAuditPanel.vue'
+import LibraryBackupPanel from './LibraryBackupPanel.vue'
 import type { WipeVideoDataUseCase } from '@/application/usecases'
 import { useAppStateStore, useVideoStore } from '@presentation/stores'
 import { storeToRefs } from 'pinia'
@@ -315,6 +388,43 @@ const {
 
 const ingestionConcurrencyOptions = [1, 2, 3, 4]
 const thumbnailConcurrencyOptions = [1, 2, 3, 4]
+const previewKinds = ['motionClips', 'keyframes'] as const
+const previewItemFilter = ref('pending')
+const previewPage = ref(0)
+const filteredPreviewItems = computed(() =>
+  videoStore.previewJobItems
+    .filter((item) => {
+      if (previewItemFilter.value === 'all') return true
+      if (previewItemFilter.value === 'failed')
+        return Object.values(item.products).some(
+          (product) =>
+            product.state === 'failed' || product.state === 'fallback',
+        )
+      return item.state === 'queued' || item.state === 'processing'
+    })
+    .sort(
+      (a, b) =>
+        Number(b.state === 'processing') - Number(a.state === 'processing'),
+    ),
+)
+const visiblePreviewItems = computed(() =>
+  filteredPreviewItems.value.slice(
+    previewPage.value * 50,
+    (previewPage.value + 1) * 50,
+  ),
+)
+watch(previewItemFilter, () => {
+  previewPage.value = 0
+})
+watch(
+  () => filteredPreviewItems.value.length,
+  (count) => {
+    previewPage.value = Math.min(
+      previewPage.value,
+      Math.max(0, Math.ceil(count / 50) - 1),
+    )
+  },
+)
 const processingPhases = [
   'metadata',
   'seek',
@@ -345,14 +455,21 @@ const runReport = computed(() =>
     ? videoStore.createDisplayedIngestionRunReport()
     : null,
 )
-const reportJson = computed(() =>
-  runReport.value ? JSON.stringify(runReport.value, null, 2) : '',
+const reportJson = ref('')
+const refreshReportJson = () => {
+  reportJson.value = runReport.value
+    ? JSON.stringify(runReport.value, null, 2)
+    : ''
+}
+// Keep live bars cheap: stringify only on session boundaries or an explicit request.
+watch(
+  () =>
+    `${isDiagnosticsPanelOpen.value}:${runReport.value?.sessionId}:${runReport.value?.status}:${runReport.value?.foreground.phase}`,
+  refreshReportJson,
+  { immediate: true },
 )
-
-watch(reportJson, (currentReportJson) => {
-  if (currentReportJson !== copyStatusReportJson.value) {
-    copyStatus.value = ''
-  }
+watch(runReport, () => {
+  copyStatus.value = ''
 })
 
 const foregroundEffectiveJobs = computed(
@@ -437,6 +554,7 @@ const handleThumbnailConcurrencyChange = (event: Event) => {
 }
 
 const handleCopyReport = async () => {
+  refreshReportJson()
   const jsonToCopy = reportJson.value
   if (!jsonToCopy) {
     return
@@ -473,6 +591,17 @@ const handleCopyReport = async () => {
 </script>
 
 <style scoped>
+.preview-item {
+  margin: 0.8rem 0;
+  padding: 0.65rem;
+  background: #ffffff0a;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.preview-item progress {
+  display: block;
+  width: 100%;
+}
 .panel {
   --panelWidth: 380px;
   --panelNavHeight: 30px;

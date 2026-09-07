@@ -1,4 +1,5 @@
 import { handleMigrations } from './migrations'
+import { libraryMaintenance } from './libraryMaintenance'
 
 const benchmarkDatabaseName = (pairId: string): string => {
   if (
@@ -167,7 +168,9 @@ class DatabaseConnection {
     storeName: string,
     mode: IDBTransactionMode = 'readonly',
   ): Promise<IDBObjectStore> {
+    if (this.dbName === 'VideoMetaDataDB') libraryMaintenance.assertAvailable()
     const db = await this.connect()
+    if (this.dbName === 'VideoMetaDataDB') libraryMaintenance.assertAvailable()
     const transaction = db.transaction(storeName, mode)
     return transaction.objectStore(storeName)
   }

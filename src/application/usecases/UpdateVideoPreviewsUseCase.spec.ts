@@ -12,6 +12,7 @@ import {
 import type { VideoPreviewProduct } from '@domain/repositories/IVideoPreviewCacheRepository'
 import { UpdateVideoPreviewsUseCase } from './UpdateVideoPreviewsUseCase'
 import { VideoSessionRegistry } from '@infra/video/services/VideoSessionRegistry'
+import type { VideoPreviewOptions } from '@app/ports/IVideoPreviewGenerator'
 
 function setup() {
   const file = new File(['mp4'], 'original.mp4')
@@ -34,8 +35,19 @@ function setup() {
     },
   ]
   const generator = {
-    generateMotionClips: vi.fn(async () => motionClips),
-    generateKeyframes: vi.fn(async () => keyframes),
+    generateMotionClips: vi
+      .fn<
+        (
+          file: File,
+          options: VideoPreviewOptions,
+        ) => Promise<typeof motionClips>
+      >()
+      .mockResolvedValue(motionClips),
+    generateKeyframes: vi
+      .fn<
+        (file: File, options: VideoPreviewOptions) => Promise<typeof keyframes>
+      >()
+      .mockResolvedValue(keyframes),
   }
   const cache = {
     epoch: 0,
@@ -87,6 +99,36 @@ function setup() {
   }
 }
 
+it('forwards incremental progress and retains failed worker evidence', async () => {
+  const s = setup()
+  const diagnostics = {
+    stage: 'timeline' as const,
+    storedDuration: 3,
+    trackEnd: 2,
+  }
+  s.generator.generateKeyframes.mockImplementationOnce(
+    async (_file, options) => {
+      options.onProgress?.({ completed: 0, total: 1, diagnostics })
+      throw Object.assign(new Error('unsupported-timeline'), {
+        reason: 'unsupported-timeline',
+        diagnostics,
+      })
+    },
+  )
+  const progress = vi.fn()
+  const result = await s.useCase.execute(s.video, {
+    product: 'keyframes',
+    onProgress: progress,
+  })
+  expect(progress).toHaveBeenCalledWith({
+    kind: 'keyframes',
+    stage: 'generating',
+    completed: 0,
+    total: 1,
+    diagnostics,
+  })
+  expect(result.diagnostics?.keyframes).toEqual(diagnostics)
+})
 it('publishes and caches each complete product independently without changing review metadata', async () => {
   const s = setup()
   const result = await s.useCase.execute(s.video, { onProduct: s.onProduct })

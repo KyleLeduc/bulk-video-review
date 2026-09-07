@@ -46,6 +46,8 @@ describe('video service composition', () => {
           'updateVotesUseCase',
           'wipeVideoDataUseCase',
           'filterVideosUseCase',
+          'inspectFailedFiles',
+          'libraryBackup',
         ].sort(),
       )
       for (const key of Object.keys(first).filter(

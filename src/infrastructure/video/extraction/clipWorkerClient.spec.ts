@@ -25,6 +25,103 @@ function setup() {
   return worker
 }
 const file = new File(['private'], 'private.mp4')
+it('retains the last progress evidence when the host deadline fires', async () => {
+  vi.useFakeTimers()
+  const worker = setup()
+  const promise = extractClipsWithWorker(
+    file,
+    new AbortController().signal,
+    20,
+    1.5,
+    { kind: 'motion', duration: 30 },
+    vi.fn(),
+  )
+  const assertion = expect(promise).rejects.toMatchObject({
+    reason: 'deadline',
+    diagnostics: { stage: 'encode', readBytes: 400 },
+  })
+  void assertion.catch(() => {})
+  worker.onmessage?.({
+    data: {
+      type: 'progress',
+      completed: 1,
+      total: 10,
+      diagnostics: { stage: 'encode', readBytes: 400 },
+    },
+  } as MessageEvent)
+  await vi.advanceTimersByTimeAsync(120000)
+  await assertion
+})
+it('forwards bounded clip progress without settling and ignores retired messages', async () => {
+  const worker = setup()
+  const controller = new AbortController()
+  const progress = vi.fn()
+  const promise = extractClipsWithWorker(
+    file,
+    controller.signal,
+    20,
+    1.5,
+    { kind: 'motion', duration: 30 },
+    progress,
+  )
+  void promise.catch(() => {})
+  const reply = worker.onmessage!
+  reply({
+    data: {
+      type: 'progress',
+      completed: 1,
+      total: 10,
+      diagnostics: {
+        stage: 'encode',
+        readBytes: 1024,
+        errorName: 'private.mp4',
+      },
+    },
+  } as MessageEvent)
+  expect(progress).toHaveBeenCalledWith({
+    completed: 1,
+    total: 10,
+    diagnostics: { stage: 'encode', readBytes: 1024 },
+  })
+  expect(worker.terminate).not.toHaveBeenCalled()
+  reply({ data: { type: 'progress', completed: 0, total: 10 } } as MessageEvent)
+  reply({
+    data: { type: 'progress', completed: 99, total: 10 },
+  } as MessageEvent)
+  expect(progress).toHaveBeenCalledTimes(1)
+  controller.abort()
+  await expect(promise).rejects.toMatchObject({ name: 'AbortError' })
+  reply({ data: { type: 'progress', completed: 2, total: 10 } } as MessageEvent)
+  expect(progress).toHaveBeenCalledTimes(1)
+})
+it('preserves safe failure evidence without private error text', async () => {
+  const worker = setup()
+  const promise = extractClipsWithWorker(file, new AbortController().signal)
+  worker.onmessage?.({
+    data: {
+      ok: false,
+      reason: 'unsupported-timeline',
+      diagnostics: {
+        stage: 'timeline',
+        trackStart: 2,
+        trackEnd: 100,
+        storedDuration: 110,
+        errorName: 'NotSupportedError',
+        message: 'private.mp4',
+      },
+    },
+  } as MessageEvent)
+  await expect(promise).rejects.toMatchObject({
+    reason: 'unsupported-timeline',
+    diagnostics: {
+      stage: 'timeline',
+      trackStart: 2,
+      trackEnd: 100,
+      storedDuration: 110,
+      errorName: 'NotSupportedError',
+    },
+  })
+})
 it.each([0.5, 1, 1.5, 2] as const)(
   'sends %s-second clips at 20 FPS',
   async (clipSeconds) => {

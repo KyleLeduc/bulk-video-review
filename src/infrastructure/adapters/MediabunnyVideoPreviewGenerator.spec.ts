@@ -30,11 +30,22 @@ it('explicitly requests production clips in player time and validates full outpu
     },
   })
   const adapter = new MediabunnyVideoPreviewGenerator()
-  const output = await adapter.generateMotionClips(file, options)
-  expect(extract).toHaveBeenCalledWith(file, signal, 20, 1.5, {
-    kind: 'motion',
-    duration: 6,
+  const onProgress = vi.fn()
+  const output = await adapter.generateMotionClips(file, {
+    ...options,
+    onProgress,
   })
+  expect(extract).toHaveBeenCalledWith(
+    file,
+    signal,
+    20,
+    1.5,
+    {
+      kind: 'motion',
+      duration: 6,
+    },
+    onProgress,
+  )
   expect(output.map((clip) => clip.timestampSeconds)).toEqual([0, 3])
   const workerOutput = await extract.mock.results[0].value
   extract.mockResolvedValue({ ...workerOutput, clips: [] })
@@ -57,8 +68,13 @@ it('keeps keyframe timestamps separate from raw source timestamps and clips', as
       metrics: emptyMetrics(),
     })
   const adapter = new MediabunnyVideoPreviewGenerator()
-  const result = await adapter.generateKeyframes(file, { duration: 60, signal })
-  expect(extract).toHaveBeenCalledWith(file, 60, signal, 160)
+  const onProgress = vi.fn()
+  const result = await adapter.generateKeyframes(file, {
+    duration: 60,
+    signal,
+    onProgress,
+  })
+  expect(extract).toHaveBeenCalledWith(file, 60, signal, 160, onProgress)
   expect(result.map((frame) => frame.timestampSeconds)).toEqual([0, 15, 30, 45])
   expect(result[0]).toMatchObject({ width: 160, height: 90 })
 })

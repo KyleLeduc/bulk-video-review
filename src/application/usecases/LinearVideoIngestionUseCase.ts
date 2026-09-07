@@ -387,6 +387,24 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
           })
         }
 
+        if (options?.onUnavailable && !createdVideo) {
+          const pending = lane.items[completion.inputIndex]
+          this.sessionRegistry.registerFile(pending.id, pending.item.file)
+          try {
+            options.onUnavailable({
+              videoId: pending.id,
+              title: pending.item.file.name,
+              reason:
+                completion.outcome.status === 'fulfilled' &&
+                completion.outcome.value.status === 'skipped'
+                  ? 'unplayable-or-invalid'
+                  : 'ingestion-failed',
+            })
+          } catch {
+            this.logger.warn('[linear-ingestion] audit observer failed')
+          }
+        }
+
         progress.createdCount = createdCount
         progress.skippedCount = skippedCount
         progress.completedCount =

@@ -12,6 +12,12 @@ export type VideoIngestionPhase =
 export interface VideoIngestionOptions {
   concurrency?: number
   onTiming?: (timing: VideoProcessingTiming & { videoId: string }) => void
+  /** Optional session-only audit; retains an original that failed before a card existed. */
+  onUnavailable?: (item: {
+    videoId: string
+    title: string
+    reason: string
+  }) => void
 }
 
 export interface VideoIngestionProgress {

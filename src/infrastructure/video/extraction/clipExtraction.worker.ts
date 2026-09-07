@@ -17,6 +17,8 @@ import {
 } from '../../../domain/services/videoPreviewPolicy'
 import { createPlayerTimelineGuard } from './playerTimeline'
 import type { MotionRequest } from './clipWorkerClient'
+import type { VideoPreviewDiagnostic } from '@app/ports/IVideoPreviewGenerator'
+import { safeDiagnostics } from './workerDiagnostics'
 import {
   boundedClipBuffer,
   clipDimensions,
@@ -42,6 +44,7 @@ self.onmessage = async (
       file: File
       frameRate: unknown
       clipSeconds: unknown
+      progress?: boolean
     } & Partial<MotionRequest>
   >,
 ) => {
@@ -49,7 +52,11 @@ self.onmessage = async (
   let input: Input | undefined
   let conversion: Conversion | undefined
   let timeline: ReturnType<typeof createPlayerTimelineGuard> | undefined
-  let reply: { ok: true; output: ClipOutput } | { ok: false; reason: string }
+  const diagnostics: VideoPreviewDiagnostic = { stage: 'setup' }
+  let reader: ReturnType<typeof createFileReader> | undefined
+  let reply:
+    | { ok: true; output: ClipOutput }
+    | { ok: false; reason: string; diagnostics?: VideoPreviewDiagnostic }
   try {
     const frameRate = validateClipFrameRate(event.data?.frameRate)
     const clipSeconds = validateClipSeconds(event.data?.clipSeconds)
@@ -74,7 +81,8 @@ self.onmessage = async (
     const { file } = event.data
     if (!(file instanceof File)) throw new ExtractionError('invalid-metadata')
     const reads = emptyMetrics()
-    const reader = createFileReader(file, 'buffered-1mib', reads, 100)
+    reader = createFileReader(file, 'buffered-1mib', reads, 100)
+    diagnostics.stage = 'metadata'
     input = new Input({
       formats: [MP4],
       source: new CustomSource({
@@ -85,6 +93,7 @@ self.onmessage = async (
       }),
     })
     const track = await input.getPrimaryVideoTrack()
+    diagnostics.codec = (await track?.getCodec()) ?? undefined
     if (
       !track ||
       (await track.getCodec()) !== 'avc' ||
@@ -96,6 +105,7 @@ self.onmessage = async (
       await track.getDisplayWidth(),
       await track.getDisplayHeight(),
     )
+    diagnostics.stage = 'timeline'
     if (motion) await timeline!.check(track, event.data.duration!)
     const startTime = motion ? 0 : Math.max(0, await track.getFirstTimestamp())
     const windows = motion
@@ -127,6 +137,7 @@ self.onmessage = async (
     const clips: ClipOutput['clips'] = []
     let outputBytes = 0
     for (const window of windows) {
+      diagnostics.stage = 'decode'
       const buffer = boundedClipBuffer(
         Math.min(MAX_CLIP_BYTES, MAX_OUTPUT_BYTES - outputBytes),
       )
@@ -163,6 +174,7 @@ self.onmessage = async (
       )
         throw new ExtractionError('unsupported')
       await conversion.execute()
+      diagnostics.stage = 'encode'
       timeline?.assertSupported()
       metrics.conversionMs += performance.now() - conversionStarted
       const blob = buffer.blob(format.mimeType)
@@ -173,6 +185,20 @@ self.onmessage = async (
         duration: window.end - window.start,
       })
       if (clips.length === 1) metrics.firstClipMs = performance.now() - started
+      if (event.data.progress)
+        self.postMessage({
+          type: 'progress',
+          completed: clips.length,
+          total: windows.length,
+          diagnostics: safeDiagnostics({
+            ...diagnostics,
+            ...timeline?.diagnostics(),
+            readBytes: reader.readBytes,
+            readCalls: reader.readCalls,
+            elapsedMs: performance.now() - started,
+            outputBytes,
+          }),
+        })
     }
     metrics.readMs = reads.readMs!
     metrics.readMaxMs = reads.readMaxMs!
@@ -192,13 +218,44 @@ self.onmessage = async (
       ),
     }
   } catch (error) {
-    reply = { ok: false, reason: safeFailure(error) }
+    reply = {
+      ok: false,
+      reason: safeFailure(error),
+      ...(event.data.progress
+        ? {
+            diagnostics: safeDiagnostics({
+              ...diagnostics,
+              ...timeline?.diagnostics(),
+              errorName: (error as Error)?.name,
+              readBytes: reader?.readBytes,
+              readCalls: reader?.readCalls,
+              elapsedMs: performance.now() - started,
+            }),
+          }
+        : {}),
+    }
   } finally {
     try {
       await conversion?.cancel()
       input?.dispose()
-    } catch {
-      reply = { ok: false, reason: 'extraction-failed' }
+    } catch (error) {
+      const prior = reply! && !reply.ok ? reply : undefined
+      reply = {
+        ok: false,
+        reason: prior?.reason ?? 'extraction-failed',
+        ...(event.data.progress
+          ? {
+              diagnostics: safeDiagnostics({
+                ...diagnostics,
+                ...(prior?.diagnostics ?? {
+                  stage: 'cleanup',
+                  errorName: (error as Error)?.name,
+                }),
+                cleanupFailed: true,
+              }),
+            }
+          : {}),
+      }
     }
     timeline?.dispose()
   }

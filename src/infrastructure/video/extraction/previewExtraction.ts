@@ -1,3 +1,6 @@
+import type { VideoPreviewDiagnostic } from '@app/ports/IVideoPreviewGenerator'
+import { safeDiagnostics } from './workerDiagnostics'
+
 export const EXTRACTION_DEADLINE_MS = 120000
 export const MAX_OUTPUT_BYTES = 16 * 1024 * 1024
 export const MAX_READ_BYTES = 256 * 1024 * 1024
@@ -72,7 +75,10 @@ const reasons = [
 ] as const
 export type FailureReason = (typeof reasons)[number] | 'aborted'
 export class ExtractionError extends Error {
-  constructor(public readonly reason: (typeof reasons)[number]) {
+  constructor(
+    public readonly reason: (typeof reasons)[number],
+    public readonly diagnostics: VideoPreviewDiagnostic = {},
+  ) {
     super(reason)
   }
 }
@@ -81,11 +87,15 @@ export function safeFailure(error: unknown): FailureReason {
     return 'aborted'
   return error instanceof ExtractionError ? error.reason : 'extraction-failed'
 }
-export function workerFailure(reason: unknown): ExtractionError {
+export function workerFailure(
+  reason: unknown,
+  diagnostics?: unknown,
+): ExtractionError {
   return new ExtractionError(
     reasons.includes(reason as (typeof reasons)[number])
       ? (reason as (typeof reasons)[number])
       : 'extraction-failed',
+    safeDiagnostics(diagnostics),
   )
 }
 export function checkDimensions(width: number, height: number) {

@@ -5,7 +5,11 @@ import type {
   VideoPreviewProduct,
 } from '@domain/repositories/IVideoPreviewCacheRepository'
 import type { ILogger, IVideoSessionRegistry } from '@app/ports'
-import type { IVideoPreviewGenerator } from '@app/ports/IVideoPreviewGenerator'
+import type {
+  IVideoPreviewGenerator,
+  VideoPreviewDiagnostic,
+  VideoPreviewProgress,
+} from '@app/ports/IVideoPreviewGenerator'
 import type { IVideoThumbnailGenerator } from '@app/ports/IVideoThumbnailGenerator'
 import {
   hasCompleteMotionClips,
@@ -32,6 +36,7 @@ export type PreviewEnrichmentOptions = {
     stage: 'generating' | 'persisting' | 'fallback' | 'saving-fallback'
     completed: number
     total: number
+    diagnostics?: VideoPreviewDiagnostic
   }) => void
 }
 type ProductFailure = (typeof MOTION_FAILURE_REASONS)[number]
@@ -39,6 +44,9 @@ export type PreviewEnrichmentResult = {
   video: ParsedVideo
   failures: Partial<Record<VideoPreviewProduct['kind'], ProductFailure>>
   cacheFailures: VideoPreviewProduct['kind'][]
+  diagnostics?: Partial<
+    Record<VideoPreviewProduct['kind'], VideoPreviewDiagnostic>
+  >
 }
 function failureReason(error: unknown): ProductFailure {
   const reason = (error as { reason?: string } | null)?.reason
@@ -72,6 +80,7 @@ export class UpdateVideoPreviewsUseCase {
           ? { motionClips: video.motionFallback!.reason as ProductFailure }
           : {},
       cacheFailures: [],
+      diagnostics: {},
     }
     const file = this.sessionRegistry.getFile(video.id)
     const epoch = this.cache.epoch
@@ -114,6 +123,11 @@ export class UpdateVideoPreviewsUseCase {
           : keyframeTargets(video.duration).length
       options.onProgress?.({ kind, stage: 'generating', completed: 0, total })
       let product: VideoPreviewProduct | undefined
+      const onProgress = (progress: VideoPreviewProgress) => {
+        assertOwned()
+        result.diagnostics![kind] = progress.diagnostics
+        options.onProgress?.({ kind, stage: 'generating', ...progress })
+      }
       try {
         product =
           kind === 'motionClips'
@@ -123,6 +137,7 @@ export class UpdateVideoPreviewsUseCase {
                 items: await this.generator.generateMotionClips(file, {
                   duration: video.duration,
                   signal,
+                  onProgress,
                 }),
               }
             : {
@@ -131,6 +146,7 @@ export class UpdateVideoPreviewsUseCase {
                 items: await this.generator.generateKeyframes(file, {
                   duration: video.duration,
                   signal,
+                  onProgress,
                 }),
               }
         assertOwned()
@@ -151,6 +167,14 @@ export class UpdateVideoPreviewsUseCase {
         if (error instanceof DOMException && error.name === 'AbortError')
           throw error
         result.failures[kind] = failureReason(error)
+        const evidence = (
+          error as { diagnostics?: VideoPreviewDiagnostic } | null
+        )?.diagnostics
+        if (evidence)
+          result.diagnostics![kind] = {
+            ...result.diagnostics![kind],
+            ...evidence,
+          }
       }
       if (!product && kind === 'motionClips') {
         await assertExists()

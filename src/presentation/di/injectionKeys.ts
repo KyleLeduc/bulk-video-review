@@ -1,4 +1,6 @@
 import type { InjectionKey } from 'vue'
+import type { InspectFailedVideoFilesUseCase } from '@app/usecases/InspectFailedVideoFilesUseCase'
+import type { ILibraryBackup } from '@app/ports/ILibraryBackup'
 import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import type {
   FilterVideosUseCase,
@@ -11,6 +13,12 @@ import type {
 
 export const ADD_VIDEOS_USE_CASE_KEY: InjectionKey<VideoIngestionUseCase> =
   Symbol('AddVideosUseCase')
+
+export const INSPECT_FAILED_FILES_KEY: InjectionKey<
+  Pick<InspectFailedVideoFilesUseCase, 'execute'>
+> = Symbol('InspectFailedFiles')
+export const LIBRARY_BACKUP_KEY: InjectionKey<ILibraryBackup> =
+  Symbol('LibraryBackup')
 
 export const FILTER_VIDEOS_USE_CASE_KEY: InjectionKey<FilterVideosUseCase> =
   Symbol('FilterVideosUseCase')

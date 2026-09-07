@@ -146,6 +146,7 @@ describe('useVideoStore ingestion scheduler', () => {
     ).toHaveBeenNthCalledWith(1, [{ file: first }], {
       concurrency: 2,
       onTiming: expect.any(Function),
+      onUnavailable: expect.any(Function),
     })
     ;(store as any).setIngestionConcurrencyOverride(99)
     expect((store as any).effectiveIngestionConcurrency).toBe(4)
@@ -156,6 +157,7 @@ describe('useVideoStore ingestion scheduler', () => {
     ).toHaveBeenNthCalledWith(2, [{ file: second }], {
       concurrency: 4,
       onTiming: expect.any(Function),
+      onUnavailable: expect.any(Function),
     })
     ;(store as any).setIngestionConcurrencyOverride(0)
     expect((store as any).effectiveIngestionConcurrency).toBe(1)
@@ -205,6 +207,7 @@ describe('useVideoStore ingestion scheduler', () => {
       ).toHaveBeenNthCalledWith(2, [{ file: second }], {
         concurrency: 1,
         onTiming: expect.any(Function),
+        onUnavailable: expect.any(Function),
       })
     } finally {
       releaseFirst?.()

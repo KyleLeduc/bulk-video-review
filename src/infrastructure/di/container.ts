@@ -12,6 +12,8 @@ export const {
   updateVotesUseCase,
   wipeVideoDataUseCase,
   filterVideosUseCase,
+  inspectFailedFiles,
+  libraryBackup,
 } = createVideoServices({
   databaseConnection: DatabaseConnection.getInstance(),
 })

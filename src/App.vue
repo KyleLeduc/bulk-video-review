@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { onMounted, onBeforeUnmount } from 'vue'
+import { inject, onMounted, onBeforeUnmount } from 'vue'
+import { LIBRARY_BACKUP_KEY } from '@presentation/di/injectionKeys'
 import DiagnosticsPanel from '@presentation/components/utils/DiagnosticsPanel.vue'
 import IngestionStatusToast from '@presentation/components/utils/IngestionStatusToast.vue'
 import FilterPanel from '@presentation/components/layout/FilterPanel.vue'
@@ -11,6 +12,16 @@ import { useAppStateStore, useVideoStore } from '@presentation/stores'
 const appStateStore = useAppStateStore()
 const { isFilterPanelOpen } = storeToRefs(appStateStore)
 const videoStore = useVideoStore()
+const backup = inject(LIBRARY_BACKUP_KEY, undefined)
+if (backup) {
+  try {
+    videoStore.setLibraryRecoveryRequired(backup.recoveryRequired())
+  } catch {
+    videoStore.setLibraryRecoveryRequired(true)
+  }
+  if (videoStore.libraryRecoveryRequired)
+    appStateStore.toggleDiagnosticsPanel(true)
+}
 const syncPreviewActivity = () => {
   videoStore.setPreviewProcessingPaused(document.hidden || !document.hasFocus())
 }
@@ -32,20 +43,35 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="app-shell" :class="{ 'panel-collapsed': !isFilterPanelOpen }">
-    <FilterPanel />
+    <FilterPanel :inert="videoStore.isDiagnosticsBusy" />
 
-    <section class="content">
+    <section class="content" :inert="videoStore.isDiagnosticsBusy">
       <NavBar />
 
       <VideoGallery />
     </section>
 
     <DiagnosticsPanel />
+    <button
+      v-if="
+        videoStore.libraryRecoveryRequired || videoStore.libraryReloadRequired
+      "
+      class="recovery-banner"
+      @click="appStateStore.toggleDiagnosticsPanel(true)"
+    >
+      Library locked for recovery — open Diagnostics
+    </button>
     <IngestionStatusToast />
   </div>
 </template>
 
 <style scoped>
+.recovery-banner {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 24;
+}
 .app-shell {
   --panel-size: 320px;
   display: grid;

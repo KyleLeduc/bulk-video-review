@@ -8,6 +8,12 @@ import {
   type ExtractionOutput,
 } from './previewExtraction'
 import type { FileReaderMode } from './fileReader'
+import { keyframeTargets } from '../../../domain/services/videoPreviewPolicy'
+import { progressReceiver } from './workerDiagnostics'
+import type {
+  VideoPreviewDiagnostic,
+  VideoPreviewProgress,
+} from '@app/ports/IVideoPreviewGenerator'
 import {
   validateKeyframeOutput,
   type KeyframeRequest,
@@ -27,12 +33,18 @@ export function extractKeyframesWithWorker(
   duration: number,
   signal: AbortSignal,
   maxWidth = 160,
+  onProgress?: (progress: VideoPreviewProgress) => void,
 ): Promise<ExtractionOutput> {
-  return runPreviewWorker(file, signal, {
-    kind: 'keyframes',
-    duration,
-    maxWidth,
-  })
+  return runPreviewWorker(
+    file,
+    signal,
+    {
+      kind: 'keyframes',
+      duration,
+      maxWidth,
+    },
+    onProgress,
+  )
 }
 
 function runPreviewWorker(
@@ -41,6 +53,7 @@ function runPreviewWorker(
   request:
     | KeyframeRequest
     | { prepared: PreparedExtraction; readerMode: FileReaderMode },
+  onProgress?: (progress: VideoPreviewProgress) => void,
 ): Promise<ExtractionOutput> {
   const started = performance.now()
   return new Promise((resolve, reject) => {
@@ -59,6 +72,16 @@ function runPreviewWorker(
       return
     }
     let settled = false
+    let lastDiagnostics: VideoPreviewDiagnostic = {}
+    const receiveProgress = progressReceiver(
+      'kind' in request
+        ? keyframeTargets(request.duration).length
+        : request.prepared.targets.length,
+      (progress) => {
+        lastDiagnostics = progress.diagnostics
+        onProgress?.(progress)
+      },
+    )
     const finish = (output?: ExtractionOutput, error?: unknown) => {
       if (settled) return
       settled = true
@@ -67,7 +90,15 @@ function runPreviewWorker(
       worker.onmessage = worker.onerror = worker.onmessageerror = null
       worker.terminate()
       if (output) resolve(output)
-      else reject(error)
+      else
+        reject(
+          error instanceof ExtractionError
+            ? new ExtractionError(error.reason, {
+                ...lastDiagnostics,
+                ...error.diagnostics,
+              })
+            : error,
+        )
     }
     const abort = () =>
       finish(undefined, new DOMException('Cancelled', 'AbortError'))
@@ -79,8 +110,14 @@ function runPreviewWorker(
     worker.onerror = worker.onmessageerror = () =>
       finish(undefined, new ExtractionError('extraction-failed'))
     worker.onmessage = (event) => {
+      if (settled) return
       try {
-        if (event.data?.ok !== true) throw workerFailure(event.data?.reason)
+        if (event.data?.type === 'progress') {
+          receiveProgress(event.data)
+          return
+        }
+        if (event.data?.ok !== true)
+          throw workerFailure(event.data?.reason, event.data?.diagnostics)
         const output =
           'kind' in request
             ? validateKeyframeOutput(
@@ -109,7 +146,11 @@ function runPreviewWorker(
       }
     }
     try {
-      worker.postMessage({ file, ...request })
+      worker.postMessage({
+        file,
+        ...request,
+        ...(onProgress ? { progress: true } : {}),
+      })
     } catch {
       finish(undefined, new ExtractionError('extraction-failed'))
     }

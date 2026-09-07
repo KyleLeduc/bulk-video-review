@@ -13,6 +13,8 @@ import {
   updateVotesUseCase,
   videoSessionRegistry,
   wipeVideoDataUseCase,
+  inspectFailedFiles,
+  libraryBackup,
 } from '@infra/di/container'
 import {
   ADD_VIDEOS_USE_CASE_KEY,
@@ -22,6 +24,8 @@ import {
   UPDATE_VOTES_USE_CASE_KEY,
   VIDEO_SESSION_REGISTRY_KEY,
   WIPE_VIDEO_DATA_USE_CASE_KEY,
+  INSPECT_FAILED_FILES_KEY,
+  LIBRARY_BACKUP_KEY,
 } from '@presentation/di/injectionKeys'
 
 const app = createApp(App)
@@ -37,5 +41,7 @@ if (updatePreviewsUseCase)
 app.provide(UPDATE_VOTES_USE_CASE_KEY, updateVotesUseCase)
 app.provide(WIPE_VIDEO_DATA_USE_CASE_KEY, wipeVideoDataUseCase)
 app.provide(VIDEO_SESSION_REGISTRY_KEY, videoSessionRegistry)
+app.provide(INSPECT_FAILED_FILES_KEY, inspectFailedFiles)
+if (libraryBackup) app.provide(LIBRARY_BACKUP_KEY, libraryBackup)
 
 app.mount('#app')

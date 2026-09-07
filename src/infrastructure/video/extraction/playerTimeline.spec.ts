@@ -27,6 +27,11 @@ it('validates the adjusted timeline without shifting requested player times', as
   await expect(guard.check(track(0, 55), 60)).rejects.toThrow(
     'unsupported-timeline',
   )
+  expect(guard.diagnostics()).toMatchObject({
+    trackStart: 0,
+    trackEnd: 55,
+    storedDuration: 60,
+  })
   guard.dispose()
   expect(state.remove).toHaveBeenCalledOnce()
 })

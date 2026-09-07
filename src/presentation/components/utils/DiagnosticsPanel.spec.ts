@@ -9,11 +9,62 @@ import {
 } from '@test-utils/index'
 import DiagnosticsPanel from './DiagnosticsPanel.vue'
 import diagnosticsPanelSource from './DiagnosticsPanel.vue?raw'
+import { UPDATE_PREVIEWS_USE_CASE_KEY } from '@presentation/di/injectionKeys'
 
 const diagnosticsPanelStyles =
   diagnosticsPanelSource.match(/<style scoped>([\s\S]*?)<\/style>/)?.[1] ?? ''
 
 describe('DiagnosticsPanel', () => {
+  test('can page to the 51st queued item without rendering the whole batch', async () => {
+    const { global } = createPresentationTestContext()
+    global.provide[UPDATE_PREVIEWS_USE_CASE_KEY as symbol] = {
+      execute: vi.fn(),
+    }
+    const wrapper = mount(DiagnosticsPanel, { global })
+    const store = useVideoStore()
+    store.setPreviewProcessingPaused(true)
+    for (let i = 0; i < 51; i++) {
+      store.addVideos([
+        buildParsedVideo({
+          id: String(i),
+          title: `file-${i}.mp4`,
+          duration: 60,
+        }),
+      ])
+      void store.updateVideoThumbnails(String(i))
+    }
+    useAppStateStore().toggleDiagnosticsPanel(true)
+    await nextTick()
+    expect(wrapper.findAll('[data-testid="preview-item"]')).toHaveLength(50)
+    await wrapper.get('[data-testid="preview-next-page"]').trigger('click')
+    expect(wrapper.findAll('[data-testid="preview-item"]')).toHaveLength(1)
+    expect(wrapper.text()).toContain('file-50.mp4')
+    for (let i = 0; i < 51; i++) store.removeVideo(String(i))
+    wrapper.unmount()
+  })
+  test('shows independent per-item clip and seek progress', async () => {
+    const { global } = createPresentationTestContext()
+    global.provide[UPDATE_PREVIEWS_USE_CASE_KEY as symbol] = {
+      execute: vi.fn(),
+    }
+    const wrapper = mount(DiagnosticsPanel, { global })
+    const store = useVideoStore()
+    store.addVideos([
+      buildParsedVideo({ id: 'queued', title: 'test.mp4', duration: 60 }),
+    ])
+    store.setPreviewProcessingPaused(true)
+    void store.updateVideoThumbnails('queued')
+    useAppStateStore().toggleDiagnosticsPanel(true)
+    await nextTick()
+    expect(wrapper.findAll('[data-testid="preview-item"]')).toHaveLength(1)
+    const bars = wrapper.findAll('progress')
+    expect(bars).toHaveLength(2)
+    expect(bars[0].attributes('aria-label')).toContain('Clips')
+    expect(bars[1].attributes('aria-label')).toContain('Seek')
+    expect(wrapper.text()).toContain('test.mp4')
+    store.removeVideo('queued')
+    wrapper.unmount()
+  })
   test('shows focus pause explicitly and routes database wipe through queue cancellation', async () => {
     const { global, mocks } = createPresentationTestContext()
     const wrapper = mount(DiagnosticsPanel, { global })

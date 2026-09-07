@@ -1,5 +1,6 @@
 import { Logging } from 'mediabunny'
 import { ExtractionError } from './previewExtraction'
+import type { VideoPreviewDiagnostic } from '@app/ports/IVideoPreviewGenerator'
 
 type TimelineTrack = {
   getFirstTimestamp(): Promise<number>
@@ -10,6 +11,7 @@ type TimelineTrack = {
 /** Pinned Mediabunny 1.55.7 gate. Its public timestamps already include supported MP4 edits. */
 export function createPlayerTimelineGuard() {
   let unsupportedEdit = false
+  let evidence: VideoPreviewDiagnostic = {}
   const dispose = Logging.on('warn', (args) => {
     if (
       args.some(
@@ -23,12 +25,14 @@ export function createPlayerTimelineGuard() {
     if (unsupportedEdit) throw new ExtractionError('unsupported-timeline')
   }
   return {
+    diagnostics: () => ({ ...evidence }),
     dispose,
     assertSupported,
     async check(track: TimelineTrack, duration: number) {
       const first = await track.getFirstTimestamp()
       const end = await track.computeDuration()
       const resolution = await track.getTimeResolution()
+      evidence = { trackStart: first, trackEnd: end, storedDuration: duration }
       assertSupported()
       if (
         ![first, end, resolution, duration].every(Number.isFinite) ||

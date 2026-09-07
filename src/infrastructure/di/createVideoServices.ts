@@ -1,4 +1,7 @@
 import type { DatabaseConnection } from '@infra/database/DatabaseConnection'
+import { InspectFailedVideoFilesUseCase } from '@app/usecases/InspectFailedVideoFilesUseCase'
+import { inspectVideoFile } from '@infra/video/inspection/inspectVideoFile'
+import { LibraryBackup } from '@infra/database/LibraryBackup'
 import {
   MetadataRepository,
   VideoAggregateRepository,
@@ -125,5 +128,15 @@ export function createVideoServices({
     updateVotesUseCase,
     wipeVideoDataUseCase,
     filterVideosUseCase,
+    inspectFailedFiles: new InspectFailedVideoFilesUseCase(
+      { inspect: inspectVideoFile },
+      videoSessionRegistry,
+    ),
+    libraryBackup: previewCache
+      ? new LibraryBackup(
+          () => databaseConnection.connect(),
+          () => previewCache.connectForMaintenance(),
+        )
+      : null,
   }
 }

@@ -73,6 +73,28 @@ const collectVideos = (items: Array<any>): ParsedVideo[] =>
     .map((item) => item.video as ParsedVideo)
 
 describe('LinearVideoIngestionUseCase', () => {
+  test('retains skipped originals for the optional failure audit without changing ingestion counts', async () => {
+    const deps = makeDeps()
+    const useCase = new LinearVideoIngestionUseCase(
+      deps.metadataExtractor,
+      deps.aggregateRepository,
+      deps.sessionRegistry,
+      deps.logger,
+      buildFailureTracker(),
+    )
+    const file = new File(['damaged'], 'broken.mp4')
+    const onUnavailable = vi.fn()
+    await collect(useCase.execute([{ file }], { onUnavailable }))
+    expect(onUnavailable).toHaveBeenCalledWith({
+      videoId: 'id-default',
+      title: 'broken.mp4',
+      reason: 'unplayable-or-invalid',
+    })
+    expect(deps.sessionRegistry.registerFile).toHaveBeenCalledWith(
+      'id-default',
+      file,
+    )
+  })
   test.each([false, true])(
     'attributes actual awaited persistence and extractor timings (write fails=%s)',
     async (fails) => {

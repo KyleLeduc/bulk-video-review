@@ -31,6 +31,37 @@ describe('disposable extraction worker', () => {
     )
     return worker
   }
+  it('forwards seek progress and fails an observer without leaving its worker running', async () => {
+    const worker = setup()
+    const progress = vi
+      .fn()
+      .mockImplementationOnce(() => {})
+      .mockImplementationOnce(() => {
+        throw new Error('observer')
+      })
+    const promise = extractKeyframesWithWorker(
+      file,
+      60,
+      new AbortController().signal,
+      160,
+      progress,
+    )
+    void promise.catch(() => {})
+    worker.onmessage?.({
+      data: { type: 'progress', completed: 1, total: 4 },
+    } as MessageEvent)
+    expect(progress).toHaveBeenCalledWith({
+      completed: 1,
+      total: 4,
+      diagnostics: {},
+    })
+    expect(worker.terminate).not.toHaveBeenCalled()
+    worker.onmessage?.({
+      data: { type: 'progress', completed: 2, total: 4 },
+    } as MessageEvent)
+    await expect(promise).rejects.toThrow('observer')
+    expect(worker.terminate).toHaveBeenCalledOnce()
+  })
   it('clones the File, validates completion and terminates', async () => {
     const worker = setup()
     const promise = extractWithWorker(

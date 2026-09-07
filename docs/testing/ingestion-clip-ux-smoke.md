@@ -1,5 +1,48 @@
 # Motion previews, seek keyframes and focus recovery smoke plan
 
+## Release checkpoint — diagnostics and full database recovery (v6)
+
+Plan revision: `bvr-motion-keyframes-smoke-v6`. Use the exact target SHA in the
+Notion action, not the historical SHAs below. Worker defaults remain 2/2;
+clips remain 1.5 seconds at 20 FPS and seeks 160 px. Clips-first, seek-only open
+priority and focus pause/retry are unchanged. No speed tuning in this checkpoint.
+
+**Protect the live library first:** close other app tabs/windows, finish pending
+work, then open Diagnostics → Library backup / restore. Download the full private
+`.bvrbackup` and select it under Validate a backup. Confirm counts/build/date and
+save another copy outside the browser. Validation does not replace anything.
+Original videos, permissions, active queues and UI preferences are not included.
+The archive includes both durable databases, with a 1 GiB archive / 64 MiB
+manifest / 100,000 binary-record limit and the existing 256 MiB preview-cache cap.
+An unsupported/corrupt record rejects export instead of silently omitting data.
+
+Perform restore/failure exercises in a **disposable browser profile first**, never
+against the only copy of your review library. The archive contains private titles,
+votes, tags and preview media; do not post it with a public bug report.
+
+| ID    | Do                                                                                                                                                                                                                                       | Expected result                                                                                                                                                                                                                                                                                                               |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DR-01 | In a disposable profile, import representative media and cast votes. Download and validate a full backup. Add another test video/change a vote, then select the saved archive, confirm replacement and reload. Reselect original videos. | Counts, votes, tags/covers and cached products return to the saved state; post-backup test entries disappear. Successful restore requires reload. No original file is changed.                                                                                                                                                |
+| DR-02 | Start ingestion, including a focus-paused queue. Try backup, restore and inspection. Finish processing, then retry. Cancel the restore file picker or leave replacement unchecked.                                                       | Maintenance cannot overlap pending/active work. Picker cancellation/unconfirmed replacement makes no data changes. Other app tabs must be closed before export/restore.                                                                                                                                                       |
+| DR-03 | Ingest/upgrade the mixed folder, including browser-incompatible originals. Use per-item Pending, Unavailable/fallback and All filters; navigate past 50 entries. Pause/resume and dismiss/reopen Diagnostics.                            | Independent clip/seek progress and terminal states remain visible. Complete clips are retained while seeks run or fail. Older pages are reachable; panel dismissal does not cancel ingestion.                                                                                                                                 |
+| DR-04 | After the queue settles, run Failed-file audit; try Cancel, then run again. Copy/download readable and JSON formats. Audit several failing originals against external ffprobe/VLC observations.                                          | Current-session preview and pre-cover failures are listed by filename/available relative path, safe reason codes and reported timing/codec/timeline evidence. Structural damage, container mismatch, adapter restrictions and inconclusive coverage remain distinct. No upload, repair or full-playback certification occurs. |
+| DR-05 | Copy the ordinary run report while seeks are active and after completion; refresh its displayed JSON.                                                                                                                                    | File names/paths/raw errors are absent; private audit is separate. Build identity, per-product records and reason counts are included. Unmeasured phase values are null, not zero; source location is explicitly unknown.                                                                                                     |
+
+Automated recovery tests (`cypress/e2e/libraryRecovery.cy.ts`) separately exercise
+binary round trips, damaged archive rejection, transaction abort after request
+success, cache quota failure, failed rollback and cross-reload recovery gating.
+They also inspect a synthetic truncated original that fails before a cover,
+keeping its filename in the private audit and out of the ordinary run report.
+These are synthetic/disposable checks, not proof against all owner media or an
+operating-system crash. The databases cannot commit atomically together: a durable
+interrupted-restore marker blocks normal use until the intended/safety archive is
+restored. Never clear that marker manually to bypass recovery.
+
+Return the target/tested SHA, actual browser, NAS/local source, DR check outcomes,
+redacted run JSON and (privately) the readable failed-file audit. Prior failed-folder
+and native acceptance records remain open until checked. No automatic FFmpeg
+commands are generated; the audit manifest is data for a later repair workflow.
+
 ## Release checkpoint — clips before prioritized seeks (v5)
 
 Plan revision: `bvr-motion-keyframes-smoke-v5`, on `feat/video-benchmark-view`.

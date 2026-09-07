@@ -3,14 +3,29 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 import viteConfig from '../vite.config'
-import { fingerprintAssets } from './benchmarkBuild.mjs'
+import { fingerprintAssets, benchmarkBuildPlugin } from './benchmarkBuild.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const read = (path: string) => readFileSync(resolve(root, path), 'utf8')
 
 describe('homelab deployment contract', () => {
+  test('embeds the build identity for offline ingestion reports and backups', () => {
+    vi.stubEnv('BVR_BUILD_REVISION', 'a'.repeat(40))
+    try {
+      const identity = JSON.parse(
+        benchmarkBuildPlugin().config().define.__BVR_BUILD_IDENTITY__,
+      )
+      expect(identity).toEqual({
+        revision: 'a'.repeat(40),
+        source: 'build-argument',
+        dirty: null,
+      })
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
   test('keeps the reference-corpus smoke out of the ordinary E2E command', () => {
     const config = read('cypress.config.ts')
     expect(config).toContain("process.env.BVR_BENCHMARK_SMOKE === 'true'")

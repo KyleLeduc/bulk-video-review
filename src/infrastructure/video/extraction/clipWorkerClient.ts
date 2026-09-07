@@ -14,6 +14,11 @@ import {
   type ClipOutput,
 } from './clipExtraction'
 import { motionClipWindows } from '../../../domain/services/videoPreviewPolicy'
+import { progressReceiver } from './workerDiagnostics'
+import type {
+  VideoPreviewDiagnostic,
+  VideoPreviewProgress,
+} from '@app/ports/IVideoPreviewGenerator'
 
 export type MotionRequest = { kind: 'motion'; duration: number }
 
@@ -23,6 +28,7 @@ export function extractClipsWithWorker(
   frameRate: ClipFrameRate = CLIP_FPS,
   clipSeconds: ClipSeconds = CLIP_SECONDS,
   motion?: MotionRequest,
+  onProgress?: (progress: VideoPreviewProgress) => void,
 ): Promise<ClipOutput> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
@@ -44,6 +50,14 @@ export function extractClipsWithWorker(
       return
     }
     let settled = false
+    let lastDiagnostics: VideoPreviewDiagnostic = {}
+    const receiveProgress = progressReceiver(
+      motion ? motionClipWindows(motion.duration).length : 0,
+      (progress) => {
+        lastDiagnostics = progress.diagnostics
+        onProgress?.(progress)
+      },
+    )
     const finish = (output?: ClipOutput, error?: unknown) => {
       if (settled) return
       settled = true
@@ -52,7 +66,15 @@ export function extractClipsWithWorker(
       worker.onmessage = worker.onerror = worker.onmessageerror = null
       worker.terminate()
       if (output) resolve(output)
-      else reject(error)
+      else
+        reject(
+          error instanceof ExtractionError
+            ? new ExtractionError(error.reason, {
+                ...lastDiagnostics,
+                ...error.diagnostics,
+              })
+            : error,
+        )
     }
     const abort = () =>
       finish(undefined, new DOMException('Cancelled', 'AbortError'))
@@ -64,8 +86,14 @@ export function extractClipsWithWorker(
     worker.onerror = worker.onmessageerror = () =>
       finish(undefined, new ExtractionError('extraction-failed'))
     worker.onmessage = (event) => {
+      if (settled) return
       try {
-        if (event.data?.ok !== true) throw workerFailure(event.data?.reason)
+        if (event.data?.type === 'progress') {
+          receiveProgress(event.data)
+          return
+        }
+        if (event.data?.ok !== true)
+          throw workerFailure(event.data?.reason, event.data?.diagnostics)
         const output = validateClipOutput(event.data.output, clipSeconds)
         if (motion) {
           const windows = motionClipWindows(motion.duration)
@@ -86,7 +114,13 @@ export function extractClipsWithWorker(
       }
     }
     try {
-      worker.postMessage({ file, frameRate, clipSeconds, ...motion })
+      worker.postMessage({
+        file,
+        frameRate,
+        clipSeconds,
+        ...motion,
+        ...(onProgress ? { progress: true } : {}),
+      })
     } catch {
       finish(undefined, new ExtractionError('extraction-failed'))
     }

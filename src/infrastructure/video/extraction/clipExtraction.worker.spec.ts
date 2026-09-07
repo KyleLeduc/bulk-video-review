@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({
   first: 0,
   end: 3,
   warnOnConversion: false,
+  failCleanup: false,
   warn: undefined as undefined | ((args: unknown[]) => void),
   removeWarning: vi.fn(),
 }))
@@ -53,6 +54,7 @@ vi.mock('mediabunny', () => {
       getPrimaryVideoTrack = async () => track
       dispose() {
         state.now = 50
+        if (state.failCleanup) throw new Error('private cleanup details')
       }
     },
     canEncodeVideo: async (codec: string) =>
@@ -96,17 +98,30 @@ afterEach(() => {
   state.first = 0
   state.end = 3
   state.warnOnConversion = false
+  state.failCleanup = false
   state.removeWarning.mockClear()
   state.avcAvailable = true
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
   vi.resetModules()
 })
+it('retains timeline evidence when cleanup also fails', async () => {
+  state.first = 5
+  state.failCleanup = true
+  const messages = await run(20, 1.5, 3, 'motion', true)
+  expect(messages.at(-1)).toMatchObject({
+    ok: false,
+    reason: 'unsupported-timeline',
+    diagnostics: { trackStart: 5, cleanupFailed: true },
+  })
+  expect(JSON.stringify(messages)).not.toContain('private cleanup')
+})
 async function run(
   frameRate: unknown,
   clipSeconds: unknown = 3,
   duration?: number,
   kind = 'motion',
+  progress = false,
 ) {
   state.now = 0
   const postMessage = vi.fn()
@@ -127,11 +142,26 @@ async function run(
       file: new File(['mp4'], 'private.mp4'),
       frameRate,
       clipSeconds,
+      progress,
       ...(duration === undefined ? {} : { kind, duration }),
     },
   } as MessageEvent)
-  return postMessage.mock.calls[0][0]
+  return progress
+    ? postMessage.mock.calls.map((call) => call[0])
+    : postMessage.mock.calls[0][0]
 }
+it('emits each encoded clip before the final reply, without filenames', async () => {
+  state.encoderAvailable = true
+  state.end = 6
+  const replies = await run(20, 1.5, 6, 'motion', true)
+  expect(
+    replies
+      .filter((reply: { type?: string }) => reply.type === 'progress')
+      .map((reply: { completed: number }) => reply.completed),
+  ).toEqual([1, 2])
+  expect(replies.at(-1)).toMatchObject({ ok: true })
+  expect(JSON.stringify(replies)).not.toContain('private.mp4')
+})
 it('uses explicit player time for motion instead of shifting by a negative packet start', async () => {
   state.encoderAvailable = true
   state.first = -1

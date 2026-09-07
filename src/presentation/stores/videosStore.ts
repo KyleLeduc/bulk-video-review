@@ -1,4 +1,7 @@
 import type { ParsedVideo } from '@domain/entities'
+import { BUILD_IDENTITY } from '@/shared/buildIdentity'
+import type { VideoPreviewDiagnostic } from '@app/ports/IVideoPreviewGenerator'
+import type { FailedVideoSource } from '@app/ports/IVideoFileInspector'
 import type { VideoPreviewProduct } from '@domain/repositories/IVideoPreviewCacheRepository'
 import type {
   PreviewEnrichmentResult,
@@ -110,6 +113,7 @@ export type ThumbnailJobDiagnostic = {
   product?: PreviewProductKind
   failures?: PreviewEnrichmentResult['failures']
   cacheFailures?: PreviewEnrichmentResult['cacheFailures']
+  products?: Partial<Record<PreviewProductKind, PreviewItemDiagnostic>>
   startedAtMs?: number
   completedAtMs?: number
   elapsedMs?: number
@@ -120,6 +124,28 @@ export type ThumbnailJobDiagnostic = {
   width?: number
   height?: number
   error?: string
+}
+
+export type PreviewItemDiagnostic = {
+  state: PreviewProductState
+  completed: number
+  total: number
+  stage?: ThumbnailJobDiagnostic['stage'] | 'persisting'
+  elapsedMs?: number
+  reason?: string
+  diagnostics?: VideoPreviewDiagnostic
+}
+
+function snapshotProducts(products: ThumbnailJobDiagnostic['products']) {
+  return Object.fromEntries(
+    Object.entries(products ?? {}).map(([kind, item]) => [
+      kind,
+      {
+        ...item,
+        diagnostics: item.diagnostics ? { ...item.diagnostics } : undefined,
+      },
+    ]),
+  ) as ThumbnailJobDiagnostic['products']
 }
 
 type IngestionSessionStatus =
@@ -155,6 +181,7 @@ type ThumbnailCountsSnapshot = {
 
 type PreviewRunSnapshot = {
   products?: PreviewProductsSnapshot
+  items?: { file: number; products: ThumbnailJobDiagnostic['products'] }[]
   concurrency: ConcurrencySnapshot
   counts: ThumbnailCountsSnapshot
   peakActiveJobs: number
@@ -280,6 +307,7 @@ export const useVideoStore = defineStore('videos', () => {
   )
 
   const videoMap = reactive(new Map<string, ParsedVideo>())
+  const unavailableSources = new Map<string, FailedVideoSource>()
   const ingestionSessions = reactive(new Map<string, IngestionSession>())
   const queuedIngestionRequests = reactive<QueuedIngestionRequest[]>([])
   const activeIngestionSessionId = ref<string | null>(null)
@@ -290,6 +318,22 @@ export const useVideoStore = defineStore('videos', () => {
   const ingestionConcurrencyOverride = ref<number | null>(null)
   const thumbnailConcurrencyOverride = ref<number | null>(null)
   const activeThumbnailJobs = ref(0)
+  const diagnosticOperation = ref<string | null>(null)
+  const libraryRecoveryRequired = ref(false)
+  const libraryReloadRequired = ref(false)
+  function setLibraryRecoveryRequired(value: boolean) {
+    libraryRecoveryRequired.value = value
+  }
+  function requireLibraryReload() {
+    libraryReloadRequired.value = true
+  }
+  const activeLibraryWrites = ref(0)
+  const isDiagnosticsBusy = computed(
+    () =>
+      diagnosticOperation.value !== null ||
+      libraryRecoveryRequired.value ||
+      libraryReloadRequired.value,
+  )
   const ingestionThumbnailVideoIds = reactive<string[]>([])
   const thumbnailJobState = reactive(new Map<string, ThumbnailJobState>())
   const thumbnailVideoSessionIds = reactive(new Map<string, Set<string>>())
@@ -497,7 +541,15 @@ export const useVideoStore = defineStore('videos', () => {
 
     return {
       ...(updatePreviewsUseCase
-        ? { products: summarizeSessionProducts(session) }
+        ? {
+            products: summarizeSessionProducts(session),
+            items: session.thumbnailVideoIds.map((id, index) => ({
+              file: index + 1,
+              products: snapshotProducts(
+                thumbnailJobDiagnostics.get(id)?.products,
+              ),
+            })),
+          }
         : {}),
       concurrency: { ...session.previewConcurrency },
       counts: { ...summary },
@@ -619,6 +671,29 @@ export const useVideoStore = defineStore('videos', () => {
     return state === 'queued' || state === 'processing' ? 'queued' : 'missing'
   }
 
+  const reconcileProductDiagnostics = (videoId: string) => {
+    const video = videoMap.get(videoId)
+    const diagnostic = thumbnailJobDiagnostics.get(videoId)
+    if (!video || !diagnostic?.products) return
+    for (const kind of ['motionClips', 'keyframes'] as const) {
+      const item = diagnostic.products[kind]
+      if (!item) continue
+      const complete =
+        kind === 'motionClips'
+          ? hasCompleteMotionClips(video)
+          : hasCompleteKeyframes(video)
+      const fallback =
+        kind === 'motionClips' && !complete && hasCompleteMotionFallback(video)
+      if (complete || fallback) {
+        item.state = fallback ? 'fallback' : 'ready'
+        item.completed = fallback
+          ? video.motionFallback!.items.length
+          : video[kind].length
+        item.total = item.completed
+      }
+    }
+  }
+
   const summarizeSessionProducts = (
     session: Pick<IngestionSession, 'thumbnailVideoIds'>,
   ): PreviewProductsSnapshot => {
@@ -665,6 +740,42 @@ export const useVideoStore = defineStore('videos', () => {
           ]
         : []
     }),
+  )
+
+  const previewJobItems = computed(() =>
+    !updatePreviewsUseCase
+      ? []
+      : [...thumbnailJobState].flatMap(([videoId, state]) => {
+          const video = videoMap.get(videoId)
+          if (!video) return []
+          const diagnostic = thumbnailJobDiagnostics.get(videoId)
+          const product = (kind: PreviewProductKind): PreviewItemDiagnostic => {
+            const recorded = diagnostic?.products?.[kind]
+            if (recorded) return recorded
+            const currentState =
+              getPreviewProductState(videoId, kind) ?? 'missing'
+            const total =
+              kind === 'motionClips'
+                ? motionClipWindows(video.duration).length
+                : keyframeTargets(video.duration).length
+            return {
+              state: currentState,
+              total,
+              completed: currentState === 'ready' ? total : 0,
+            }
+          }
+          return [
+            {
+              videoId,
+              title: video.title,
+              state,
+              products: {
+                motionClips: product('motionClips'),
+                keyframes: product('keyframes'),
+              },
+            },
+          ]
+        }),
   )
 
   const refreshSessionPreviewLifecycle = (sessionId: string | null) => {
@@ -766,6 +877,68 @@ export const useVideoStore = defineStore('videos', () => {
           thumbnailGenerationProgress.value.failedCount > 0),
     ),
   )
+
+  const canRunDiagnostics = computed(
+    () =>
+      diagnosticOperation.value === null &&
+      !libraryReloadRequired.value &&
+      !isWiping.value &&
+      !isIngesting.value &&
+      queuedIngestionCount.value === 0 &&
+      activeThumbnailJobs.value === 0 &&
+      thumbnailQueueSummary.value.queued === 0 &&
+      thumbnailQueueSummary.value.processing === 0 &&
+      activeLibraryWrites.value === 0,
+  )
+
+  async function runDiagnosticWork<T>(
+    operation: string,
+    work: () => Promise<T>,
+  ): Promise<T> {
+    if (!canRunDiagnostics.value)
+      throw new Error(
+        'Finish pending ingestion, previews and other diagnostics first (including paused work).',
+      )
+    diagnosticOperation.value = operation
+    try {
+      return await work()
+    } finally {
+      diagnosticOperation.value = null
+    }
+  }
+
+  function getFailedPreviewSources(): FailedVideoSource[] {
+    return [
+      ...unavailableSources.values(),
+      ...[...thumbnailJobDiagnostics].flatMap(([videoId, diagnostic]) => {
+        const video = videoMap.get(videoId)
+        if (
+          !video ||
+          (!Object.keys(diagnostic.failures ?? {}).length &&
+            diagnostic.state !== 'failed')
+        )
+          return []
+        return [
+          {
+            videoId,
+            title: video.title,
+            storedDuration: video.duration,
+            failures: {
+              ...(diagnostic.failures ?? { previews: 'generation-failed' }),
+            },
+            diagnostics: Object.fromEntries(
+              Object.entries(diagnostic.products ?? {}).flatMap(
+                ([kind, product]) =>
+                  product.diagnostics
+                    ? [[kind, { ...product.diagnostics }]]
+                    : [],
+              ),
+            ),
+          },
+        ]
+      }),
+    ]
+  }
 
   const ensureThumbnailJobPromise = (videoId: string) => {
     const existingPromise = thumbnailJobPromises.get(videoId)
@@ -915,6 +1088,14 @@ export const useVideoStore = defineStore('videos', () => {
     try {
       for await (const item of addVideosUseCase.execute(items, {
         concurrency: session.foregroundConcurrency.effective,
+        onUnavailable: ({ videoId, title, reason }) => {
+          if (acceptingTimings)
+            unavailableSources.set(videoId, {
+              videoId,
+              title,
+              failures: { ingestion: reason },
+            })
+        },
         onTiming: (timing) => {
           if (acceptingTimings)
             recordPhaseTiming(session.foregroundMeasurements, timing)
@@ -1097,6 +1278,21 @@ export const useVideoStore = defineStore('videos', () => {
       thumbnailJobDiagnostics.set(nextVideoId, {
         failures: thumbnailJobDiagnostics.get(nextVideoId)?.failures,
         cacheFailures: thumbnailJobDiagnostics.get(nextVideoId)?.cacheFailures,
+        products: {
+          ...thumbnailJobDiagnostics.get(nextVideoId)?.products,
+          ...(product
+            ? {
+                [product]: {
+                  state: 'processing',
+                  completed: 0,
+                  total:
+                    product === 'motionClips'
+                      ? motionClipWindows(video.duration).length
+                      : keyframeTargets(video.duration).length,
+                },
+              }
+            : {}),
+        },
         state: 'processing',
         stage: 'loading',
         product,
@@ -1143,6 +1339,20 @@ export const useVideoStore = defineStore('videos', () => {
                   product: progress.kind,
                   completedFrames: progress.completed,
                   totalFrames: progress.total,
+                  products: {
+                    ...currentDiagnostic?.products,
+                    [progress.kind]: {
+                      ...currentDiagnostic?.products?.[progress.kind],
+                      state: 'processing',
+                      stage: progress.stage,
+                      completed: progress.completed,
+                      total: progress.total,
+                      elapsedMs: Date.now() - startedAtMs,
+                      ...(progress.diagnostics
+                        ? { diagnostics: progress.diagnostics }
+                        : {}),
+                    },
+                  },
                 }
               : progress),
           })
@@ -1190,6 +1400,37 @@ export const useVideoStore = defineStore('videos', () => {
                 ? 'queued'
                 : 'failed'
             const completedAtMs = Date.now()
+            const productDiagnostics = { ...prior?.products }
+            if (product) {
+              const fallback =
+                product === 'motionClips' &&
+                hasCompleteMotionFallback(currentVideo) &&
+                !hasCompleteMotionClips(currentVideo)
+              const successful =
+                product === 'motionClips'
+                  ? hasUsableMotionPreview(currentVideo)
+                  : hasCompleteKeyframes(currentVideo)
+              const itemCount = fallback
+                ? currentVideo.motionFallback!.items.length
+                : currentVideo[product].length
+              productDiagnostics[product] = {
+                ...prior?.products?.[product],
+                state: fallback ? 'fallback' : successful ? 'ready' : 'failed',
+                completed: successful
+                  ? itemCount
+                  : prior?.products?.[product]?.completed ?? 0,
+                total: fallback
+                  ? 9
+                  : product === 'motionClips'
+                    ? motionClipWindows(video.duration).length
+                    : keyframeTargets(video.duration).length,
+                elapsedMs: completedAtMs - startedAtMs,
+                reason: failures[product],
+                diagnostics:
+                  result.diagnostics?.[product] ??
+                  prior?.products?.[product]?.diagnostics,
+              }
+            }
             thumbnailJobDiagnostics.set(nextVideoId, {
               state,
               startedAtMs,
@@ -1202,6 +1443,7 @@ export const useVideoStore = defineStore('videos', () => {
                 0,
               ),
               failures,
+              products: productDiagnostics,
               cacheFailures: [
                 ...new Set([
                   ...(prior?.cacheFailures ?? []),
@@ -1215,6 +1457,7 @@ export const useVideoStore = defineStore('videos', () => {
                     .join('; ') || undefined,
             })
             thumbnailJobState.set(nextVideoId, state)
+            reconcileProductDiagnostics(nextVideoId)
             // A product boundary yields the worker slot, not the whole video's promise.
             shouldSettleJob = !hasPendingProduct
             return
@@ -1283,11 +1526,23 @@ export const useVideoStore = defineStore('videos', () => {
               const currentDiagnostic = thumbnailJobDiagnostics.get(nextVideoId)
               thumbnailJobDiagnostics.set(nextVideoId, {
                 ...currentDiagnostic,
+                products: {
+                  ...currentDiagnostic?.products,
+                  ...(product && currentDiagnostic?.products?.[product]
+                    ? {
+                        [product]: {
+                          ...currentDiagnostic.products[product],
+                          state: 'queued',
+                        },
+                      }
+                    : {}),
+                },
                 state: 'queued',
                 completedFrames: currentDiagnostic?.completedFrames ?? 0,
                 totalFrames: currentDiagnostic?.totalFrames ?? 0,
                 error: undefined,
               })
+              reconcileProductDiagnostics(nextVideoId)
               return
             }
 
@@ -1307,6 +1562,29 @@ export const useVideoStore = defineStore('videos', () => {
           const completedAtMs = Date.now()
           thumbnailJobDiagnostics.set(nextVideoId, {
             ...thumbnailJobDiagnostics.get(nextVideoId),
+            products: {
+              ...thumbnailJobDiagnostics.get(nextVideoId)?.products,
+              ...(product
+                ? {
+                    [product]: {
+                      ...thumbnailJobDiagnostics.get(nextVideoId)?.products?.[
+                        product
+                      ],
+                      state: 'failed',
+                      completed:
+                        thumbnailJobDiagnostics.get(nextVideoId)?.products?.[
+                          product
+                        ]?.completed ?? 0,
+                      total:
+                        thumbnailJobDiagnostics.get(nextVideoId)?.products?.[
+                          product
+                        ]?.total ?? 0,
+                      reason: 'generation-failed',
+                      elapsedMs: completedAtMs - startedAtMs,
+                    },
+                  }
+                : {}),
+            },
             state: 'failed',
             startedAtMs,
             completedAtMs,
@@ -1362,7 +1640,7 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   const queueThumbnailJob = (videoId: string, priority = false) => {
-    if (isWiping.value) return Promise.resolve()
+    if (isWiping.value || isDiagnosticsBusy.value) return Promise.resolve()
     const video = toRaw(videoMap.get(videoId))
     if (!video) {
       return Promise.resolve()
@@ -1389,6 +1667,7 @@ export const useVideoStore = defineStore('videos', () => {
         })
       }
       removeQueuedThumbnailJob(videoId)
+      reconcileProductDiagnostics(videoId)
       settleThumbnailJob(videoId)
       refreshThumbnailOwningSessions(videoId)
       return Promise.resolve()
@@ -1478,6 +1757,8 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   function addVideos(videos: ParsedVideo[]) {
+    if (isDiagnosticsBusy.value) return
+    for (const video of videos) unavailableSources.delete(video.id)
     videos.forEach((video) => {
       const existing = toRaw(videoMap.get(video.id))
       if (existing) {
@@ -1532,6 +1813,7 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   function removeVideo(videoId: string) {
+    if (isDiagnosticsBusy.value) return
     const existing = toRaw(videoMap.get(videoId))
     if (existing) {
       releaseVideoResources(videoId)
@@ -1542,6 +1824,7 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   function togglePinVideo(videoId: string) {
+    if (isDiagnosticsBusy.value) return
     const video = videoMap.get(videoId)
 
     if (video) {
@@ -1550,6 +1833,7 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   function removeAllUnpinned() {
+    if (isDiagnosticsBusy.value) return
     const unpinnedVideos = Array.from(videoMap.values()).filter(
       (video) => !video.pinned,
     )
@@ -1562,11 +1846,13 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   async function updateVotes(videoId: string, delta: number) {
+    if (isDiagnosticsBusy.value) return
     const video = videoMap.get(videoId)
     if (!video) {
       return
     }
 
+    activeLibraryWrites.value++
     try {
       const votes = await updateVotesUseCase.execute(videoId, delta)
       const currentVideo = videoMap.get(videoId)
@@ -1575,10 +1861,14 @@ export const useVideoStore = defineStore('videos', () => {
       }
     } catch (error) {
       logger.error('Failed to update votes', error)
+    } finally {
+      activeLibraryWrites.value--
     }
   }
 
   async function addVideosFromFiles(files: FileList) {
+    if (isDiagnosticsBusy.value)
+      throw new Error('Wait for diagnostics to finish')
     if (isWiping.value) throw new Error('Wait for the database wipe to finish')
     const selectedFiles = Array.from(files)
     const items: VideoImportItem[] = selectedFiles
@@ -1619,7 +1909,8 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   function setVideoPreviewOpen(id: string, open: boolean) {
-    if (!updatePreviewsUseCase || isWiping.value) return
+    if (!updatePreviewsUseCase || isWiping.value || isDiagnosticsBusy.value)
+      return
     const index = openPreviewVideoIds.indexOf(id)
     if (!open) {
       if (index >= 0) openPreviewVideoIds.splice(index, 1)
@@ -1632,6 +1923,8 @@ export const useVideoStore = defineStore('videos', () => {
   }
 
   async function wipeVideoData() {
+    if (isDiagnosticsBusy.value)
+      throw new Error('Wait for diagnostics to finish')
     if (!wipeVideoDataUseCase)
       throw new Error('WipeVideoDataUseCase dependency is missing')
     if (isWiping.value || isIngesting.value || queuedIngestionCount.value > 0)
@@ -1643,6 +1936,9 @@ export const useVideoStore = defineStore('videos', () => {
     for (const id of videoMap.keys()) clearThumbnailTracking(id)
     try {
       await wipeVideoDataUseCase.execute()
+      for (const id of unavailableSources.keys())
+        sessionRegistry.unregisterFile(id)
+      unavailableSources.clear()
       for (const id of videoMap.keys()) releaseVideoResources(id)
       videoMap.clear()
     } finally {
@@ -1718,6 +2014,11 @@ export const useVideoStore = defineStore('videos', () => {
 
     return {
       schemaVersion: 1 as const,
+      identity: {
+        build: { ...BUILD_IDENTITY },
+        sourceLocation: null,
+        containsPrivateFilenames: false,
+      },
       sessionId: session.id,
       status: session.status,
       measurements: {
@@ -1727,7 +2028,16 @@ export const useVideoStore = defineStore('videos', () => {
           : ('dom' as const),
         workersEnabled: !!updatePreviewsUseCase,
         ...(updatePreviewsUseCase
-          ? { foregroundBackend: 'dom', previewPhaseTimingsAvailable: false }
+          ? {
+              foregroundBackend: 'dom',
+              previewPhaseTimingsAvailable: false,
+              previewPhaseTimings: {
+                metadataMs: null,
+                decodeMs: null,
+                encodeMs: null,
+                persistenceMs: null,
+              },
+            }
           : {}),
         fallbackReason: null,
         foregroundCancellationSupported: false,
@@ -1799,6 +2109,29 @@ export const useVideoStore = defineStore('videos', () => {
           ? {
               productFailures: [...previewReport.productFailures],
               cacheFailures: [...previewReport.cacheFailures],
+              products: previewReport.products
+                ? {
+                    motionClips: { ...previewReport.products.motionClips },
+                    keyframes: { ...previewReport.products.keyframes },
+                  }
+                : undefined,
+              items: previewReport.items?.map((item) => ({
+                ...item,
+                products: snapshotProducts(item.products),
+              })),
+              productFailureCounts: (previewReport.items ?? []).reduce<
+                Record<string, number>
+              >((counts, item) => {
+                for (const [kind, product] of Object.entries(
+                  item.products ?? {},
+                )) {
+                  if (product.reason) {
+                    const key = `${kind}:${product.reason}`
+                    counts[key] = (counts[key] ?? 0) + 1
+                  }
+                }
+                return counts
+              }, {}),
             }
           : {}),
         timing: { ...previewReport.timing },
@@ -1858,6 +2191,16 @@ export const useVideoStore = defineStore('videos', () => {
     getPreviewProductState,
     previewProductProgress,
     activePreviewProducts,
+    previewJobItems,
+    isDiagnosticsBusy,
+    diagnosticOperation,
+    libraryRecoveryRequired,
+    libraryReloadRequired,
+    setLibraryRecoveryRequired,
+    requireLibraryReload,
+    canRunDiagnostics,
+    runDiagnosticWork,
+    getFailedPreviewSources,
     updateVotes,
   }
 })

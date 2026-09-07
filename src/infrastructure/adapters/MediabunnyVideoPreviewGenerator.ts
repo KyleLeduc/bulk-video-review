@@ -19,7 +19,7 @@ import { ExtractionError } from '../video/extraction/previewExtraction'
 export class MediabunnyVideoPreviewGenerator implements IVideoPreviewGenerator {
   async generateMotionClips(
     file: File,
-    { duration, signal }: VideoPreviewOptions,
+    { duration, signal, onProgress }: VideoPreviewOptions,
   ) {
     const output = await extractClipsWithWorker(
       file,
@@ -27,6 +27,7 @@ export class MediabunnyVideoPreviewGenerator implements IVideoPreviewGenerator {
       MOTION_FRAME_RATE,
       MOTION_SECONDS,
       { kind: 'motion', duration },
+      onProgress,
     )
     const motionClips = output.clips.map((clip) => ({
       timestampSeconds: clip.start,
@@ -48,13 +49,14 @@ export class MediabunnyVideoPreviewGenerator implements IVideoPreviewGenerator {
 
   async generateKeyframes(
     file: File,
-    { duration, signal }: VideoPreviewOptions,
+    { duration, signal, onProgress }: VideoPreviewOptions,
   ) {
     const output = await extractKeyframesWithWorker(
       file,
       duration,
       signal,
       KEYFRAME_WIDTH,
+      onProgress,
     )
     const targets = keyframeTargets(duration)
     const keyframes = output.frames.map((blob, i) => ({

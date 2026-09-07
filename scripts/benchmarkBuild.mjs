@@ -42,6 +42,11 @@ function sourceIdentity() {
 export function benchmarkBuildPlugin() {
   return {
     name: 'bvr-benchmark-entry',
+    config() {
+      return {
+        define: { __BVR_BUILD_IDENTITY__: JSON.stringify(sourceIdentity()) },
+      }
+    },
     generateBundle(_options, bundle) {
       const assets = Object.entries(bundle).map(([name, output]) => [
         name,
