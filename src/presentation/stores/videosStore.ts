@@ -215,7 +215,7 @@ type QueuedIngestionRequest = {
 const THUMBNAIL_BACKGROUND_DELAY_MS = 150
 const AUTO_INGESTION_CONCURRENCY = 2
 const MAX_INGESTION_CONCURRENCY = 4
-const AUTO_THUMBNAIL_CONCURRENCY = 1
+const AUTO_THUMBNAIL_CONCURRENCY = 2
 const MAX_THUMBNAIL_CONCURRENCY = 4
 
 const clamp = (value: number, min: number, max: number) =>

@@ -335,7 +335,7 @@ describe('DiagnosticsPanel', () => {
       '2',
     )
     expect(wrapper.get('[data-testid="thumbnail-workers-used"]').text()).toBe(
-      '1',
+      '2',
     )
     expect(wrapper.text()).toContain('Thumbnail workers')
     expect(wrapper.text()).toContain('Runs after primary ingestion')
@@ -353,7 +353,7 @@ describe('DiagnosticsPanel', () => {
     ).toEqual(['Auto (2)', '1', '2', '3', '4'])
     expect(
       backgroundSelect.findAll('option').map((option) => option.text()),
-    ).toEqual(['Auto (1)', '1', '2', '3', '4'])
+    ).toEqual(['Auto (2)', '1', '2', '3', '4'])
 
     await foregroundSelect.setValue('4')
     await backgroundSelect.setValue('4')

@@ -247,7 +247,7 @@ describe('useVideoStore preview scheduler', () => {
     wrapper.unmount()
   })
 
-  test('runs one preview job at a time by default', async () => {
+  test('runs at most two preview jobs at a time by default', async () => {
     const pending: Array<{
       video: ParsedVideo
       resolve: (video: ParsedVideo) => void
@@ -269,20 +269,25 @@ describe('useVideoStore preview scheduler', () => {
     store.addVideos([
       buildParsedVideo({ id: 'video-1' }),
       buildParsedVideo({ id: 'video-2' }),
+      buildParsedVideo({ id: 'video-3' }),
     ])
 
     store.requestThumbnailWarmup('video-1')
     store.requestThumbnailWarmup('video-2')
+    store.requestThumbnailWarmup('video-3')
 
-    expect(store.autoThumbnailConcurrency).toBe(1)
-    expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
+    expect(store.autoThumbnailConcurrency).toBe(2)
+    expect(store.effectiveThumbnailConcurrency).toBe(2)
+    expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(2)
 
     pending[0]?.resolve(markReady(pending[0].video))
     await flushPromises()
 
-    expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(2)
+    expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(3)
     pending[1]?.resolve(markReady(pending[1].video))
+    pending[2]?.resolve(markReady(pending[2].video))
     await flushPromises()
+    wrapper.unmount()
   })
 
   test('allows an explicit concurrency override but caps it at four jobs', async () => {

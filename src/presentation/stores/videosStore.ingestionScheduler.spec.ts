@@ -303,7 +303,7 @@ describe('useVideoStore ingestion scheduler', () => {
           concurrency: {
             mode: 'auto',
             requested: null,
-            effective: 1,
+            effective: 2,
           },
         }),
       }),

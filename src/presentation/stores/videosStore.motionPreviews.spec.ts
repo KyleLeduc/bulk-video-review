@@ -300,9 +300,10 @@ describe('motion preview queue integration', () => {
   })
 
   test.each(['unchanged', 'close newest', 'reopen older'])(
-    'newest open video gets seeks next without aborting the active product: %s',
+    'with one worker, newest open video gets seeks next without aborting the active product: %s',
     async (openChange) => {
       const { store, generator, wrapper } = setup()
+      store.setThumbnailConcurrencyOverride(1)
       store.addVideos(['b', 'c'].map(video))
       const order: string[] = []
       let finishFirst!: () => void
@@ -362,10 +363,11 @@ describe('motion preview queue integration', () => {
     },
   )
 
-  test('promotion respects concurrency and never runs two products for one video simultaneously', async () => {
+  test('promotion respects automatic concurrency and never runs two products for one video simultaneously', async () => {
     const { store, generator, wrapper } = setup()
     store.addVideos(['b', 'c'].map(video))
-    store.setThumbnailConcurrencyOverride(2)
+    expect(store.thumbnailConcurrencyOverride).toBeNull()
+    expect(store.effectiveThumbnailConcurrency).toBe(2)
     const active = new Map<string, () => void>()
     const order: string[] = []
     const holdProduct = async (file: File, kind: string) => {

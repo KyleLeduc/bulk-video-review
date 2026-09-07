@@ -1,5 +1,27 @@
 # Motion previews, seek keyframes and focus recovery smoke plan
 
+## Release checkpoint — automatic two-worker previews (v4)
+
+Plan revision: `bvr-motion-keyframes-smoke-v4`. Use the new Notion Action's
+exact target SHA, not the historical build references below. Initial ingestion
+and thumbnail generation both default to **Auto (2)**; manual limits 1–4 remain.
+Output quality, clip/seek priorities and focus behavior are unchanged. The
+seven-file NAS trials favor two over one or three workers; they do not replace
+responsiveness or complete feature acceptance.
+
+| ID | Do | Expected result |
+|---|---|---|
+| CW-01 | Reload the target build. Open Diagnostics (Ctrl+Alt+2), leave both selectors on Auto, and import at least three new representative sources. | Both show Auto (2). Exported run JSON records auto/effective 2 for both lanes; background peak active jobs is at most 2 and reaches 2 while eligible work overlaps. Manual overrides remain available. |
+| CW-02 | Reimport the original batch, including the previously failing clip sources. Open/play a video and then open another pending video while background work runs. | Interaction stays responsive. Newly opened pending seeks get next-slot priority; existing work is not cancelled, no two products run for the same video, and both product queues settle without stranded orange borders. Clips, nine-still fallback, then cover remain the display order. |
+| CW-03 | During extraction, separately hide the tab and focus another window for 10–20 seconds; return. Then reload/reselect completed sources. | Explicit pause/resume, intact complete products, no partial arrays accepted; valid caches and votes/pins survive reload. Use a disposable profile for removal/cancel cases. |
+
+Record actual SHA, browser/version, source location, observations and report JSON.
+Retest the relevant FB/SP/SM checks below with Auto (2); prior results remain
+historical evidence, not acceptance of this build. Remaining native Task 7 media,
+timeline, cache/race and representative-source coverage must be reviewed before
+integration. Further speed tuning is deferred; no four-worker trial is required
+to accept this default. No master integration or worktree cleanup is implied.
+
 ## Release checkpoint — failed-clip still fallback (v3)
 
 Plan revision: `bvr-motion-keyframes-smoke-v3`, on `feat/video-benchmark-view`.
