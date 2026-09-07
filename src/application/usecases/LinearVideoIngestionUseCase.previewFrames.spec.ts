@@ -13,7 +13,10 @@ import {
   buildVideoAggregate,
 } from '@test-utils/index'
 import { LinearVideoIngestionUseCase } from './LinearVideoIngestionUseCase'
-import { KEYFRAME_PREVIEW_VERSION } from '@domain/services/videoPreviewPolicy'
+import {
+  KEYFRAME_PREVIEW_VERSION,
+  MOTION_FALLBACK_VERSION,
+} from '@domain/services/videoPreviewPolicy'
 
 describe('LinearVideoIngestionUseCase preview hydration', () => {
   test.each([false, true])(
@@ -39,6 +42,14 @@ describe('LinearVideoIngestionUseCase preview hydration', () => {
           if (cacheFails) throw new Error('cache unavailable')
           return {
             motionClips: [],
+            motionFallback: {
+              version: MOTION_FALLBACK_VERSION,
+              reason: 'unsupported',
+              items: Array.from({ length: 9 }, (_, i) => ({
+                ...keyframes[0],
+                timestampSeconds: i + 1,
+              })),
+            },
             keyframes,
             previewVersions: { keyframes: KEYFRAME_PREVIEW_VERSION },
           }
@@ -68,6 +79,9 @@ describe('LinearVideoIngestionUseCase preview hydration', () => {
         keyframes: cacheFails ? [] : keyframes,
       })
       expect(registry.registerFile).toHaveBeenCalledWith('cached-id', file)
+      expect(videos[0].motionFallback?.items.length).toBe(
+        cacheFails ? undefined : 9,
+      )
       expect(previewCache.getProducts).toHaveBeenCalledWith('cached-id', 10)
       if (cacheFails) expect(logger.warn).toHaveBeenCalled()
     },

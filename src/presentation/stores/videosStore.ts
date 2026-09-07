@@ -7,6 +7,8 @@ import type {
 import {
   hasCompleteMotionClips,
   hasCompleteKeyframes,
+  hasCompleteMotionFallback,
+  hasUsableMotionPreview,
   keyframeTargets,
   motionClipWindows,
 } from '@domain/services/videoPreviewPolicy'
@@ -51,8 +53,8 @@ function resolveDependency<T>(dependency: T | undefined, name: string): T {
 }
 
 type ThumbnailJobState = 'queued' | 'processing' | 'ready' | 'failed'
-type PreviewProductKind = VideoPreviewProduct['kind']
-type PreviewProductState = ThumbnailJobState | 'missing'
+type PreviewProductKind = NonNullable<PreviewEnrichmentOptions['product']>
+type PreviewProductState = ThumbnailJobState | 'missing' | 'fallback'
 type PreviewProductCounts = Record<PreviewProductState, number> & {
   total: number
 }
@@ -100,8 +102,12 @@ function snapshotPhases(phases: PhaseMeasurements): PhaseMeasurements {
 
 export type ThumbnailJobDiagnostic = {
   state: ThumbnailJobState
-  stage?: VideoPreviewGenerationProgress['stage'] | 'generating'
-  product?: VideoPreviewProduct['kind']
+  stage?:
+    | VideoPreviewGenerationProgress['stage']
+    | 'generating'
+    | 'fallback'
+    | 'saving-fallback'
+  product?: PreviewProductKind
   failures?: PreviewEnrichmentResult['failures']
   cacheFailures?: PreviewEnrichmentResult['cacheFailures']
   startedAtMs?: number
@@ -256,7 +262,9 @@ export const useVideoStore = defineStore('videos', () => {
     : hasCompletePreviews
   const expectedPreviewCount = (video: ParsedVideo) =>
     updatePreviewsUseCase
-      ? motionClipWindows(video.duration).length +
+      ? (hasCompleteMotionFallback(video) && !hasCompleteMotionClips(video)
+          ? 9
+          : motionClipWindows(video.duration).length) +
         keyframeTargets(video.duration).length
       : DEFAULT_PREVIEW_FRAME_COUNT
 
@@ -601,6 +609,8 @@ export const useVideoStore = defineStore('videos', () => {
     const complete =
       kind === 'motionClips' ? hasCompleteMotionClips : hasCompleteKeyframes
     if (complete(video)) return 'ready'
+    if (kind === 'motionClips' && hasCompleteMotionFallback(video))
+      return 'fallback'
     const diagnostic = thumbnailJobDiagnostics.get(videoId)
     const state = thumbnailJobState.get(videoId)
     if (diagnostic?.failures?.[kind] || state === 'failed') return 'failed'
@@ -615,6 +625,7 @@ export const useVideoStore = defineStore('videos', () => {
     const count = (kind: PreviewProductKind): PreviewProductCounts => {
       const counts = {
         ready: 0,
+        fallback: 0,
         queued: 0,
         processing: 0,
         failed: 0,
@@ -953,7 +964,7 @@ export const useVideoStore = defineStore('videos', () => {
     const video = videoMap.get(videoId)
     if (!video) return []
     const pending: PreviewProductKind[] = []
-    if (!hasCompleteMotionClips(video) && !failures?.motionClips)
+    if (!hasUsableMotionPreview(video) && !failures?.motionClips)
       pending.push('motionClips')
     if (!hasCompleteKeyframes(video) && !failures?.keyframes)
       pending.push('keyframes')
@@ -1147,13 +1158,15 @@ export const useVideoStore = defineStore('videos', () => {
             if (product && !result.failures[product]) {
               const complete =
                 product === 'motionClips'
-                  ? hasCompleteMotionClips(currentVideo)
+                  ? hasUsableMotionPreview(currentVideo)
                   : hasCompleteKeyframes(currentVideo)
               if (!complete) failures[product] = 'output-invalid'
             }
             if (product && !failures[product]) attemptOutcome = 'completed'
             const products = [
-              ...currentVideo.motionClips,
+              ...(hasCompleteMotionClips(currentVideo)
+                ? currentVideo.motionClips
+                : currentVideo.motionFallback?.items ?? []),
               ...currentVideo.keyframes,
             ]
             const hasPendingProduct =
@@ -1425,6 +1438,17 @@ export const useVideoStore = defineStore('videos', () => {
     current: ParsedVideo,
     product: VideoPreviewProduct,
   ): ParsedVideo => {
+    if (product.kind === 'motionFallback') {
+      const candidate = {
+        ...current,
+        motionFallback: {
+          version: product.version,
+          reason: product.reason,
+          items: product.items,
+        },
+      }
+      return hasCompleteMotionFallback(candidate) ? candidate : current
+    }
     const candidate = {
       ...current,
       [product.kind]: product.items,
@@ -1446,6 +1470,15 @@ export const useVideoStore = defineStore('videos', () => {
       if (existing) {
         if (updatePreviewsUseCase) {
           let hydrated = existing
+          if (
+            !hasCompleteMotionFallback(hydrated) &&
+            hasCompleteMotionFallback(video)
+          ) {
+            hydrated = mergePreviewProduct(hydrated, {
+              kind: 'motionFallback',
+              ...video.motionFallback!,
+            })
+          }
           for (const kind of ['motionClips', 'keyframes'] as const) {
             const complete =
               kind === 'motionClips'

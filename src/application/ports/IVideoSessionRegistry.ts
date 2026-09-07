@@ -9,5 +9,6 @@ export interface IVideoSessionRegistry {
   getFile(videoId: string): File | null
   unregisterFile(videoId: string): void
   acquireObjectUrl(videoId: string): string | null
-  releaseObjectUrl(videoId: string): void
+  /** Async owners pass their acquired URL so stale cleanup cannot release a replacement. */
+  releaseObjectUrl(videoId: string, expectedUrl?: string): void
 }

@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { ParsedVideo } from '@domain/entities'
@@ -9,10 +9,13 @@ import {
   createPresentationTestContext,
 } from '@test-utils/index'
 
+enableAutoUnmount(afterEach)
+const testStores: ReturnType<typeof useVideoStore>[] = []
 const StoreHarness = defineComponent({
   name: 'StoreHarness',
   setup() {
     const store = useVideoStore()
+    testStores.push(store)
     return { store }
   },
   template: '<div />',
@@ -25,7 +28,12 @@ describe('useVideoStore', () => {
     )
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Foreground ingestion can finish with background timers still scheduled.
+    for (const store of testStores) store.setPreviewProcessingPaused(true)
+    await flushPromises()
+    for (const store of testStores) store.$dispose()
+    testStores.length = 0
     vi.restoreAllMocks()
   })
 
@@ -607,13 +615,14 @@ describe('useVideoStore', () => {
   })
 
   test('starts thumbnail generation immediately for a direct warmup request', async () => {
+    let finishPreview!: (video: ParsedVideo) => void
     const { global, mocks } = createPresentationTestContext({
       useCases: {
         updateThumbUseCase: {
           execute: vi.fn(
             () =>
-              new Promise<ParsedVideo>(() => {
-                // Keep pending so the call itself is the assertion target.
+              new Promise<ParsedVideo>((resolve) => {
+                finishPreview = resolve
               }),
           ),
         },
@@ -633,6 +642,9 @@ describe('useVideoStore', () => {
     store.requestThumbnailWarmup('id-1')
 
     expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(1)
+    store.setPreviewProcessingPaused(true)
+    finishPreview(buildParsedVideo({ id: 'id-1' }))
+    await flushPromises()
   })
 
   test.each(['vote-first', 'preview-first'] as const)(
@@ -868,6 +880,9 @@ describe('useVideoStore', () => {
       await vi.advanceTimersByTimeAsync(200)
 
       expect(mocks.useCases.updateThumbUseCase.execute).toHaveBeenCalledTimes(2)
+      store.setPreviewProcessingPaused(true)
+      resolveThumbnailJob?.(buildParsedVideo({ id: 'id-2' }))
+      await vi.advanceTimersByTimeAsync(0)
     } finally {
       vi.useRealTimers()
     }

@@ -3,6 +3,7 @@ import type { IVideoPreviewCacheRepository } from '@domain/repositories/IVideoPr
 import {
   hasCompleteMotionClips,
   hasCompleteKeyframes,
+  hasCompleteMotionFallback,
 } from '@domain/services/videoPreviewPolicy'
 import { measureVideoProcessing } from '@app/services/videoProcessingTiming'
 import type { VideoProcessingTimingObserver } from '@app/ports/VideoProcessingTiming'
@@ -506,6 +507,9 @@ export class LinearVideoIngestionUseCase implements VideoIngestionUseCase {
               parsedVideo.duration,
             )
             const hydrated = { ...parsedVideo, ...products }
+            if (hasCompleteMotionFallback(hydrated)) {
+              parsedVideo.motionFallback = products.motionFallback
+            }
             if (hasCompleteMotionClips(hydrated)) {
               parsedVideo.motionClips = products.motionClips
               parsedVideo.previewVersions.motionClips =

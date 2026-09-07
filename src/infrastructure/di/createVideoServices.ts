@@ -97,6 +97,7 @@ export function createVideoServices({
         videoSessionRegistry,
         previewCache,
         logger,
+        videoThumbnailGeneratorAdapter,
       )
     : null
 

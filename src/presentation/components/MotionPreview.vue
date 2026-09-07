@@ -1,7 +1,7 @@
 <template>
   <div ref="container" class="motion-preview" aria-hidden="true">
     <video
-      v-if="source"
+      v-if="source && clips.length"
       :key="source"
       ref="player"
       :src="source"
@@ -17,17 +17,36 @@
       @ended="advance"
       @error="mediaError"
     />
+    <img
+      v-else-if="source"
+      :key="source"
+      ref="still"
+      :src="source"
+      :style="{ visibility: playing ? 'visible' : 'hidden' }"
+      alt=""
+      draggable="false"
+      @load="stillLoaded"
+      @error="mediaError"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import type { VideoPreviewClip } from '@domain/entities'
+import type { VideoPreviewClip, VideoPreviewFrame } from '@domain/entities'
 
-const props = defineProps<{ clips: VideoPreviewClip[]; active: boolean }>()
+const props = defineProps<{
+  clips: VideoPreviewClip[]
+  stills?: VideoPreviewFrame[]
+  active: boolean
+}>()
 const emit = defineEmits<{ error: [] }>()
 const container = ref<HTMLElement>()
 const player = ref<HTMLVideoElement>()
+const still = ref<HTMLImageElement>()
+const items = computed(() =>
+  props.clips.length ? props.clips : props.stills ?? [],
+)
 const source = ref<string | null>(null)
 const playing = ref(false)
 const focused = ref(!document.hidden && document.hasFocus())
@@ -40,11 +59,12 @@ const allowed = computed(
     focused.value &&
     inView.value &&
     !reducedMotion.value &&
-    props.clips.length > 0,
+    items.value.length > 0,
 )
 let observer: IntersectionObserver | undefined
 let index = 0
 let attempt = 0
+let stillTimer: ReturnType<typeof setTimeout> | undefined
 
 function detach(element?: HTMLVideoElement) {
   if (!element) return
@@ -54,6 +74,8 @@ function detach(element?: HTMLVideoElement) {
 }
 function stop() {
   attempt++
+  clearTimeout(stillTimer)
+  stillTimer = undefined
   playing.value = false
   detach(player.value)
   if (source.value) URL.revokeObjectURL(source.value)
@@ -63,16 +85,17 @@ function fail() {
   stop()
   emit('error')
 }
-async function playClip() {
+async function playPreview() {
   stop()
   if (!allowed.value) return
   const currentAttempt = attempt
   try {
-    source.value = URL.createObjectURL(props.clips[index].blob)
+    source.value = URL.createObjectURL(items.value[index].blob)
   } catch {
     fail()
     return
   }
+  if (!props.clips.length) return
   await nextTick()
   const element = player.value
   if (currentAttempt !== attempt || !allowed.value || !element) return
@@ -91,16 +114,37 @@ async function playClip() {
 function advance(event: Event) {
   if (event.target !== player.value || !source.value || !allowed.value) return
   index = (index + 1) % props.clips.length
-  void playClip()
+  void playPreview()
+}
+function stillLoaded(event: Event) {
+  if (
+    event.target !== still.value ||
+    !source.value ||
+    !allowed.value ||
+    props.clips.length
+  )
+    return
+  playing.value = true
+  clearTimeout(stillTimer)
+  const currentAttempt = attempt
+  stillTimer = setTimeout(() => {
+    if (currentAttempt !== attempt || !allowed.value) return
+    index = (index + 1) % items.value.length
+    void playPreview()
+  }, 1000)
 }
 function mediaError(event: Event) {
-  if (event.target === player.value && source.value) fail()
+  if (
+    (event.target === player.value || event.target === still.value) &&
+    source.value
+  )
+    fail()
 }
 watch(
-  [allowed, () => props.clips],
+  [allowed, items],
   () => {
     index = 0
-    void playClip()
+    void playPreview()
   },
   { immediate: true, flush: 'sync' },
 )
@@ -142,7 +186,8 @@ onBeforeUnmount(() => {
   inset: 0;
   pointer-events: none;
 }
-.motion-preview video {
+.motion-preview video,
+.motion-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;

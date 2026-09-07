@@ -21,6 +21,7 @@
         <MotionPreview
           v-if="!state.showVideo"
           :clips="props.video.motionClips"
+          :stills="fallbackStills"
           :active="isThumbnailHovered"
           @error="previewDisplayError = true"
         />
@@ -168,6 +169,7 @@
 
 <script setup lang="ts">
 import { hasCompleteVideoPreviews } from '@app/services/previewCompleteness'
+import { hasCompleteMotionFallback } from '@domain/services/videoPreviewPolicy'
 import type { ParsedVideo } from '@domain/entities'
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import VideoEmbed from './VideoEmbed.vue'
@@ -210,6 +212,11 @@ type DisplayPreviewFrame = {
 const displayPreviewFrames = ref<DisplayPreviewFrame[]>([])
 const previewObjectUrls = new Map<Blob, string>()
 const previewDisplayError = ref(false)
+const fallbackStills = computed(() =>
+  hasCompleteMotionFallback(props.video)
+    ? props.video.motionFallback!.items
+    : [],
+)
 const isThumbnailHovered = ref(false)
 const syncDisplayPreviewFrames = () => {
   const frames = [...props.video.keyframes].sort(
@@ -275,7 +282,10 @@ const isClipJobActive = computed(() => {
     : state === 'queued' || state === 'processing'
 })
 const previewStatusLabel = computed(() => {
-  if (!thumbnailJobState.value || hasCompleteVideoPreviews(props.video))
+  if (
+    !fallbackStills.value.length &&
+    (!thumbnailJobState.value || hasCompleteVideoPreviews(props.video))
+  )
     return ''
   const clips = videoStore.getPreviewProductState(props.video.id, 'motionClips')
   const seeks = videoStore.getPreviewProductState(props.video.id, 'keyframes')
@@ -291,7 +301,14 @@ const previewStatusLabel = computed(() => {
         ? 'not generated'
         : 'ready'
   }
-  return `Clips ${label(clips)} · Seek thumbnails ${label(seeks)}`
+  const motionLabel =
+    fallbackStills.value.length && !props.video.motionClips.length
+      ? 'Still preview ready'
+      : videoStore.getThumbnailJobDiagnostic(props.video.id)?.stage ===
+          'fallback'
+        ? `Still preview ${videoStore.isPreviewProcessingPaused ? 'paused' : 'generating'}`
+        : `Clips ${label(clips)}`
+  return `${motionLabel} · Seek thumbnails ${label(seeks)}`
 })
 const isHoverArming = computed(
   () =>
@@ -499,6 +516,11 @@ const videoMetaEntries = computed(() => {
     value: String(props.video.keyframes.length),
   })
   const diagnostic = videoStore.getThumbnailJobDiagnostic(props.video.id)
+  if (fallbackStills.value.length)
+    values.push({
+      key: 'still fallback',
+      value: `${fallbackStills.value.length} images (${props.video.motionFallback!.reason})`,
+    })
   for (const [kind, reason] of Object.entries(diagnostic?.failures ?? {})) {
     values.push({ key: kind, value: reason })
   }

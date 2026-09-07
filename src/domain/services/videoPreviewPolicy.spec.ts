@@ -7,9 +7,40 @@ import {
   hasCompleteKeyframes,
   MOTION_PREVIEW_VERSION,
   KEYFRAME_PREVIEW_VERSION,
+  MOTION_FALLBACK_VERSION,
+  hasCompleteMotionFallback,
+  hasUsableMotionPreview,
 } from './videoPreviewPolicy'
 
 describe('video preview product policy', () => {
+  it('accepts only complete bounded still fallback with a sanitized original failure', () => {
+    const video = buildParsedVideo({ duration: 60 })
+    video.motionFallback = {
+      version: MOTION_FALLBACK_VERSION,
+      reason: 'unsupported',
+      items: Array.from({ length: 9 }, (_, i) => ({
+        timestampSeconds: (i + 1) * 6,
+        width: 320,
+        height: 180,
+        blob: new Blob(['jpeg'], { type: 'image/jpeg' }),
+      })),
+    }
+    expect(hasCompleteMotionFallback(video)).toBe(true)
+    expect(hasUsableMotionPreview(video)).toBe(true)
+    expect(hasCompleteMotionClips(video)).toBe(false)
+    const good = video.motionFallback
+    for (const patch of [
+      { version: 'old' },
+      { reason: 'private filename or arbitrary error' },
+      { items: good.items.slice(1) },
+      { items: good.items.map((f) => ({ ...f, width: 321 })) },
+      { items: good.items.map((f) => ({ ...f, timestampSeconds: NaN })) },
+      { items: good.items.map((f) => ({ ...f, blob: new Blob([]) })) },
+    ]) {
+      video.motionFallback = { ...good, ...patch }
+      expect(hasCompleteMotionFallback(video)).toBe(false)
+    }
+  })
   it('samples every 15 seconds, capped at 100 across the entire video', () => {
     expect(keyframeTargets(10)).toEqual([0])
     expect(keyframeTargets(60)).toEqual([0, 15, 30, 45])

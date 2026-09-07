@@ -1,5 +1,34 @@
 # Motion previews, seek keyframes and focus recovery smoke plan
 
+## Release checkpoint — failed-clip still fallback (v3)
+
+Plan revision: `bvr-motion-keyframes-smoke-v3`, on `feat/video-benchmark-view`.
+Use the exact target SHA in the new BVR-003 Notion Action/Test Run after deployment;
+this document is a procedure, not proof of publication or acceptance.
+
+The owner reports four consistently failed clip loops in the 20-video batch,
+despite successful covers. Opening a player has not been established as the cause.
+This increment adds resilience, not a claimed diagnosis: terminal clip extraction
+failure tries nine DOM stills in the same motion job. Valid existing stills can be
+reused. If both extractors fail, retain the cover. Seek work remains independent.
+Successful clips stay preferred; 1.5 seconds / 20 FPS and 160 px seeks are unchanged.
+
+| ID | Do | Expected result |
+|---|---|---|
+| FB-01 | Verify build identity, then reimport the same 20 originals, including the four failed files. | Successful videos still get clips. Clip failures try a nine-image slideshow; if available, the card reads **Still preview ready**, the orange clip-work border clears, and the toast counts still fallbacks separately from successful clips. Record which files use cover only; do not infer a root cause. |
+| FB-02 | Hover a fallback card through a full cycle, then leave, scroll it offscreen, and open its main player. | Still images advance once per second and wrap. No preview controls or click interactions; inactive previews stop. The cover remains available if image display fails. Main-player seeking remains independent. |
+| FB-03 | During **Generating still previews**, switch tabs, then separately focus another window while the app remains visible. Return and focus it. | Work pauses explicitly; no partial fallback is published. Missing work resumes, complete products remain, and cancellation is not treated as a failed extraction that starts more work. If timing cannot be hit, record Not run. |
+| FB-04 | While still fallback is running, open pending A then B. | Active fallback finishes without cancellation. B's pending seeks are promoted at the next free slot; no simultaneous products for the same video or stranded queue. Repeat the v2 scheduling checks where practical. |
+| FB-05 | Reload and reselect completed originals; preserve votes/pins. | Valid cached fallback returns without another failed clip attempt. Complete seeks return independently. Original clip reason remains visible in card diagnostics; no review metadata changes. |
+| FB-06 | Enable reduced motion; try an available source that fails both preview paths. | Reduced motion uses the cover. Double failures also retain the cover and reach an explicit unavailable state, without blocking other files. Record missing double-failure coverage rather than treating it as Pass. |
+
+Reuse v1 setup/privacy guidance and core checks, except SM-10's failed-motion
+cover-only expectation is replaced by this fallback behavior. Keep all historical
+attempts and owner observations below. Record actual SHA/browser/source location,
+Pass / Fail / Blocked / Not run, and redacted diagnostics. Never clear the normal
+review database or upload private videos as evidence. Native focus and the owner's
+four files remain acceptance gates even after isolated automated smoke passes.
+
 ## Release checkpoint — product priority and progress (v2)
 
 Plan revision: `bvr-motion-keyframes-smoke-v2`, on `feat/video-benchmark-view`.

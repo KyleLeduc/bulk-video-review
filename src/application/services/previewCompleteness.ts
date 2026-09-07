@@ -1,11 +1,11 @@
 import type { ParsedVideo } from '@domain/entities'
 import {
   hasCompleteKeyframes,
-  hasCompleteMotionClips,
+  hasUsableMotionPreview,
 } from '@domain/services/videoPreviewPolicy'
 
 export function hasCompleteVideoPreviews(video: ParsedVideo): boolean {
-  return hasCompleteMotionClips(video) && hasCompleteKeyframes(video)
+  return hasUsableMotionPreview(video) && hasCompleteKeyframes(video)
 }
 
 // Legacy still benchmark policy: ten divisions, nine frames.

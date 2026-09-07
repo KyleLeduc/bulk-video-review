@@ -53,11 +53,18 @@
       >
         <p>
           {{ product.label }} ready {{ product.ready }} / {{ product.total }}
+          <span v-if="product.fallback">
+            · Still previews {{ product.fallback }}</span
+          >
         </p>
         <progress
-          :value="product.ready"
+          :value="product.ready + product.fallback"
           :max="product.total || 1"
-          :aria-label="`${product.label} ready`"
+          :aria-label="
+            product.fallback
+              ? 'Clip or still previews ready'
+              : `${product.label} ready`
+          "
         />
         <small
           >Queued {{ product.queued }} · Working {{ product.processing }} ·
@@ -75,13 +82,20 @@
           role="status"
         >
           {{
-            job.stage === 'persisting'
+            job.stage === 'persisting' || job.stage === 'saving-fallback'
               ? 'Saving'
               : job.stage === 'loading'
                 ? 'Preparing'
                 : 'Generating'
           }}
-          {{ job.product === 'motionClips' ? 'clips' : 'seek thumbnails' }} —
+          {{
+            job.stage === 'fallback' || job.stage === 'saving-fallback'
+              ? 'still previews'
+              : job.product === 'motionClips'
+                ? 'clips'
+                : 'seek thumbnails'
+          }}
+          —
           {{ job.title }}
         </p>
       </template>

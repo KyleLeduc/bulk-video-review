@@ -9,6 +9,7 @@ import {
   motionClipWindows,
   MOTION_PREVIEW_VERSION,
   KEYFRAME_PREVIEW_VERSION,
+  MOTION_FALLBACK_VERSION,
 } from '@domain/services/videoPreviewPolicy'
 import {
   buildParsedVideo,
@@ -49,6 +50,7 @@ function setup() {
   const files = new Map<string, File>()
   const context = createPresentationTestContext({
     sessionRegistry: {
+      acquireObjectUrl: vi.fn(() => 'blob:original'),
       getFile: vi.fn((id: string) => {
         if (!files.has(id)) files.set(id, new File(['v'], `${id}.mp4`))
         return files.get(id)!
@@ -72,79 +74,181 @@ function setup() {
     putProduct: vi.fn(async () => {}),
     clear: vi.fn(),
   }
+  const thumbnails = {
+    generateThumbnails: vi.fn(async () => [] as ReturnType<typeof keyframes>),
+  }
   const useCase = new UpdateVideoPreviewsUseCase(
     generator,
     { getVideo: vi.fn(async (id: string) => video(id)) },
     context.mocks.sessionRegistry,
     cache,
     context.mocks.logger,
+    thumbnails,
   )
   context.global.provide[UPDATE_PREVIEWS_USE_CASE_KEY as symbol] = useCase
   const wrapper = mount(Harness, { global: context.global })
   const store = useVideoStore()
   store.addVideos([video()])
-  return { ...context, wrapper, store, generator, cache }
+  return { ...context, wrapper, store, generator, cache, thumbnails }
 }
 afterEach(() => vi.restoreAllMocks())
 
 describe('motion preview queue integration', () => {
-  test('reports separate ready products and active stage while the seek product is still running', async () => {
-    const { store, generator, mocks, global, wrapper } = setup()
-    vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue(
-      'probably',
-    )
-    vi.mocked(mocks.useCases.addVideosUseCase.execute).mockImplementation(
-      async function* () {
-        yield {
-          type: 'progress',
-          progress: {
-            total: 1,
-            scanned: 1,
-            existingCount: 0,
-            newCount: 1,
-            knownErrorCount: 0,
-            createdCount: 1,
-            failedCount: 0,
-            completedCount: 1,
-            phase: 'complete',
-          },
-        }
-        yield { type: 'video', video: video() }
-      },
-    )
-    let finishSeeks!: () => void
-    generator.generateKeyframes.mockImplementationOnce(async () => {
-      await new Promise<void>((resolve) => {
-        finishSeeks = resolve
+  test.each([3, 60])(
+    'reports matching fallback totals for a %s second source',
+    async (duration) => {
+      const { store, generator, thumbnails, wrapper } = setup()
+      const id = 'fallback-counts'
+      store.addVideos([{ ...video(id), duration }])
+      generator.generateMotionClips.mockRejectedValue({ reason: 'unsupported' })
+      thumbnails.generateThumbnails.mockResolvedValue(
+        Array.from({ length: 9 }, (_, i) => ({
+          ...keyframes()[0],
+          timestampSeconds: Math.floor((duration / 10) * (i + 1)),
+        })),
+      )
+      generator.generateKeyframes.mockResolvedValue(
+        keyframeTargets(duration).map((timestampSeconds) => ({
+          ...keyframes()[0],
+          timestampSeconds,
+        })),
+      )
+      await store.updateVideoThumbnails(id)
+      const count = 9 + keyframeTargets(duration).length
+      expect(store.getThumbnailJobDiagnostic(id)).toMatchObject({
+        state: 'ready',
+        completedFrames: count,
+        totalFrames: count,
       })
-      return keyframes()
+      wrapper.unmount()
+    },
+  )
+  test('satisfies motion with a distinct still fallback, preserves metadata, and skips regeneration on reopening', async () => {
+    const { store, generator, thumbnails, wrapper } = setup()
+    generator.generateMotionClips.mockRejectedValue({ reason: 'unsupported' })
+    const items = Array.from({ length: 9 }, (_, i) => ({
+      ...keyframes()[0],
+      timestampSeconds: (i + 1) * 6,
+    }))
+    thumbnails.generateThumbnails.mockResolvedValue(items)
+    await store.updateVideoThumbnails('v')
+    expect(store.getPreviewProductState('v', 'motionClips')).toBe('fallback')
+    expect(store.getPreviewProductState('v', 'keyframes')).toBe('ready')
+    expect(store.getThumbnailJobState('v')).toBe('ready')
+    expect(
+      store.allVideos.find((v) => v.id === 'v')?.motionFallback,
+    ).toMatchObject({
+      version: MOTION_FALLBACK_VERSION,
+      reason: 'unsupported',
+      items,
     })
-    const toast = mount(IngestionStatusToast, { global })
-    await store.addVideosFromFiles(
-      createMockFileList(new File(['v'], 'v.mp4', { type: 'video/mp4' })),
-    )
-    const pending = store.updateVideoThumbnails('v')
-    await flushPromises()
-    expect(store.previewProductProgress).toMatchObject({
-      motionClips: { ready: 1, total: 1 },
-      keyframes: { ready: 0, processing: 1, total: 1 },
+    expect(store.getThumbnailJobDiagnostic('v')?.failures).toEqual({
+      motionClips: 'unsupported',
     })
-    expect(toast.text()).toContain('Clips ready 1 / 1')
-    expect(toast.text()).toContain('Seek thumbnails ready 0 / 1')
-    expect(toast.text()).toContain('This import')
-    expect(toast.text()).toContain('Active work across all videos')
-    expect(toast.text()).toContain('Generating seek thumbnails')
-    expect(store.getThumbnailJobState('v')).toBe('processing')
-    expect(store.getThumbnailJobDiagnostic('v')?.error).toBeUndefined()
-    expect(store.getThumbnailJobDiagnostic('v')?.completedAtMs).toBeUndefined()
-    finishSeeks()
-    await pending
-    await flushPromises()
-    expect(store.previewProductProgress?.keyframes.ready).toBe(1)
-    expect(toast.text()).toContain('Previews complete')
-    toast.unmount()
+    store.setVideoPreviewOpen('v', true)
+    await store.updateVideoThumbnails('v')
+    expect(generator.generateMotionClips).toHaveBeenCalledOnce()
+    expect(thumbnails.generateThumbnails).toHaveBeenCalledOnce()
     wrapper.unmount()
   })
+
+  test('hydrates cached fallback without retrying failed motion; seek work remains independent', async () => {
+    const { store, generator, thumbnails, wrapper } = setup()
+    const cached = video()
+    cached.motionFallback = {
+      version: MOTION_FALLBACK_VERSION,
+      reason: 'unsupported',
+      items: Array.from({ length: 9 }, (_, i) => ({
+        ...keyframes()[0],
+        timestampSeconds: (i + 1) * 6,
+      })),
+    }
+    store.addVideos([cached])
+    await store.updateVideoThumbnails('v')
+    expect(generator.generateMotionClips).not.toHaveBeenCalled()
+    expect(thumbnails.generateThumbnails).not.toHaveBeenCalled()
+    expect(generator.generateKeyframes).toHaveBeenCalledOnce()
+    expect(store.getPreviewProductState('v', 'motionClips')).toBe('fallback')
+    wrapper.unmount()
+  })
+  test.each([false, true])(
+    'reports separate ready products and active stage while seeks run (fallback=%s)',
+    async (fallback) => {
+      const { store, generator, thumbnails, mocks, global, wrapper } = setup()
+      if (fallback) {
+        generator.generateMotionClips.mockRejectedValue({
+          reason: 'unsupported',
+        })
+        thumbnails.generateThumbnails.mockResolvedValue(
+          Array.from({ length: 9 }, (_, i) => ({
+            ...keyframes()[0],
+            timestampSeconds: (i + 1) * 6,
+          })),
+        )
+      }
+      vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue(
+        'probably',
+      )
+      vi.mocked(mocks.useCases.addVideosUseCase.execute).mockImplementation(
+        async function* () {
+          yield {
+            type: 'progress',
+            progress: {
+              total: 1,
+              scanned: 1,
+              existingCount: 0,
+              newCount: 1,
+              knownErrorCount: 0,
+              createdCount: 1,
+              failedCount: 0,
+              completedCount: 1,
+              phase: 'complete',
+            },
+          }
+          yield { type: 'video', video: video() }
+        },
+      )
+      let finishSeeks!: () => void
+      generator.generateKeyframes.mockImplementationOnce(async () => {
+        await new Promise<void>((resolve) => {
+          finishSeeks = resolve
+        })
+        return keyframes()
+      })
+      const toast = mount(IngestionStatusToast, { global })
+      await store.addVideosFromFiles(
+        createMockFileList(new File(['v'], 'v.mp4', { type: 'video/mp4' })),
+      )
+      const pending = store.updateVideoThumbnails('v')
+      await flushPromises()
+      expect(store.previewProductProgress).toMatchObject({
+        motionClips: {
+          ready: fallback ? 0 : 1,
+          fallback: fallback ? 1 : 0,
+          total: 1,
+        },
+        keyframes: { ready: 0, processing: 1, total: 1 },
+      })
+      expect(toast.text()).toContain(`Clips ready ${fallback ? 0 : 1} / 1`)
+      if (fallback) expect(toast.text()).toContain('Still previews 1')
+      expect(toast.text()).toContain('Seek thumbnails ready 0 / 1')
+      expect(toast.text()).toContain('This import')
+      expect(toast.text()).toContain('Active work across all videos')
+      expect(toast.text()).toContain('Generating seek thumbnails')
+      expect(store.getThumbnailJobState('v')).toBe('processing')
+      expect(store.getThumbnailJobDiagnostic('v')?.error).toBeUndefined()
+      expect(
+        store.getThumbnailJobDiagnostic('v')?.completedAtMs,
+      ).toBeUndefined()
+      finishSeeks()
+      await pending
+      await flushPromises()
+      expect(store.previewProductProgress?.keyframes.ready).toBe(1)
+      expect(toast.text()).toContain('Previews complete')
+      toast.unmount()
+      wrapper.unmount()
+    },
+  )
 
   test('retains motion failure and cache warning across seek dispatch, then explicit retry only retries motion', async () => {
     const { store, generator, cache, wrapper } = setup()

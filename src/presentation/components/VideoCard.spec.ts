@@ -11,9 +11,58 @@ import { UPDATE_PREVIEWS_USE_CASE_KEY } from '@presentation/di/injectionKeys'
 import {
   motionClipWindows,
   MOTION_PREVIEW_VERSION,
+  MOTION_FALLBACK_VERSION,
 } from '@domain/services/videoPreviewPolicy'
 
 describe('VideoCard', () => {
+  test('shows a validated still fallback without claiming clips ready or showing the orange border', async () => {
+    const video = buildParsedVideo({
+      duration: 60,
+      motionFallback: {
+        version: MOTION_FALLBACK_VERSION,
+        reason: 'unsupported',
+        items: Array.from({ length: 9 }, (_, i) => ({
+          timestampSeconds: (i + 1) * 6,
+          width: 320,
+          height: 180,
+          blob: new Blob(['jpg'], { type: 'image/jpeg' }),
+        })),
+      },
+    })
+    const context = createPresentationTestContext()
+    context.global.provide[UPDATE_PREVIEWS_USE_CASE_KEY as symbol] = {
+      execute: vi.fn(),
+    }
+    const wrapper = mount(VideoCard, {
+      props: { video },
+      global: context.global,
+      shallow: true,
+    })
+    const store = useVideoStore()
+    store.addVideos([video])
+    await wrapper.vm.$nextTick()
+    expect(wrapper.text()).toContain('Still preview ready')
+    expect(wrapper.text()).not.toContain('Clips ready')
+    expect(
+      wrapper.findComponent({ name: 'MotionPreview' }).props('stills'),
+    ).toEqual(video.motionFallback!.items)
+    expect(wrapper.find('.thumbnail-activity-ring--active').exists()).toBe(
+      false,
+    )
+    await wrapper.setProps({
+      video: {
+        ...video,
+        motionFallback: {
+          ...video.motionFallback!,
+          items: video.motionFallback!.items.slice(0, 4),
+        },
+      },
+    })
+    expect(
+      wrapper.findComponent({ name: 'MotionPreview' }).props('stills'),
+    ).toEqual([])
+    wrapper.unmount()
+  })
   test('opening, closing and unmounting a player update seek priority, including pin-open', async () => {
     const video = buildParsedVideo({ id: 'priority-video' })
     const { global } = createPresentationTestContext()

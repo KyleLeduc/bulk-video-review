@@ -6,6 +6,7 @@ import type {
 } from '@domain/repositories/IVideoPreviewCacheRepository'
 import type { ILogger, IVideoSessionRegistry } from '@app/ports'
 import type { IVideoPreviewGenerator } from '@app/ports/IVideoPreviewGenerator'
+import type { IVideoThumbnailGenerator } from '@app/ports/IVideoThumbnailGenerator'
 import {
   hasCompleteMotionClips,
   hasCompleteKeyframes,
@@ -13,9 +14,13 @@ import {
   KEYFRAME_PREVIEW_VERSION,
   motionClipWindows,
   keyframeTargets,
+  hasUsableMotionPreview,
+  hasCompleteMotionFallback,
+  MOTION_FALLBACK_VERSION,
+  MOTION_FAILURE_REASONS,
 } from '@domain/services/videoPreviewPolicy'
 
-type ProductKind = VideoPreviewProduct['kind']
+type ProductKind = 'motionClips' | 'keyframes'
 export type PreviewEnrichmentOptions = {
   signal?: AbortSignal
   /** A scheduler may yield between complete products; omitted preserves batch callers. */
@@ -24,31 +29,20 @@ export type PreviewEnrichmentOptions = {
   onProduct?: (product: VideoPreviewProduct) => void
   onProgress?: (progress: {
     kind: ProductKind
-    stage: 'generating' | 'persisting'
+    stage: 'generating' | 'persisting' | 'fallback' | 'saving-fallback'
     completed: number
     total: number
   }) => void
 }
-const reasons = [
-  'unsupported',
-  'unsupported-timeline',
-  'invalid-metadata',
-  'read-limit',
-  'output-invalid',
-  'deadline',
-] as const
-type ProductFailure =
-  | (typeof reasons)[number]
-  | 'generation-failed'
-  | 'missing-source'
+type ProductFailure = (typeof MOTION_FAILURE_REASONS)[number]
 export type PreviewEnrichmentResult = {
   video: ParsedVideo
-  failures: Partial<Record<ProductKind, ProductFailure>>
-  cacheFailures: ProductKind[]
+  failures: Partial<Record<VideoPreviewProduct['kind'], ProductFailure>>
+  cacheFailures: VideoPreviewProduct['kind'][]
 }
 function failureReason(error: unknown): ProductFailure {
   const reason = (error as { reason?: string } | null)?.reason
-  return reasons.includes(reason as (typeof reasons)[number])
+  return MOTION_FAILURE_REASONS.includes(reason as ProductFailure)
     ? (reason as ProductFailure)
     : 'generation-failed'
 }
@@ -62,6 +56,7 @@ export class UpdateVideoPreviewsUseCase {
     private readonly sessionRegistry: IVideoSessionRegistry,
     private readonly cache: IVideoPreviewCacheRepository,
     private readonly logger: ILogger,
+    private readonly thumbnails: IVideoThumbnailGenerator,
   ) {}
 
   async execute(
@@ -72,7 +67,10 @@ export class UpdateVideoPreviewsUseCase {
     signal.throwIfAborted()
     const result: PreviewEnrichmentResult = {
       video,
-      failures: {},
+      failures:
+        hasCompleteMotionFallback(video) && !hasCompleteMotionClips(video)
+          ? { motionClips: video.motionFallback!.reason as ProductFailure }
+          : {},
       cacheFailures: [],
     }
     const file = this.sessionRegistry.getFile(video.id)
@@ -99,7 +97,12 @@ export class UpdateVideoPreviewsUseCase {
       assertOwned()
       const complete =
         kind === 'motionClips' ? hasCompleteMotionClips : hasCompleteKeyframes
-      if (complete(result.video)) continue
+      if (
+        kind === 'motionClips'
+          ? hasUsableMotionPreview(result.video)
+          : complete(result.video)
+      )
+        continue
       if (!file) {
         result.failures[kind] = 'missing-source'
         continue
@@ -110,7 +113,7 @@ export class UpdateVideoPreviewsUseCase {
           ? motionClipWindows(video.duration).length
           : keyframeTargets(video.duration).length
       options.onProgress?.({ kind, stage: 'generating', completed: 0, total })
-      let product: VideoPreviewProduct
+      let product: VideoPreviewProduct | undefined
       try {
         product =
           kind === 'motionClips'
@@ -141,32 +144,97 @@ export class UpdateVideoPreviewsUseCase {
         }
         if (!complete(candidate)) {
           result.failures[kind] = 'output-invalid'
-          continue
+          product = undefined
         }
       } catch (error) {
         assertOwned()
         if (error instanceof DOMException && error.name === 'AbortError')
           throw error
         result.failures[kind] = failureReason(error)
-        continue
       }
+      if (!product && kind === 'motionClips') {
+        await assertExists()
+        const fallback: Extract<
+          VideoPreviewProduct,
+          { kind: 'motionFallback' }
+        > = {
+          kind: 'motionFallback',
+          version: MOTION_FALLBACK_VERSION,
+          reason: result.failures.motionClips!,
+          items: video.previewFrames,
+        }
+        try {
+          if (
+            !hasCompleteMotionFallback({ ...video, motionFallback: fallback })
+          ) {
+            options.onProgress?.({
+              kind,
+              stage: 'fallback',
+              completed: 0,
+              total: 9,
+            })
+            assertOwned()
+            const url = this.sessionRegistry.acquireObjectUrl(video.id)
+            if (!url) throw new Error('Original source unavailable')
+            try {
+              fallback.items = await this.thumbnails.generateThumbnails(url, {
+                count: 10,
+                maxWidth: 320,
+                signal,
+                onProgress: (progress) => {
+                  assertOwned()
+                  options.onProgress?.({
+                    kind,
+                    stage: 'fallback',
+                    completed: progress.completedFrames,
+                    total: 9,
+                  })
+                },
+              })
+            } finally {
+              this.sessionRegistry.releaseObjectUrl(video.id, url)
+            }
+          }
+          assertOwned()
+          if (hasCompleteMotionFallback({ ...video, motionFallback: fallback }))
+            product = fallback
+          else result.failures.motionFallback = 'output-invalid'
+        } catch (error) {
+          assertOwned()
+          if (error instanceof DOMException && error.name === 'AbortError')
+            throw error
+          result.failures.motionFallback = failureReason(error)
+        }
+      }
+      if (!product) continue
       await assertExists()
-      result.video = {
-        ...result.video,
-        [kind]: product.items,
-        previewVersions: {
-          ...result.video.previewVersions,
-          [kind]: product.version,
-        },
-      }
+      result.video =
+        product.kind === 'motionFallback'
+          ? {
+              ...result.video,
+              motionFallback: {
+                version: product.version,
+                reason: product.reason,
+                items: product.items,
+              },
+            }
+          : {
+              ...result.video,
+              [kind]: product.items,
+              previewVersions: {
+                ...result.video.previewVersions,
+                [kind]: product.version,
+              },
+            }
       // Retain in-session success BEFORE optional persistence or the next cancellable product.
       options.onProduct?.(product)
       assertOwned()
       options.onProgress?.({
         kind,
-        stage: 'persisting',
+        stage:
+          product.kind === 'motionFallback' ? 'saving-fallback' : 'persisting',
         completed: product.items.length,
-        total,
+        total: product.items.length,
       })
       try {
         await this.cache.putProduct(video.id, video.duration, product, {
@@ -175,10 +243,10 @@ export class UpdateVideoPreviewsUseCase {
         })
       } catch {
         assertOwned()
-        result.cacheFailures.push(kind)
+        result.cacheFailures.push(product.kind)
         this.logger.warn('[video-previews] cache-write:failed', {
           videoId: video.id,
-          kind,
+          kind: product.kind,
         })
       }
     }

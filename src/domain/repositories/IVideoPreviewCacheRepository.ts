@@ -7,9 +7,10 @@ import type {
 export type VideoPreviewProduct =
   | { kind: 'motionClips'; version: string; items: VideoPreviewClip[] }
   | { kind: 'keyframes'; version: string; items: VideoPreviewFrame[] }
+  | ({ kind: 'motionFallback' } & NonNullable<ParsedVideo['motionFallback']>)
 export type VideoPreviewProducts = Pick<
   ParsedVideo,
-  'motionClips' | 'keyframes' | 'previewVersions'
+  'motionClips' | 'keyframes' | 'previewVersions' | 'motionFallback'
 >
 export type PreviewCacheWrite = { epoch: number; signal: AbortSignal }
 

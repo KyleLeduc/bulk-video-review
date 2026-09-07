@@ -1,4 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { toRaw } from 'vue'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { buildPreviewProducts } from '@test-utils/index'
 import MotionPreview from './MotionPreview.vue'
@@ -46,11 +47,79 @@ beforeEach(() => {
   } as unknown as MediaQueryList)
 })
 afterEach(() => {
+  vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
 
 describe('inert motion preview lifecycle', () => {
+  test('cycles nine fallback stills, wraps, and gives real clips precedence', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const stills = Array.from({ length: 9 }, (_, i) => ({
+      timestampSeconds: i,
+      width: 320,
+      height: 180,
+      blob: new Blob([String(i)], { type: 'image/jpeg' }),
+    }))
+    const wrapper = mount(MotionPreview, {
+      props: { clips: [], stills, active: true },
+    })
+    intersect([{ isIntersecting: true }])
+    await flushPromises()
+    expect(wrapper.find('video').exists()).toBe(false)
+    for (let i = 0; i < 9; i++) {
+      expect(toRaw(createUrl.mock.calls[i][0])).toBe(stills[i].blob)
+      await wrapper.get('img').trigger('load')
+      await vi.advanceTimersByTimeAsync(1000)
+    }
+    expect(toRaw(createUrl.mock.calls[9][0])).toBe(stills[0].blob)
+    await wrapper.setProps({ clips: clips() })
+    await flushPromises()
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.find('video').exists()).toBe(true)
+    wrapper.unmount()
+    expect(revokeUrl.mock.calls.length).toBe(createUrl.mock.calls.length)
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  test.each([
+    'blur',
+    'hidden',
+    'offscreen',
+    'reduced',
+    'leave',
+    'error',
+  ] as const)(
+    'stops still timers and ignores stale image loads after %s',
+    async (reason) => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      const stills = [buildPreviewProducts().keyframes[0]]
+      const wrapper = mount(MotionPreview, {
+        props: { clips: [], stills, active: true },
+      })
+      intersect([{ isIntersecting: true }])
+      await flushPromises()
+      const old = wrapper.get('img')
+      await old.trigger('load')
+      if (reason === 'blur') window.dispatchEvent(new Event('blur'))
+      if (reason === 'hidden') {
+        vi.spyOn(document, 'hidden', 'get').mockReturnValue(true)
+        document.dispatchEvent(new Event('visibilitychange'))
+      }
+      if (reason === 'offscreen') intersect([{ isIntersecting: false }])
+      if (reason === 'reduced') reduced({ matches: true })
+      if (reason === 'leave') await wrapper.setProps({ active: false })
+      if (reason === 'error') await old.trigger('error')
+      await flushPromises()
+      old.element.dispatchEvent(new Event('load'))
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(wrapper.find('img').exists()).toBe(false)
+      expect(createUrl).toHaveBeenCalledOnce()
+      expect(revokeUrl).toHaveBeenCalledOnce()
+      expect(vi.getTimerCount()).toBe(0)
+      wrapper.unmount()
+    },
+  )
   test('loads only in view, cycles clips and releases each source', async () => {
     const wrapper = mount(MotionPreview, {
       props: { clips: clips(), active: true },

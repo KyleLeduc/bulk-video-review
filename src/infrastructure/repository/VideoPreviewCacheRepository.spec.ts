@@ -6,6 +6,7 @@ import {
 import {
   KEYFRAME_PREVIEW_VERSION,
   MOTION_PREVIEW_VERSION,
+  MOTION_FALLBACK_VERSION,
   motionClipWindows,
 } from '@domain/services/videoPreviewPolicy'
 import { buildLogger } from '@test-utils/index'
@@ -64,6 +65,36 @@ function readFixture() {
   return { cache, pending, opened, reads, reply, transaction, store, logger }
 }
 
+it('hydrates a separately versioned fallback and retains the motion failure reason', async () => {
+  const f = readFixture()
+  await f.opened()
+  expect(f.reads).toHaveLength(3)
+  const fallback = {
+    kind: 'motionFallback',
+    version: MOTION_FALLBACK_VERSION,
+    reason: 'unsupported',
+    items: Array.from({ length: 9 }, (_, i) => ({
+      timestampSeconds: i + 1,
+      width: 320,
+      height: 180,
+      blob: new Blob(['jpeg'], { type: 'image/jpeg' }),
+    })),
+  }
+  f.reply(0, undefined)
+  f.reply(1, { duration: 10, product })
+  f.reply(2, { duration: 10, product: fallback })
+  f.transaction.oncomplete?.(new Event('complete'))
+  await expect(f.pending).resolves.toMatchObject({
+    motionClips: [],
+    keyframes: product.items,
+    motionFallback: {
+      version: fallback.version,
+      items: fallback.items,
+      reason: 'unsupported',
+    },
+  })
+})
+
 it('keeps valid cache hits if their optional last-used update fails', async () => {
   const f = readFixture()
   await f.opened()
@@ -72,6 +103,7 @@ it('keeps valid cache hits if their optional last-used update fails', async () =
     throw new DOMException('quota', 'QuotaExceededError')
   })
   expect(() => f.reply(1, { duration: 10, product })).not.toThrow()
+  f.reply(2, undefined)
   await expect(f.pending).resolves.toMatchObject({
     keyframes: product.items,
     previewVersions: { keyframes: KEYFRAME_PREVIEW_VERSION },
@@ -115,6 +147,7 @@ it('hydrates independently keyed valid products without loading unrelated Blob v
     },
   })
   f.reply(1, { duration: 10, product })
+  f.reply(2, undefined)
   f.transaction.oncomplete?.(new Event('complete'))
   await expect(f.pending).resolves.toEqual({
     motionClips: clips,
@@ -127,6 +160,7 @@ it('hydrates independently keyed valid products without loading unrelated Blob v
   expect(f.store.get.mock.calls.map((call) => (call as unknown[])[0])).toEqual([
     JSON.stringify(['id', 'motionClips', MOTION_PREVIEW_VERSION]),
     JSON.stringify(['id', 'keyframes', KEYFRAME_PREVIEW_VERSION]),
+    JSON.stringify(['id', 'motionFallback', MOTION_FALLBACK_VERSION]),
   ])
 })
 

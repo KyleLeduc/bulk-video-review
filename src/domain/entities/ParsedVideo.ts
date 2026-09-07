@@ -9,4 +9,10 @@ export interface ParsedVideo extends VideoAggregate {
   motionClips: VideoPreviewClip[]
   keyframes: VideoPreviewFrame[]
   previewVersions: { motionClips?: string; keyframes?: string }
+  /** Complete, disposable still fallback; never a successful motion product. */
+  motionFallback?: {
+    version: string
+    reason: string
+    items: VideoPreviewFrame[]
+  }
 }

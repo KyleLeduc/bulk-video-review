@@ -9,6 +9,8 @@ import {
   hasCompleteMotionClips,
   KEYFRAME_PREVIEW_VERSION,
   MOTION_PREVIEW_VERSION,
+  MOTION_FALLBACK_VERSION,
+  hasCompleteMotionFallback,
 } from '@domain/services/videoPreviewPolicy'
 import type { ILogger } from '@app/ports'
 
@@ -46,6 +48,8 @@ function isValid(duration: number, product: VideoPreviewProduct) {
       keyframes: product.items,
       previewVersions: { keyframes: product.version },
     })
+  if (product?.kind === 'motionFallback')
+    return hasCompleteMotionFallback({ duration, motionFallback: product })
   return false
 }
 
@@ -196,6 +200,7 @@ export class VideoPreviewCacheRepository
         for (const [kind, version] of [
           ['motionClips', MOTION_PREVIEW_VERSION],
           ['keyframes', KEYFRAME_PREVIEW_VERSION],
+          ['motionFallback', MOTION_FALLBACK_VERSION],
         ] as const) {
           const request = store.get(
             cacheKey(videoId, kind, version),
@@ -211,13 +216,19 @@ export class VideoPreviewCacheRepository
               ) {
                 if (record.product.kind === 'motionClips')
                   products.motionClips = record.product.items
-                else products.keyframes = record.product.items
-                products.previewVersions[kind] = version
+                else if (record.product.kind === 'keyframes')
+                  products.keyframes = record.product.items
+                else {
+                  const { version, reason, items } = record.product
+                  products.motionFallback = { version, reason, items }
+                }
+                if (kind !== 'motionFallback')
+                  products.previewVersions[kind] = version
                 hits.push(record)
               }
               readsCompleted++
-              // Finish both reads before touching. Aborting an optional touch cannot undo these immutable read results.
-              if (readsCompleted === 2)
+              // Finish all reads before optional touches, which cannot undo immutable hits.
+              if (readsCompleted === 3)
                 for (const hit of hits)
                   store.put({ ...hit, lastUsed: Date.now() })
             } catch (error) {
@@ -227,7 +238,7 @@ export class VideoPreviewCacheRepository
         }
       })
     } catch (error) {
-      if (readsCompleted !== 2) throw error
+      if (readsCompleted !== 3) throw error
       this.logger.warn('[preview-cache] last-used-update:failed')
     }
     return epoch === this.epoch ? products : emptyProducts()

@@ -57,9 +57,9 @@ export class VideoSessionRegistry implements IVideoSessionRegistry {
     }
   }
 
-  releaseObjectUrl(videoId: string): void {
+  releaseObjectUrl(videoId: string, expectedUrl?: string): void {
     const entry = this.urls.get(videoId)
-    if (!entry) {
+    if (!entry || (expectedUrl !== undefined && entry.url !== expectedUrl)) {
       return
     }
 
