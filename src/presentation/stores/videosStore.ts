@@ -987,14 +987,27 @@ export const useVideoStore = defineStore('videos', () => {
         .filter((id) => thumbnailJobState.get(id) === 'queued')
         .map((id) => [id, pendingPreviewProducts(id)]),
     )
+    for (const [videoId, products] of pending) {
+      if (products.includes('motionClips'))
+        return { videoId, product: 'motionClips' }
+    }
+    // Finish the clip sweep, including fallback and saving, before starting seeks.
+    if (
+      candidates.some(
+        (id) =>
+          thumbnailJobState.get(id) === 'processing' &&
+          thumbnailJobDiagnostics.get(id)?.product === 'motionClips',
+      )
+    )
+      return undefined
+
     const openVideoId = openPreviewVideoIds.find((id) =>
       pending.get(id)?.includes('keyframes'),
     )
     if (openVideoId) return { videoId: openVideoId, product: 'keyframes' }
-    for (const product of ['motionClips', 'keyframes'] as const) {
-      for (const [videoId, products] of pending) {
-        if (products.includes(product)) return { videoId, product }
-      }
+    for (const [videoId, products] of pending) {
+      if (products.includes('keyframes'))
+        return { videoId, product: 'keyframes' }
     }
     // A source can become complete or disappear while queued; let the pump retire it.
     const videoId = pending.keys().next().value

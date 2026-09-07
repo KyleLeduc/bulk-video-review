@@ -240,11 +240,16 @@ describe('motion preview queue integration', () => {
       expect(
         store.getThumbnailJobDiagnostic('v')?.completedAtMs,
       ).toBeUndefined()
+      await toast.get('.ingestion-toast__close').trigger('click')
+      expect(toast.find('.ingestion-toast').exists()).toBe(false)
+      expect(store.getThumbnailJobState('v')).toBe('processing')
+      expect(store.isPreviewProcessingPaused).toBe(false)
       finishSeeks()
       await pending
       await flushPromises()
       expect(store.previewProductProgress?.keyframes.ready).toBe(1)
-      expect(toast.text()).toContain('Previews complete')
+      expect(store.getThumbnailJobState('v')).toBe('ready')
+      expect(toast.find('.ingestion-toast').exists()).toBe(false)
       toast.unmount()
       wrapper.unmount()
     },
@@ -300,7 +305,7 @@ describe('motion preview queue integration', () => {
   })
 
   test.each(['unchanged', 'close newest', 'reopen older'])(
-    'with one worker, newest open video gets seeks next without aborting the active product: %s',
+    'with one worker, newest open video leads seeks only after all clips: %s',
     async (openChange) => {
       const { store, generator, wrapper } = setup()
       store.setThumbnailConcurrencyOverride(1)
@@ -342,19 +347,19 @@ describe('motion preview queue integration', () => {
         openChange === 'close newest'
           ? [
               'clips:v.mp4',
-              'seeks:b.mp4',
               'clips:b.mp4',
               'clips:c.mp4',
+              'seeks:b.mp4',
               'seeks:v.mp4',
               'seeks:c.mp4',
             ]
           : [
               'clips:v.mp4',
+              'clips:b.mp4',
+              'clips:c.mp4',
               ...(openChange === 'reopen older'
                 ? ['seeks:b.mp4', 'seeks:c.mp4']
                 : ['seeks:c.mp4', 'seeks:b.mp4']),
-              'clips:b.mp4',
-              'clips:c.mp4',
               'seeks:v.mp4',
             ],
       )
@@ -363,7 +368,7 @@ describe('motion preview queue integration', () => {
     },
   )
 
-  test('promotion respects automatic concurrency and never runs two products for one video simultaneously', async () => {
+  test('Auto2 drains active clips before prioritized seeks without overlapping products for one video', async () => {
     const { store, generator, wrapper } = setup()
     store.addVideos(['b', 'c'].map(video))
     expect(store.thumbnailConcurrencyOverride).toBeNull()
@@ -397,14 +402,17 @@ describe('motion preview queue integration', () => {
     store.setVideoPreviewOpen('c', true)
     active.get('v.mp4')!()
     await flushPromises()
-    expect(order.at(-1)).toBe('seeks:c.mp4')
+    expect(order.at(-1)).toBe('clips:c.mp4')
     expect(active.size).toBe(2)
     active.get('b.mp4')!()
     await flushPromises()
-    expect(order.at(-1)).toBe('seeks:b.mp4')
+    expect(order).toEqual(['clips:v.mp4', 'clips:b.mp4', 'clips:c.mp4'])
+    expect(active.size).toBe(1)
+    expect(generator.generateKeyframes).not.toHaveBeenCalled()
     active.get('c.mp4')!()
     await flushPromises()
-    expect(order.at(-1)).toBe('clips:c.mp4')
+    expect(order.slice(-2)).toEqual(['seeks:c.mp4', 'seeks:b.mp4'])
+    expect(active.size).toBe(2)
     active.get('b.mp4')!()
     await flushPromises()
     expect(order.at(-1)).toBe('seeks:v.mp4')
@@ -413,6 +421,125 @@ describe('motion preview queue integration', () => {
     await Promise.all(pending)
     expect(new Set(order).size).toBe(6)
     expect(active.size).toBe(0)
+    wrapper.unmount()
+  })
+
+  test.each([false, true])(
+    'waits for the last motion product cache write before seeks (fallback=%s)',
+    async (fallback) => {
+      const { store, generator, thumbnails, cache, wrapper } = setup()
+      store.addVideos([video('b')])
+      if (fallback) {
+        generator.generateMotionClips.mockRejectedValue({
+          reason: 'unsupported',
+        })
+        thumbnails.generateThumbnails.mockResolvedValue(
+          Array.from({ length: 9 }, (_, i) => ({
+            ...keyframes()[0],
+            timestampSeconds: (i + 1) * 6,
+          })),
+        )
+      }
+      let finishSave!: () => void
+      cache.putProduct.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            finishSave = resolve
+          }),
+      )
+      store.setPreviewProcessingPaused(true)
+      const pending = ['v', 'b'].map((id) => store.updateVideoThumbnails(id))
+      store.setPreviewProcessingPaused(false)
+      await flushPromises()
+      try {
+        expect(store.activePreviewProducts).toEqual([
+          expect.objectContaining({
+            product: 'motionClips',
+            stage: fallback ? 'saving-fallback' : 'persisting',
+          }),
+        ])
+        expect(generator.generateKeyframes).not.toHaveBeenCalled()
+      } finally {
+        finishSave()
+        await Promise.all(pending)
+        wrapper.unmount()
+      }
+      expect(generator.generateKeyframes).toHaveBeenCalledTimes(2)
+      expect(store.getThumbnailJobState('v')).toBe('ready')
+      expect(store.getThumbnailJobState('b')).toBe('ready')
+    },
+  )
+
+  test('terminal motion failure does not block seeks after other clips finish', async () => {
+    const { store, generator, wrapper } = setup()
+    store.addVideos([video('b')])
+    let finishClips!: () => void
+    generator.generateMotionClips.mockImplementation(async (file) => {
+      if (file.name === 'v.mp4') throw { reason: 'unsupported' }
+      await new Promise<void>((resolve) => {
+        finishClips = resolve
+      })
+      return clips()
+    })
+    store.setPreviewProcessingPaused(true)
+    const pending = ['v', 'b'].map((id) => store.updateVideoThumbnails(id))
+    store.setPreviewProcessingPaused(false)
+    await flushPromises()
+    store.setVideoPreviewOpen('v', true)
+    await flushPromises()
+    try {
+      expect(store.getPreviewProductState('v', 'motionClips')).toBe('failed')
+      expect(generator.generateKeyframes).not.toHaveBeenCalled()
+    } finally {
+      finishClips()
+      await Promise.all(pending)
+      wrapper.unmount()
+    }
+    expect(
+      generator.generateKeyframes.mock.calls.map(([file]) => file.name),
+    ).toEqual(['v.mp4', 'b.mp4'])
+    expect(store.getPreviewProductState('v', 'keyframes')).toBe('ready')
+    expect(store.getThumbnailJobState('v')).toBe('failed')
+    expect(store.getThumbnailJobState('b')).toBe('ready')
+  })
+
+  test('queue warmup and player priority changes do not cancel an already-running seek', async () => {
+    const { store, generator, wrapper } = setup()
+    store.setThumbnailConcurrencyOverride(1)
+    const order: string[] = []
+    let finishSeeks!: () => void
+    let seekSignal!: AbortSignal
+    generator.generateMotionClips.mockImplementation(async (file) => {
+      order.push(`clips:${file.name}`)
+      return clips()
+    })
+    generator.generateKeyframes.mockImplementation(async (file, options) => {
+      order.push(`seeks:${file.name}`)
+      if (file.name === 'v.mp4') {
+        seekSignal = options.signal
+        await new Promise<void>((resolve) => {
+          finishSeeks = resolve
+        })
+      }
+      return keyframes()
+    })
+    const first = store.updateVideoThumbnails('v')
+    await flushPromises()
+    store.setVideoPreviewOpen('v', true)
+    store.setVideoPreviewOpen('v', false)
+    store.addVideos([video('b')])
+    const second = store.updateVideoThumbnails('b')
+    await flushPromises()
+    expect(order).toEqual(['clips:v.mp4', 'seeks:v.mp4'])
+    expect(seekSignal.aborted).toBe(false)
+    finishSeeks()
+    await Promise.all([first, second])
+    expect(order).toEqual([
+      'clips:v.mp4',
+      'seeks:v.mp4',
+      'clips:b.mp4',
+      'seeks:b.mp4',
+    ])
     wrapper.unmount()
   })
 

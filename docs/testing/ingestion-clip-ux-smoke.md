@@ -1,5 +1,32 @@
 # Motion previews, seek keyframes and focus recovery smoke plan
 
+## Release checkpoint — clips before prioritized seeks (v5)
+
+Plan revision: `bvr-motion-keyframes-smoke-v5`, on `feat/video-benchmark-view`.
+Use the exact target SHA in the new Notion Action/Test Run. The owner reports the
+Auto2 run seemed good; this is positive overall feedback, not completed per-check
+acceptance. Initial/thumbnail Auto2 and output settings remain unchanged.
+
+All queued **and active** clip jobs finish before new seeks start, including any
+still fallback and saving. Newest-open pending videos lead the seek phase, never
+the clip phase. Closing a player releases its priority but does not cancel its
+work. Additional imports retain the existing foreground-first interruption/retry
+policy; their clips run before pending seeks when background work resumes.
+A free slot may wait for the last clip.
+This supersedes the cross-product priority expectations in historical CW-02,
+FB-04 and SP-02 below; retain their earlier test attempts unchanged.
+
+| ID | Do | Expected result |
+|---|---|---|
+| CF-01 | Verify target build identity, leave both worker selectors on Auto, and import the original batch. While clips are running, open pending A then B. | Both limits are 2. All clips/fallbacks finish or reach an explicit terminal failure before any seek generation starts. B's pending seeks start first, then A's, then ordinary seeks. No duplicate products or stranded orange borders. |
+| CF-02 | Repeat opening A then B, but close B before seeks start. Repeat by closing and reopening A. | Closing releases priority, reopening promotes within seeks only; neither operation cancels generation or saving. All clips still precede new seeks. |
+| CF-03 | Close the ingestion progress popup while work is pending; keep the app focused. Inspect Diagnostics/card status afterward. Then close a main player. | Dismissing the popup only hides it. Queue counts continue to progress, both products settle, and closing the player does not cancel ingestion. Closing/reloading the browser tab is not this test. |
+| CF-04 | During seeks, add another batch. Separately hide the tab or focus another window, then return. | New imports may interrupt background work to prioritize covers; afterward new clips precede pending seeks and interrupted seeks retry. Focus loss still pauses/retries incomplete products; complete products remain. No background-execution guarantee was added. |
+
+Record actual build/browser, source location and observations. Keep missing
+native/media/cache-race coverage explicit. Speed benchmarking remains deferred;
+this checkpoint does not authorize master integration or worktree cleanup.
+
 ## Release checkpoint — automatic two-worker previews (v4)
 
 Plan revision: `bvr-motion-keyframes-smoke-v4`. Use the new Notion Action's
