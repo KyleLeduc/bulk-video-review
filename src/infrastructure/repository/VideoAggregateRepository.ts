@@ -48,7 +48,7 @@ export class VideoAggregateRepository implements IVideoAggregateRepository {
   }
 
   async postVideo(video: VideoEntity): Promise<VideoAggregate> {
-    const metadata = await this.metadataRepository.upsertMetadata({
+    const metadata = await this.metadataRepository.createMetadata({
       id: video.id,
       votes: 0,
     })

@@ -1,5 +1,31 @@
 # Motion previews, seek keyframes and focus recovery smoke plan
 
+## Release checkpoint — preserve restored votes on reimport (v7)
+
+Plan revision: `bvr-motion-keyframes-smoke-v7`. Use the exact target SHA in the
+Notion action. Rebuilding missing video content now preserves its existing vote
+record. This closes a reproduced reset path; it does not establish why the
+owner's entire library displayed zero or prove the original backup has votes.
+Queue behavior, clip/seek settings and worker defaults are unchanged.
+
+Keep the **original backup untouched**. Test recovery in a disposable browser
+profile first, with other app tabs closed and ingestion finished. Validation is
+read-only; restoring explicitly replaces that profile's stored library. Recovery
+can only restore votes actually present in the archive. Do not overwrite the
+original archive with a new backup of the all-zero library.
+
+| ID | Do | Expected result |
+|---|---|---|
+| VP-01 | In the disposable profile on the target build, validate the retained archive, explicitly restore it, and reload. Reselect a few original files with unchanged filenames and byte sizes. | Saved vote counts from the archive appear and survive reload. Record whether they are nonzero; stop before live restoration if the archive also shows zero. |
+| VP-02 | Reimport those same files, let background work settle, then reload/reselect again. | Votes remain unchanged through content/preview upgrades. Renamed or repaired files can have new IDs and are not a same-ID preservation test. |
+| VP-03 | In a separate synthetic library, cast positive and negative votes, download a backup, then reload/reimport. Restore the backup and repeat. | Export does not change votes; confirmed restore returns the saved values; repeated import does not reset them. Automated coverage also removes only synthetic content while retaining votes and verifies reconstruction. |
+
+Focus loss still cancels and later retries the unfinished product; partial clips
+may restart and the item may appear later in the queue. The owner accepts that
+behavior provided every logical video reaches a terminal state. Reopen the focus
+issue only with evidence of a stranded/lost item, not a reset progress counter.
+Keep the owner's actual recovery result and the separate timeline restriction open.
+
 ## Release checkpoint — diagnostics and full database recovery (v6)
 
 Plan revision: `bvr-motion-keyframes-smoke-v6`. Use the exact target SHA in the

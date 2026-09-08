@@ -190,6 +190,86 @@ function expectRecoverySnapshot(alias: string) {
 }
 
 describe('full library backup and recovery', () => {
+  it('preserves restored votes when reimport reconstructs a missing content record', () => {
+    const source = 'cypress/fixtures/videos/short-blue.mp4'
+    const prepare = (win: RecoveryWindow) => {
+      prepareRecovery(win, 'votes')
+      // Isolate persistence from focus scheduling; physical focus has its own checks.
+      Object.defineProperty(win.document, 'hasFocus', { value: () => true })
+      Object.defineProperty(win.document, 'hidden', { get: () => false })
+    }
+    const importSource = () =>
+      cy
+        .get('input[data-picker-mode=files]')
+        .selectFile(source, { force: true })
+    cy.visit('/', { onBeforeLoad: prepare })
+    importSource()
+    cy.contains('.product-progress', 'Seek thumbnails ready 1 / 1', {
+      timeout: 90000,
+    })
+    // Exercise the real vote handler; the card control is otherwise hover-only.
+    cy.get('.card .pin').click({ force: true })
+    cy.get('.card .tabs').should('contain', '2 🗳️')
+    cy.window().then(snapshotRecovery).as('votedRecords')
+    cy.contains('button', 'Diagnostics').click()
+    cy.get('[data-testid=other-tabs-closed]').check()
+    cy.get('[data-testid=backup-library]').should('be.enabled').click()
+    cy.contains('Download started')
+    expectRecoverySnapshot('@votedRecords')
+    cy.window()
+      .then(
+        async (win: RecoveryWindow) =>
+          new Uint8Array(await win.backupBlob!.arrayBuffer()),
+      )
+      .as('backupBytes')
+
+    // Replace only this disposable test namespace, then restore its real archive.
+    cy.window().then((win) => seedRecovery(win, 'after-backup'))
+    selectRecoveryArchive()
+    cy.get('[data-testid=restore-library]').click()
+    cy.contains('Restore committed')
+    expectRecoverySnapshot('@votedRecords')
+    cy.visit('/', { onBeforeLoad: prepare })
+    importSource()
+    cy.get('.card .tabs').should('contain', '2 🗳️')
+    cy.contains('button', 'Diagnostics').click()
+    cy.get('[data-testid=ingestion-report-json]').should(($report) => {
+      const report = JSON.parse(String($report.val()))
+      expect(report.status).to.equal('completed')
+      expect(report.foreground.counts.existing).to.equal(1)
+    })
+
+    cy.window().then(async (win) => {
+      const db = await openRecoveryDb(win)
+      await new Promise<void>((resolve, reject) => {
+        const transaction = db.transaction(
+          ['VideoMetadata', 'videoCacheDto'],
+          'readwrite',
+        )
+        transaction.oncomplete = () => resolve()
+        transaction.onabort = () => reject(transaction.error)
+        const request = transaction.objectStore('VideoMetadata').getAll()
+        request.onsuccess = () => {
+          expect(request.result).to.have.length(1)
+          expect(request.result[0].votes).to.equal(2)
+          transaction.objectStore('videoCacheDto').delete(request.result[0].id)
+        }
+      })
+      db.close()
+    })
+    cy.visit('/', { onBeforeLoad: prepare })
+    importSource()
+    cy.get('.card .tabs').should('contain', '2 🗳️')
+    cy.window().then(async (win) => {
+      const records = (await snapshotRecovery(win)) as Record<
+        string,
+        Array<{ votes?: number }>
+      >
+      expect(records.VideoMetadata).to.have.length(1)
+      expect(records.VideoMetadata[0].votes).to.equal(2)
+      expect(records.videoCacheDto).to.have.length(1)
+    })
+  })
   it('audits a malformed original that fails before a cover without exposing its name in the ordinary report', () => {
     cy.visit('/', { onBeforeLoad: (win) => prepareRecovery(win, 'audit') })
     const bytes = Cypress.Buffer.from([
