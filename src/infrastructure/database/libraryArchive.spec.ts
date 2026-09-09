@@ -1,5 +1,6 @@
 // @vitest-environment node
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
+import { LibraryBackup } from './LibraryBackup'
 import {
   encodeLibraryArchive,
   decodeLibraryArchive,
@@ -125,4 +126,125 @@ it('rejects newer schemas, duplicate keys, executable image URLs and original Fi
     original.cache[0] as { product: { items: { blob: Blob }[] } }
   ).product.items[0].blob = new File(['video'], 'original.mp4')
   await expect(encodeLibraryArchive(original)).rejects.toThrow(/record/i)
+})
+
+it('inspects every archived vote independently of partial clip coverage without opening a database', async () => {
+  const value = snapshot()
+  const video = value.library.videoCacheDto[0] as Record<string, unknown>
+  value.library.videoCacheDto = Array.from({ length: 500 }, (_, i) => ({
+    ...video,
+    id: `private-id-${i}`,
+    title: `private-video-${i}.mp4`,
+  }))
+  value.library.VideoMetadata = Array.from({ length: 498 }, (_, i) => ({
+    id: `private-id-${i}`,
+    votes: [5, -5, 0][i % 3],
+  }))
+  value.library.VideoMetadata.push(
+    { id: 'orphan-positive', votes: 9 },
+    { id: 'orphan-negative', votes: -9 },
+  )
+  value.library.VideoPreviewFrames = []
+  value.cache = Array.from({ length: 20 }, (_, i) => ({
+    key: JSON.stringify([`private-id-${i}`, 'motionClips', 'v1']),
+    duration: 60,
+    lastUsed: 1,
+    bytes: 4,
+    product: {
+      kind: 'motionClips',
+      version: 'v1',
+      items: [
+        {
+          timestampSeconds: 0,
+          durationSeconds: 1.5,
+          width: 320,
+          height: 180,
+          blob: new Blob(['clip'], { type: 'video/mp4' }),
+        },
+      ],
+    },
+  }))
+  const archive = await encodeLibraryArchive(value)
+  const originalBytes = await archive.arrayBuffer()
+  const connect = vi.fn(async () => {
+    throw new Error(
+      'Read-only archive inspection must not connect to a database',
+    )
+  })
+  const summary = await new LibraryBackup(connect, connect).inspectArchive(
+    archive,
+  )
+  expect(summary.votes).toEqual({
+    positive: 167,
+    negative: 167,
+    zero: 166,
+    nonzero: 334,
+    missingMetadata: 2,
+    orphanMetadata: 2,
+  })
+  expect(summary.counts).toMatchObject({
+    videoCacheDto: 500,
+    VideoMetadata: 500,
+    previewProducts: 20,
+  })
+  expect(connect).not.toHaveBeenCalled()
+  expect(await archive.arrayBuffer()).toEqual(originalBytes)
+  expect((await decodeLibraryArchive(archive)).library.VideoMetadata).toEqual(
+    value.library.VideoMetadata,
+  )
+  expect(JSON.stringify(summary)).not.toMatch(/private-|orphan-|base64|雪/)
+})
+
+it.each([[], [{ id: 'a', votes: 0 }]])(
+  'distinguishes absent metadata from a saved zero without normalizing either',
+  async (...metadata) => {
+    const value = snapshot()
+    value.library.VideoMetadata = metadata
+    const archive = await encodeLibraryArchive(value)
+    const connect = vi.fn(async () => {
+      throw new Error('Unexpected database access')
+    })
+    const summary = await new LibraryBackup(connect, connect).inspectArchive(
+      archive,
+    )
+    expect(summary.votes).toEqual({
+      positive: 0,
+      negative: 0,
+      zero: metadata.length,
+      nonzero: 0,
+      missingMetadata: 1 - metadata.length,
+      orphanMetadata: 0,
+    })
+    expect(connect).not.toHaveBeenCalled()
+  },
+)
+
+it('rejects damaged vote inspection without database access or a partial summary', async () => {
+  const archive = await encodeLibraryArchive(snapshot())
+  const bytes = new Uint8Array(await archive.arrayBuffer())
+  bytes[bytes.length - 1] ^= 1
+  const connect = vi.fn(async () => {
+    throw new Error('Unexpected database access')
+  })
+  await expect(
+    new LibraryBackup(connect, connect).inspectArchive(new Blob([bytes])),
+  ).rejects.toThrow(/checksum/i)
+  expect(connect).not.toHaveBeenCalled()
+})
+
+it('keeps untrusted free-text identity fields out of copyable inspection evidence', async () => {
+  const value = snapshot()
+  value.build.source = 'private-folder/video.mp4'
+  value.createdAt = '2026-09-07 (private-folder/video.mp4)'
+  const archive = await encodeLibraryArchive(value)
+  const connect = vi.fn(async () => {
+    throw new Error('Unexpected database access')
+  })
+  const summary = await new LibraryBackup(connect, connect).inspectArchive(
+    archive,
+  )
+  expect(summary.build.source).toBe('unknown')
+  expect(summary.createdAt).toBe(new Date(value.createdAt).toISOString())
+  expect(JSON.stringify(summary)).not.toContain('private-folder')
+  expect(connect).not.toHaveBeenCalled()
 })

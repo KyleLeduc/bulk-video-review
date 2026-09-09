@@ -1,5 +1,30 @@
 # Motion previews, seek keyframes and focus recovery smoke plan
 
+## Release checkpoint — read-only backup vote evidence (v8)
+
+Plan revision: `bvr-motion-keyframes-smoke-v8`. Use the exact target SHA in
+Notion after release verification. Owner confirms the full incognito recovery
+at `bvr.preprod.home.arpa` had the expected video count but all votes zero.
+Recovery acceptance remains **failed/open**. This checkpoint gathers evidence;
+it does not claim the lost votes are recovered or that the original cause is fixed.
+
+Do **not** restore again or replace the original backup. Keep the original
+`.bvrbackup` unchanged. Validation reads the archive only; it does not read or
+write the current databases. Vote counts include every metadata record, even
+when only a small part of the library has generated clips.
+
+| ID | Do | Expected result |
+|---|---|---|
+| VE-01 | On the target build, open Diagnostics → Library backup / restore → Validate a backup and select the **original** archive. Do not check replacement confirmation or click Replace library. | Nonzero, positive, negative and zero vote-record counts appear. Missing metadata and metadata without video content are counted separately. No library data changes. |
+| VE-02 | Click **Copy backup summary** and return that JSON. If clipboard permission is denied, manually copy the readonly text below. | Summary contains counts, archive creation date/build, and inspecting origin/build, but no filenames, IDs, tags or preview media. Inspecting build and archive build are distinct. |
+| VE-03 | Interpret the original archive's evidence before another recovery attempt. | If nonzero > 0, investigate where saved values diverge during restore/reimport/display. If nonzero = 0, this archive cannot recover older nonzero scores; determine whether other retained backups or browser profiles contain them. Missing metadata is not a saved zero. Do not infer when loss occurred from these counts alone. |
+
+Return the summary only; no private archive upload is needed for this check.
+Automated tests use synthetic namespaces and compare exact records/Blob bytes,
+including hundreds of mixed vote records with sparse previews. They are not
+proof of the owner's recovery. Queue, voting, restore and database schemas are
+unchanged in this checkpoint; v7 remains historical failed owner evidence.
+
 ## Release checkpoint — preserve restored votes on reimport (v7)
 
 Plan revision: `bvr-motion-keyframes-smoke-v7`. Use the exact target SHA in the

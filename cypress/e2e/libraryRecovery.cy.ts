@@ -50,21 +50,25 @@ function openRecoveryDb(
     request.onerror = () => reject(request.error)
   })
 }
-async function seedRecovery(win: RecoveryWindow, id: string) {
+async function seedRecovery(win: RecoveryWindow, id: string, videoCount = 1) {
   const still = new win.Blob([`still-${id}`], { type: 'image/jpeg' })
   const frame = { timestampSeconds: 0, width: 160, height: 90, blob: still }
+  const ids = Array.from({ length: videoCount }, (_, i) =>
+    i === 0 ? id : `${id}-${i}`,
+  )
   const rows: Record<string, unknown[]> = {
-    videoCacheDto: [
-      {
-        id,
-        title: `private-${id}.mp4`,
-        duration: 60,
-        tags: ['keep'],
-        thumb: 'data:image/jpeg;base64,YQ==',
-        thumbUrls: [],
-      },
-    ],
-    VideoMetadata: [{ id, votes: 7 }],
+    videoCacheDto: ids.map((videoId) => ({
+      id: videoId,
+      title: `private-${videoId}.mp4`,
+      duration: 60,
+      tags: ['keep'],
+      thumb: 'data:image/jpeg;base64,YQ==',
+      thumbUrls: [],
+    })),
+    VideoMetadata: ids.map((videoId, i) => ({
+      id: videoId,
+      votes: [7, -7, 0][i % 3],
+    })),
     VideoIngestionFailures: [
       {
         id: `${id}-failed`,
@@ -156,9 +160,9 @@ async function snapshotRecovery(win: RecoveryWindow) {
   }
   return binaryToText(records)
 }
-function startRecoveryTest(suffix: string) {
+function startRecoveryTest(suffix: string, videoCount = 1) {
   cy.visit('/', { onBeforeLoad: (win) => prepareRecovery(win, suffix) })
-  cy.window().then((win) => seedRecovery(win, 'original'))
+  cy.window().then((win) => seedRecovery(win, 'original', videoCount))
   cy.window().then(snapshotRecovery).as('originalRecords')
   cy.contains('button', 'Diagnostics').click()
   cy.get('[data-testid=other-tabs-closed]').check()
@@ -313,9 +317,36 @@ describe('full library backup and recovery', () => {
       .invoke('val')
       .should('not.include', 'private-truncated.mp4')
   })
-  it('round-trips every store, Blob bytes and metadata, replacing test entries through reload', () => {
-    startRecoveryTest('roundtrip')
+  it('inspects and round-trips hundreds of mixed vote records with sparse previews through reload', () => {
+    startRecoveryTest('roundtrip', 501)
     selectRecoveryArchive()
+    cy.get('textarea[aria-label="Backup inspection summary"]').should(
+      ($summary) => {
+        const output = String($summary.val())
+        const report = JSON.parse(output)
+        expect(report.mode).to.equal('library-backup-inspection-v1')
+        expect(report.origin).to.equal(
+          new URL(String(Cypress.config('baseUrl'))).origin,
+        )
+        expect(report.inspectorBuild).to.have.property('revision')
+        expect(report.archive.counts).to.include({
+          videoCacheDto: 501,
+          VideoMetadata: 501,
+          previewProducts: 3,
+        })
+        expect(report.archive.votes).to.deep.equal({
+          positive: 167,
+          negative: 167,
+          zero: 167,
+          nonzero: 334,
+          missingMetadata: 0,
+          orphanMetadata: 0,
+        })
+        expect(output).not.to.match(/private-|original|base64/)
+      },
+    )
+    // Validation must describe archived scores, not mutate the test-created live data.
+    expectRecoverySnapshot('@testRecords')
     cy.get('[data-testid=restore-library]').click()
     cy.contains('Restore committed')
     cy.get('.content').should('have.attr', 'inert')

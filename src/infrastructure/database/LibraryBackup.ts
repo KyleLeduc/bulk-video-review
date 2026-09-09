@@ -111,9 +111,45 @@ export class LibraryBackup implements ILibraryBackup {
   }
   async inspectArchive(archive: Blob): Promise<LibraryBackupSummary> {
     const snapshot = await decodeLibraryArchive(archive)
+    // The decoder has validated every record. Inspect the archive only: no DB access.
+    const metadata = snapshot.library.VideoMetadata as {
+      id: string
+      votes: number
+    }[]
+    const videoIds = new Set(
+      (snapshot.library.videoCacheDto as { id: string }[]).map((row) => row.id),
+    )
+    const metadataIds = new Set<string>()
+    const votes: LibraryBackupSummary['votes'] = {
+      positive: 0,
+      negative: 0,
+      zero: 0,
+      nonzero: 0,
+      missingMetadata: 0,
+      orphanMetadata: 0,
+    }
+    for (const row of metadata) {
+      metadataIds.add(row.id)
+      if (row.votes > 0) votes.positive++
+      else if (row.votes < 0) votes.negative++
+      else votes.zero++
+      if (!videoIds.has(row.id)) votes.orphanMetadata++
+    }
+    votes.nonzero = votes.positive + votes.negative
+    for (const id of videoIds) {
+      if (!metadataIds.has(id)) votes.missingMetadata++
+    }
     return {
-      createdAt: snapshot.createdAt,
-      build: snapshot.build,
+      createdAt: new Date(snapshot.createdAt).toISOString(),
+      build: {
+        ...snapshot.build,
+        // Archive identity text is untrusted; the shareable summary omits free text.
+        source: ['build-argument', 'local-git', 'unknown'].includes(
+          snapshot.build.source,
+        )
+          ? snapshot.build.source
+          : 'unknown',
+      },
       libraryVersion: snapshot.libraryVersion,
       cacheVersion: snapshot.cacheVersion,
       counts: {
@@ -126,6 +162,7 @@ export class LibraryBackup implements ILibraryBackup {
         previewProducts: snapshot.cache.length,
       },
       archiveBytes: archive.size,
+      votes,
     }
   }
   async restoreArchive(archive: Blob): Promise<void> {

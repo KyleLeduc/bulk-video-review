@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { LIBRARY_BACKUP_KEY } from '@presentation/di/injectionKeys'
 import { useVideoStore } from '@presentation/stores'
 import type { LibraryBackupSummary } from '@app/ports/ILibraryBackup'
+import { BUILD_IDENTITY } from '@/shared/buildIdentity'
 
 const backup = inject(LIBRARY_BACKUP_KEY, undefined)
 const store = useVideoStore()
@@ -11,8 +12,33 @@ const replacementConfirmed = ref(false)
 const archive = ref<File | null>(null)
 const summary = ref<LibraryBackupSummary | null>(null)
 const status = ref('')
+const copyStatus = ref('')
+const summaryJson = computed(() =>
+  summary.value
+    ? JSON.stringify(
+        {
+          mode: 'library-backup-inspection-v1',
+          origin: window.location.origin,
+          inspectorBuild: BUILD_IDENTITY,
+          archive: summary.value,
+        },
+        null,
+        2,
+      )
+    : '',
+)
 const message = (error: unknown) =>
   error instanceof Error ? error.message : 'Library operation failed.'
+async function copySummary() {
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('unavailable')
+    await navigator.clipboard.writeText(summaryJson.value)
+    copyStatus.value = 'Copied backup summary.'
+  } catch {
+    copyStatus.value =
+      'Clipboard unavailable. Select and copy the summary below.'
+  }
+}
 async function download() {
   if (!backup || !otherTabsClosed.value || store.libraryRecoveryRequired) return
   try {
@@ -34,6 +60,7 @@ async function download() {
 async function select(event: Event) {
   archive.value = null
   summary.value = null
+  copyStatus.value = ''
   replacementConfirmed.value = false
   const file = (event.target as HTMLInputElement).files?.[0]
   if (!file || !backup) return
@@ -135,6 +162,43 @@ const reload = () => window.location.reload()
           {{ name }}: {{ count }}
         </li>
       </ul>
+      <div data-testid="backup-vote-summary">
+        <p>
+          Nonzero vote records: {{ summary.votes.nonzero }} (positive:
+          {{ summary.votes.positive }}, negative: {{ summary.votes.negative }})
+          · Zero vote records: {{ summary.votes.zero }}
+        </p>
+        <p>
+          Video records without metadata: {{ summary.votes.missingMetadata }} ·
+          Metadata records without video content:
+          {{ summary.votes.orphanMetadata }}
+        </p>
+        <p v-if="summary.votes.nonzero === 0">
+          This archive contains no nonzero votes, so restoring it cannot recover
+          earlier nonzero scores. This does not establish when votes were lost.
+        </p>
+        <p>
+          These counts describe the selected archive, not the current library.
+          Missing metadata is not a saved zero.
+        </p>
+      </div>
+      <button
+        type="button"
+        data-testid="copy-backup-summary"
+        @click="copySummary"
+      >
+        Copy backup summary
+      </button>
+      <p v-if="copyStatus" role="status">{{ copyStatus }}</p>
+      <label>
+        Backup inspection summary (no filenames, IDs or media)
+        <textarea
+          aria-label="Backup inspection summary"
+          readonly
+          :value="summaryJson"
+          rows="8"
+        />
+      </label>
       <label
         ><input
           v-model="replacementConfirmed"
@@ -173,5 +237,9 @@ label {
 }
 p {
   font-size: 0.85rem;
+}
+textarea {
+  box-sizing: border-box;
+  width: 100%;
 }
 </style>
