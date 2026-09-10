@@ -31,4 +31,4 @@ runtime:
 ingress:
   gateway: preprod
   fqdn: bvr.preprod.home.arpa
-  scheme: http
+  scheme: https

@@ -77,6 +77,7 @@ describe('homelab deployment contract', () => {
     expect(deployment).toContain('rollback_policy: not-applicable')
     expect(deployment).toContain('gateway: preprod')
     expect(deployment).toContain('fqdn: bvr.preprod.home.arpa')
+    expect(deployment).toMatch(/^ {2}scheme: https$/m)
   })
 
   test('builds a pinned non-root image with an immutable revision label', () => {
