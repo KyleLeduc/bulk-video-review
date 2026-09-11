@@ -1,4 +1,6 @@
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
+import type { VideoPreviewDiagnostic } from '../application/ports/IVideoPreviewGenerator'
+import { safeDiagnostics } from '../infrastructure/video/extraction/workerDiagnostics'
 import { readPlayerDuration } from '../infrastructure/video/benchmark/domPreviewExtraction'
 import {
   CLIP_FPS,
@@ -14,6 +16,7 @@ import {
 import { extractClipsWithWorker } from '../infrastructure/video/extraction/clipWorkerClient'
 import {
   EXTRACTION_DEADLINE_MS,
+  ExtractionError,
   MAX_OUTPUT_BYTES,
   safeFailure,
   type FailureReason,
@@ -30,6 +33,7 @@ export type ClipRow = {
   readCalls: number | null
   codec: ClipOutput['codec'] | null
   metrics: ClipOutput['metrics'] | null
+  diagnostics?: VideoPreviewDiagnostic
 }
 export type ClipReport = {
   schemaVersion: 1
@@ -163,6 +167,8 @@ export async function runClipBenchmark(options: {
         sample = { file: file + 1, output }
     } catch (error) {
       row.reason = safeFailure(error)
+      if (error instanceof ExtractionError)
+        row.diagnostics = safeDiagnostics(error.diagnostics)
       row.status = row.reason === 'aborted' ? 'aborted' : 'failed'
     }
     row.wallMs = performance.now() - jobStarted

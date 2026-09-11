@@ -4,6 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 const state = vi.hoisted(() => ({
   events: [] as string[],
   fail: false,
+  end: 60,
   sinkTargets: [] as number[],
   timestamps: 'valid' as
     | 'valid'
@@ -45,7 +46,7 @@ vi.mock('mediabunny', () => ({
         getDisplayHeight: async () => 90,
         canDecode: async () => true,
         getFirstTimestamp: async () => -0.1,
-        computeDuration: async () => 60,
+        computeDuration: async () => state.end,
         getTimeResolution: async () => 1000,
       }
     }
@@ -78,9 +79,29 @@ vi.mock('mediabunny', () => ({
   },
 }))
 afterEach(() => {
+  state.end = 60
   state.timestamps = 'valid'
   vi.unstubAllGlobals()
   vi.resetModules()
+})
+it('returns timeline evidence without enabling benchmark progress traffic', async () => {
+  state.end = 59.97
+  const reply = await runKeyframes()
+  expect(reply).toMatchObject({
+    ok: false,
+    reason: 'unsupported-timeline',
+    diagnostics: {
+      stage: 'timeline',
+      codec: 'avc',
+      trackEnd: 59.97,
+      storedDuration: 60,
+      timelineReason: 'track-ends-before-player',
+      timeResolution: 1000,
+      readBytes: 3,
+      readCalls: 1,
+    },
+  })
+  expect(JSON.stringify(reply)).not.toMatch(/private|stack|message/)
 })
 it.each([
   { fail: false, readerMode: 'direct', count: 9 },
@@ -191,6 +212,7 @@ it.each(['future', 'backward', 'nan', 'warning', 'empty'] as const)(
     expect(await runKeyframes()).toEqual({
       ok: false,
       reason: kind === 'empty' ? 'output-invalid' : 'unsupported-timeline',
+      diagnostics: expect.any(Object),
     })
   },
 )

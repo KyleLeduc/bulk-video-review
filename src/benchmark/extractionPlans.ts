@@ -8,6 +8,7 @@ import {
 
 export type ExtractionPreset =
   | 'motion-keyframes-quality-v1'
+  | 'seek-backends-v1'
   | 'confirmation-v1'
   | 'still-matrix-v1'
   | 'clips-3s-v1'
@@ -30,14 +31,31 @@ export type PlanStep = { id: string; pass: number } & (
     }
   | {
       workload: 'keyframes'
-      execution: 'mediabunny'
-      jobs: 1
+      execution: 'dom' | 'mediabunny'
+      jobs: 1 | 2
       maxWidth: 120 | 160 | 240
     }
 )
 export type ClipPlanStep = Extract<PlanStep, { workload: 'clips' }>
 export type KeyframePlanStep = Extract<PlanStep, { workload: 'keyframes' }>
 export function planSteps(preset: ExtractionPreset): PlanStep[] {
+  if (preset === 'seek-backends-v1') {
+    const first: KeyframePlanStep[] = []
+    for (const jobs of [1, 2] as const)
+      for (const execution of ['mediabunny', 'dom'] as const)
+        first.push({
+          id: `seek-${execution}-${jobs}-160px`,
+          pass: 1,
+          workload: 'keyframes',
+          execution,
+          jobs,
+          maxWidth: 160,
+        })
+    return [
+      ...first,
+      ...[...first].reverse().map((step) => ({ ...step, pass: 2 })),
+    ]
+  }
   if (preset === 'motion-keyframes-quality-v1')
     return [
       {

@@ -9,6 +9,12 @@ export type VideoPreviewDiagnostic = {
   trackStart?: number
   trackEnd?: number
   storedDuration?: number
+  timeResolution?: number
+  timelineReason?:
+    | 'unsupported-edit-list'
+    | 'invalid-timing'
+    | 'leading-gap'
+    | 'track-ends-before-player'
   readBytes?: number
   readCalls?: number
   elapsedMs?: number

@@ -116,6 +116,27 @@ it('retains timeline evidence when cleanup also fails', async () => {
   })
   expect(JSON.stringify(messages)).not.toContain('private cleanup')
 })
+it('returns safe failure evidence even when benchmark progress is disabled', async () => {
+  state.encoderAvailable = true
+  state.end = 2.97
+  const reply = await run(20, 1.5, 3)
+  expect(reply).toMatchObject({
+    ok: false,
+    reason: 'unsupported-timeline',
+    diagnostics: {
+      stage: 'timeline',
+      codec: 'avc',
+      trackStart: 0,
+      trackEnd: 2.97,
+      storedDuration: 3,
+      timeResolution: 1000,
+      timelineReason: 'track-ends-before-player',
+      readBytes: 4,
+      readCalls: 1,
+    },
+  })
+  expect(JSON.stringify(reply)).not.toMatch(/private|stack|message/)
+})
 async function run(
   frameRate: unknown,
   clipSeconds: unknown = 3,
@@ -183,6 +204,9 @@ it('discards production motion when conversion discovers unsupported edits', asy
   expect(await run(20, 1.5, 3)).toEqual({
     ok: false,
     reason: 'unsupported-timeline',
+    diagnostics: expect.objectContaining({
+      timelineReason: 'unsupported-edit-list',
+    }),
   })
   expect(state.removeWarning).toHaveBeenCalledOnce()
 })
@@ -190,6 +214,7 @@ it('rejects unknown workloads instead of running a legacy benchmark', async () =
   expect(await run(20, 1.5, 3, 'unknown')).toEqual({
     ok: false,
     reason: 'invalid-metadata',
+    diagnostics: expect.objectContaining({ stage: 'setup' }),
   })
 })
 it.each([0.5, 1, 1.5, 2])(
@@ -212,6 +237,7 @@ it.each([null, 0, 0.25, 4, NaN, '1'])(
     expect(await run(20, clipSeconds)).toEqual({
       ok: false,
       reason: 'invalid-metadata',
+      diagnostics: expect.objectContaining({ stage: 'setup' }),
     })
     expect(state.options).toBeUndefined()
   },
@@ -237,14 +263,22 @@ it.each([undefined, 0, 60, '24'])(
   async (frameRate) => {
     state.options = undefined
     const reply = await run(frameRate)
-    expect(reply).toEqual({ ok: false, reason: 'invalid-metadata' })
+    expect(reply).toEqual({
+      ok: false,
+      reason: 'invalid-metadata',
+      diagnostics: expect.objectContaining({ stage: 'setup' }),
+    })
     expect(state.options).toBeUndefined()
   },
 )
 it('reports unsupported when no candidate encoder is available', async () => {
   state.encoderAvailable = false
   const reply = await run(10)
-  expect(reply).toEqual({ ok: false, reason: 'unsupported' })
+  expect(reply).toEqual({
+    ok: false,
+    reason: 'unsupported',
+    diagnostics: expect.objectContaining({ codec: 'avc' }),
+  })
 })
 it('selects VP8 and a WebM container when AVC encoding is unavailable', async () => {
   state.encoderAvailable = true

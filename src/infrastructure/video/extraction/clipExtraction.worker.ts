@@ -221,18 +221,14 @@ self.onmessage = async (
     reply = {
       ok: false,
       reason: safeFailure(error),
-      ...(event.data.progress
-        ? {
-            diagnostics: safeDiagnostics({
-              ...diagnostics,
-              ...timeline?.diagnostics(),
-              errorName: (error as Error)?.name,
-              readBytes: reader?.readBytes,
-              readCalls: reader?.readCalls,
-              elapsedMs: performance.now() - started,
-            }),
-          }
-        : {}),
+      diagnostics: safeDiagnostics({
+        ...diagnostics,
+        ...timeline?.diagnostics(),
+        errorName: (error as Error)?.name,
+        readBytes: reader?.readBytes,
+        readCalls: reader?.readCalls,
+        elapsedMs: performance.now() - started,
+      }),
     }
   } finally {
     try {
@@ -243,18 +239,14 @@ self.onmessage = async (
       reply = {
         ok: false,
         reason: prior?.reason ?? 'extraction-failed',
-        ...(event.data.progress
-          ? {
-              diagnostics: safeDiagnostics({
-                ...diagnostics,
-                ...(prior?.diagnostics ?? {
-                  stage: 'cleanup',
-                  errorName: (error as Error)?.name,
-                }),
-                cleanupFailed: true,
-              }),
-            }
-          : {}),
+        diagnostics: safeDiagnostics({
+          ...diagnostics,
+          ...(prior?.diagnostics ?? {
+            stage: 'cleanup',
+            errorName: (error as Error)?.name,
+          }),
+          cleanupFailed: true,
+        }),
       }
     }
     timeline?.dispose()

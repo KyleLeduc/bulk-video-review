@@ -3,10 +3,64 @@ import { mount, flushPromises } from '@vue/test-utils'
 import CustomExtractionBenchmark from './CustomExtractionBenchmark.vue'
 import * as runner from './runExtractionBenchmark'
 import { emptyMetrics } from '../infrastructure/video/extraction/previewExtraction'
+import ExtractionPlanPanel from './ExtractionPlanPanel.vue'
 
 afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+})
+it('selects nested folder videos with private ordinal mapping and ignores sidecars', async () => {
+  vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockImplementation(
+    (type) => (type === 'video/mp4' ? 'probably' : ''),
+  )
+  const wrapper = mount(CustomExtractionBenchmark, {
+    props: {
+      build: { revision: null, dirty: null, assetsSha256: null },
+      capable: true,
+    },
+  })
+  const folder = wrapper.get<HTMLInputElement>('[data-test=extraction-folder]')
+  expect(folder.attributes('webkitdirectory')).toBeDefined()
+  const first = new File(['one'], 'same.mp4', { type: 'video/mp4' })
+  const second = new File(['two'], 'same.mp4', { type: 'video/mp4' })
+  Object.defineProperty(first, 'webkitRelativePath', {
+    value: 'private/a/same.mp4',
+  })
+  Object.defineProperty(second, 'webkitRelativePath', {
+    value: 'private/b/same.mp4',
+  })
+  Object.defineProperty(folder.element, 'files', {
+    value: [first, new File(['secret'], 'notes.txt'), second],
+    configurable: true,
+  })
+  await folder.trigger('change')
+  const plan = wrapper.getComponent(ExtractionPlanPanel)
+  expect(plan.props('files')).toEqual([first, second])
+  expect(wrapper.text()).toContain('1 unsupported/non-video files ignored')
+  expect(wrapper.text()).not.toContain('private/a')
+  await wrapper.get('[data-test=show-file-map]').setValue(true)
+  expect(wrapper.get('[data-test=file-map]').text()).toContain(
+    '1 · private/a/same.mp4',
+  )
+  expect(wrapper.get('[data-test=file-map]').text()).toContain(
+    '2 · private/b/same.mp4',
+  )
+  const selectionId = plan.props('selectionId')
+  Object.defineProperty(folder.element, 'files', {
+    value: [],
+    configurable: true,
+  })
+  await folder.trigger('change')
+  expect(plan.props('selectionId')).toBe(selectionId)
+  expect(plan.props('files')).toEqual([first, second])
+  plan.vm.$emit('active', true)
+  await flushPromises()
+  Object.defineProperty(folder.element, 'files', {
+    value: [new File(['x'], 'other.mp4')],
+  })
+  await folder.trigger('change')
+  expect(plan.props('files')).toEqual([first, second])
+  wrapper.unmount()
 })
 it('separates runner and manual tabs with retained settings and independent validation', async () => {
   const wrapper = mount(CustomExtractionBenchmark, {

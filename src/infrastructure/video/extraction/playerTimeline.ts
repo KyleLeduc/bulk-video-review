@@ -21,8 +21,14 @@ export function createPlayerTimelineGuard() {
     )
       unsupportedEdit = true
   })
+  const reject = (
+    reason: NonNullable<VideoPreviewDiagnostic['timelineReason']>,
+  ): never => {
+    evidence.timelineReason = reason
+    throw new ExtractionError('unsupported-timeline')
+  }
   const assertSupported = () => {
-    if (unsupportedEdit) throw new ExtractionError('unsupported-timeline')
+    if (unsupportedEdit) reject('unsupported-edit-list')
   }
   return {
     diagnostics: () => ({ ...evidence }),
@@ -32,18 +38,23 @@ export function createPlayerTimelineGuard() {
       const first = await track.getFirstTimestamp()
       const end = await track.computeDuration()
       const resolution = await track.getTimeResolution()
-      evidence = { trackStart: first, trackEnd: end, storedDuration: duration }
+      evidence = {
+        trackStart: first,
+        trackEnd: end,
+        storedDuration: duration,
+        timeResolution: resolution,
+      }
       assertSupported()
       if (
         ![first, end, resolution, duration].every(Number.isFinite) ||
         resolution <= 0 ||
         duration <= 0
       )
-        throw new ExtractionError('unsupported-timeline')
+        reject('invalid-timing')
       const tolerance = 1 / resolution
       // Blank leading edits and a video track shorter than the player are not yet qualified.
-      if (first > tolerance || end + tolerance < duration)
-        throw new ExtractionError('unsupported-timeline')
+      if (first > tolerance) reject('leading-gap')
+      if (end + tolerance < duration) reject('track-ends-before-player')
       return tolerance
     },
   }

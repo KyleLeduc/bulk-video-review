@@ -42,5 +42,29 @@ it('rejects unsupported edit-list warnings even if they arrive after metadata', 
   expect(() => guard.assertSupported()).not.toThrow()
   state.warn?.(['Unsupported edit list: private details'])
   expect(() => guard.assertSupported()).toThrow('unsupported-timeline')
+  expect(guard.diagnostics()).toMatchObject({
+    timelineReason: 'unsupported-edit-list',
+    timeResolution: 1000,
+  })
   guard.dispose()
 })
+it.each([
+  { first: 0, end: 59.97, duration: 60, reason: 'track-ends-before-player' },
+  { first: 2, end: 60, duration: 60, reason: 'leading-gap' },
+  { first: 0, end: 60, duration: NaN, reason: 'invalid-timing' },
+])(
+  'preserves the rejection branch without loosening the guard ($reason)',
+  async ({ first, end, duration, reason }) => {
+    const guard = createPlayerTimelineGuard()
+    await expect(guard.check(track(first, end), duration)).rejects.toThrow(
+      'unsupported-timeline',
+    )
+    expect(guard.diagnostics()).toMatchObject({
+      timelineReason: reason,
+      timeResolution: 1000,
+      trackStart: first,
+      trackEnd: end,
+    })
+    guard.dispose()
+  },
+)

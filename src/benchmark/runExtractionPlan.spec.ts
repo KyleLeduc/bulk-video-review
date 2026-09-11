@@ -47,6 +47,102 @@ function setup() {
   return { order, request }
 }
 describe('versioned extraction plans', () => {
+  it('preserves safe clip failure evidence in the exported plan', async () => {
+    setup()
+    vi.spyOn(clips, 'extractClipsWithWorker').mockRejectedValue(
+      new ExtractionError('read-limit', {
+        stage: 'decode',
+        readBytes: 1000000000,
+        readCalls: 954,
+        ...{ message: 'private details', path: 'private.mp4' },
+      }),
+    )
+    const report = await runExtractionPlan({
+      ...options(),
+      preset: 'clips-3s-v1',
+    })
+    expect(report.results[0].report.rows[0]).toMatchObject({
+      status: 'failed',
+      reason: 'read-limit',
+      diagnostics: { stage: 'decode', readBytes: 1000000000, readCalls: 954 },
+    })
+    expect(JSON.stringify(report)).not.toMatch(/private|"path"|"message"/)
+  })
+  it.each([false, true])(
+    'compares seek backends with matched recipes, reversed passes and two bounded samples (bunny fails=%s)',
+    async (fails) => {
+      const { request } = setup()
+      vi.spyOn(dom, 'readPlayerDuration').mockResolvedValue(30)
+      const output = {
+        frames: Array(2).fill(new Blob(['jpeg'], { type: 'image/jpeg' })),
+        width: 160,
+        height: 90,
+        readBytes: 1024,
+        readCalls: 1,
+        metrics: emptyMetrics(),
+      }
+      const native = vi
+        .spyOn(dom, 'extractKeyframesWithDom')
+        .mockResolvedValue({ ...output, readBytes: null, readCalls: null })
+      const candidate = vi
+        .spyOn(bunny, 'extractKeyframesWithWorker')
+        .mockImplementation(async () => {
+          if (fails) throw new ExtractionError('unsupported-timeline')
+          return output
+        })
+      const sample = vi.fn<
+        NonNullable<Parameters<typeof runExtractionPlan>[0]['onKeyframeSample']>
+      >(() => {
+        expect(native).toHaveBeenCalledTimes(4)
+        expect(candidate).toHaveBeenCalledTimes(4)
+      })
+      const result = await runExtractionPlan({
+        ...options(),
+        preset: 'seek-backends-v1',
+        onKeyframeSample: sample,
+      })
+      expect(request).toHaveBeenCalledOnce()
+      expect(result.results).toHaveLength(8)
+      expect(result.status).toBe(fails ? 'failed' : 'completed')
+      const first = result.plannedSteps.slice(0, 4)
+      expect(first.map((step) => [step.execution, step.jobs])).toEqual([
+        ['mediabunny', 1],
+        ['dom', 1],
+        ['mediabunny', 2],
+        ['dom', 2],
+      ])
+      expect(result.plannedSteps.slice(4).map((step) => step.id)).toEqual(
+        first.map((step) => step.id).reverse(),
+      )
+      expect(
+        result.plannedSteps.every(
+          (step) => step.workload === 'keyframes' && step.maxWidth === 160,
+        ),
+      ).toBe(true)
+      for (const entry of result.results) {
+        expect(entry.report.settings).toMatchObject({
+          jobs: entry.step.jobs,
+          execution: entry.step.execution,
+          maxWidth: 160,
+          quality: 0.72,
+          samplingPolicy: '15s-max100',
+        })
+        expect(entry.report.rows[0].status).toBe(
+          fails && entry.step.execution === 'mediabunny' ? 'failed' : 'passed',
+        )
+      }
+      expect(sample).toHaveBeenCalledTimes(fails ? 1 : 2)
+      expect(
+        sample.mock.calls.every(
+          ([value, step]) =>
+            value.file === 1 && step.pass === 1 && step.jobs === 1,
+        ),
+      ).toBe(true)
+      expect(JSON.stringify(result)).not.toMatch(
+        /secret|private|blob:|"targets"/,
+      )
+    },
+  )
   it.each([false, true])(
     'keeps one fixed source and defers mixed-plan media (interrupted=%s)',
     async (interrupted) => {

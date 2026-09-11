@@ -1,4 +1,118 @@
 describe('Automatic plan and motion preview smoke', () => {
+  it('accepts nested folder files and compares production seek backends without exporting paths', () => {
+    cy.visit('/benchmark/')
+    cy.get('[data-test=benchmark-mode]').select('extraction')
+    cy.get('[data-test=extraction-folder]').should(
+      'have.attr',
+      'webkitdirectory',
+    )
+    cy.fixture('videos/short-blue.mp4', 'base64').then((short) => {
+      cy.fixture('videos/long-red.mp4', 'base64').then((long) => {
+        cy.window().then((win) => {
+          const selection = new win.DataTransfer()
+          for (const [contents, relativePath] of [
+            [short, 'private/a/video.mp4'],
+            [long, 'private/b/video.mp4'],
+          ]) {
+            const file = new win.File(
+              [Cypress.Blob.base64StringToBlob(contents, 'video/mp4')],
+              'video.mp4',
+              { type: 'video/mp4' },
+            )
+            Object.defineProperty(file, 'webkitRelativePath', {
+              value: relativePath,
+            })
+            selection.items.add(file)
+          }
+          selection.items.add(
+            new win.File(['private notes'], 'notes.txt', {
+              type: 'text/plain',
+            }),
+          )
+          const input = win.document.querySelector<HTMLInputElement>(
+            '[data-test=extraction-folder]',
+          )!
+          input.files = selection.files
+          input.dispatchEvent(new win.Event('change', { bubbles: true }))
+        })
+      })
+    })
+    cy.get('[data-test=file-map]').should('not.exist')
+    cy.contains('2 files selected').should('be.visible')
+    cy.contains('1 unsupported/non-video files ignored').should('be.visible')
+    cy.get('[data-test=show-file-map]').check()
+    cy.get('[data-test=file-map]')
+      .should('contain', 'private/a/video.mp4')
+      .and('contain', 'private/b/video.mp4')
+    cy.get('[data-test=memory-ack]').check()
+    cy.get('[data-test=plan-preset]').select('seek-backends-v1')
+    cy.get('[data-test=plan-start]').click()
+    cy.get('[data-test=extraction-folder]').should('be.disabled')
+    cy.get('[data-test=plan-json]', { timeout: 120000 })
+      .invoke('val')
+      .should((value) => {
+        const json = String(value)
+        const report = JSON.parse(json)
+        expect(report.status).to.equal('completed')
+        expect(report.results).to.have.length(8)
+        expect(
+          report.results.map(
+            (entry: { step: { jobs: number } }) => entry.step.jobs,
+          ),
+        ).to.deep.equal([1, 1, 2, 2, 2, 2, 1, 1])
+        for (const entry of report.results) {
+          expect(entry.report.settings).to.include({
+            execution: entry.step.execution,
+            jobs: entry.step.jobs,
+            maxWidth: 160,
+            quality: 0.72,
+            samplingPolicy: '15s-max100',
+          })
+          expect(entry.report.peakActiveJobs).to.equal(entry.step.jobs)
+          expect(entry.report.rows).to.have.length(2)
+          for (const row of entry.report.rows) {
+            expect(row.status).to.equal('passed')
+            expect(row.frames).to.equal(row.expectedFrames)
+            expect(row.width).to.be.at.most(160)
+            if (entry.step.execution === 'dom')
+              expect(row.readBytes).to.equal(null)
+            else expect(row.readBytes).to.be.greaterThan(0)
+          }
+        }
+        expect(json).not.to.match(
+          /private|video\.mp4|notes\.txt|blob:|"targets"/,
+        )
+      })
+    cy.get('[data-test=keyframe-backend-dom]').should('contain', 'DOM · 160 px')
+    cy.get('[data-test=keyframe-backend-mediabunny]').should(
+      'contain',
+      'Mediabunny · 160 px',
+    )
+    cy.get('[data-test=keyframe-comparison-rail]')
+      .invoke('val', '0')
+      .trigger('input')
+    cy.get('[data-test=keyframe-comparison] img')
+      .should('have.length', 2)
+      .each((image) => {
+        cy.wrap(image).should((element) => {
+          expect((element[0] as HTMLImageElement).naturalWidth).to.be.within(
+            1,
+            160,
+          )
+          const canvas = element[0].ownerDocument.createElement('canvas')
+          canvas.width = canvas.height = 1
+          const context = canvas.getContext('2d')!
+          context.drawImage(element[0] as HTMLImageElement, 0, 0, 1, 1)
+          const [red, green, blue] = context.getImageData(0, 0, 1, 1).data
+          expect(
+            blue,
+            'first seek thumbnail is blue, not a blank capture',
+          ).to.be.greaterThan(150)
+          expect(red).to.be.lessThan(80)
+          expect(green).to.be.lessThan(80)
+        })
+      })
+  })
   it('runs balanced configurations and compares durations at 20 FPS in separate tabs', () => {
     cy.visit('/benchmark/')
     cy.get('[data-test=benchmark-mode]').select('extraction')
@@ -114,14 +228,29 @@ describe('Automatic plan and motion preview smoke', () => {
     // Freeze native playback while driving ended events to avoid short-clip races.
     cy.get('[data-test=clip-samples] video').then((element) => {
       const media = element[0] as HTMLVideoElement
+      // Native autoplay after load() bypasses the play() stub.
+      media.autoplay = false
       media.pause()
       cy.stub(media, 'play').resolves()
     })
     cy.get('[data-test=clip-variant]').select('1')
+    cy.get('[data-test=clip-samples] video').should((element) =>
+      expect((element[0] as HTMLVideoElement).readyState).to.be.at.least(2),
+    )
     cy.get('[data-test=clip-variant]').select('0')
     cy.contains('[data-test=clip-samples] figcaption', 'Clip 1 / 10')
-    for (let index = 1; index < 10; index++)
-      cy.get('[data-test=clip-samples] video').trigger('ended', { force: true })
+    cy.get('[data-test=clip-playback]').should('contain', 'Pause previews')
+    for (let index = 1; index < 10; index++) {
+      cy.get('[data-test=clip-samples] video')
+        .should((element) =>
+          expect((element[0] as HTMLVideoElement).readyState).to.be.at.least(2),
+        )
+        .trigger('ended', { force: true })
+      cy.contains(
+        '[data-test=clip-samples] figcaption',
+        `Clip ${index + 1} / 10`,
+      )
+    }
     cy.contains('[data-test=clip-samples] figcaption', 'Clip 10 / 10')
     cy.get('[data-test=clip-samples] video').trigger('ended', { force: true })
     cy.contains('[data-test=clip-samples] figcaption', 'Clip 1 / 10')

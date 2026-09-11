@@ -536,8 +536,16 @@ export async function runExtractionPlan(
                   ? await runKeyframeBenchmark({
                       ...common,
                       maxWidth: step.maxWidth,
-                      sampleFile: sampleFile!,
+                      execution: step.execution,
+                      jobs: step.jobs,
+                      sampleFile:
+                        step.pass === 1 && step.jobs === 1 ? 1 : undefined,
                       onSample: (sample) => {
+                        if (
+                          keyframeSamples.length >=
+                          (options.preset === 'seek-backends-v1' ? 2 : 3)
+                        )
+                          throw new Error('Sample limit')
                         keyframeSamples.push({ sample, step })
                       },
                     })

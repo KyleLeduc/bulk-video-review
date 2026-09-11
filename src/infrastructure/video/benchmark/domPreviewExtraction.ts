@@ -16,6 +16,7 @@ import {
   type PreparedExtraction,
   type ExtractionOutput,
 } from '../extraction/previewExtraction'
+import { prepareKeyframes } from '../extraction/keyframeExtraction'
 
 /** Player duration for production-recipe probes; no still-sampling policy. */
 export async function readPlayerDuration(
@@ -62,12 +63,7 @@ export async function extractWithDom(
 ): Promise<ExtractionOutput> {
   const count = prepared.targets.length
   checkPreviewCount(count)
-  const started = performance.now()
-  const metrics = emptyMetrics()
-  const url = URL.createObjectURL(file)
-  let video: HTMLVideoElement | null = null
-  try {
-    video = await loadVideoElement(url, { signal })
+  const output = await extractDomFrames(file, signal, 480, (video) => {
     const current = prepareTargets(
       video.duration,
       video.videoWidth,
@@ -76,35 +72,148 @@ export async function extractWithDom(
     )
     if (JSON.stringify(current) !== JSON.stringify(prepared))
       throw new ExtractionError('invalid-metadata')
+    return current
+  })
+  return validateExtraction(output, prepared)
+}
+
+/** Same production seek targets and JPEG recipe, using the native player. */
+export function extractKeyframesWithDom(
+  file: File,
+  duration: number,
+  signal: AbortSignal,
+  maxWidth = 160,
+): Promise<ExtractionOutput> {
+  return extractDomFrames(file, signal, maxWidth, (video) => {
+    if (video.duration !== duration)
+      throw new ExtractionError('invalid-metadata')
+    return prepareKeyframes(
+      duration,
+      video.videoWidth,
+      video.videoHeight,
+      maxWidth,
+    )
+  })
+}
+
+/** Metadata and a no-op seek at zero do not guarantee drawable frame data. */
+async function waitForFrameData(
+  video: HTMLVideoElement,
+  signal: AbortSignal,
+  initialSeek?: number,
+) {
+  signal.throwIfAborted()
+  if (video.error) throw new ExtractionError('extraction-failed')
+  let sought = initialSeek === undefined
+  const ready = () => sought && video.readyState >= 2 && !video.seeking
+  if (ready()) return
+  await new Promise<void>((resolve, reject) => {
+    const preload = video.preload
+    const cleanup = () => {
+      clearTimeout(timeout)
+      for (const event of ['loadeddata', 'canplay'])
+        video.removeEventListener(event, onReady)
+      video.removeEventListener('seeked', onSeeked)
+      video.removeEventListener('error', onError)
+      video.removeEventListener('abort', onError)
+      signal.removeEventListener('abort', onAbort)
+      video.preload = preload
+    }
+    const onReady = () => {
+      if (!ready()) return
+      cleanup()
+      resolve()
+    }
+    const onError = () => {
+      cleanup()
+      reject(new ExtractionError('extraction-failed'))
+    }
+    const onSeeked = () => {
+      sought = true
+      onReady()
+    }
+    const onAbort = () => {
+      cleanup()
+      reject(signal.reason)
+    }
+    const timeout = setTimeout(onError, 10_000)
+    for (const event of ['loadeddata', 'canplay'])
+      video.addEventListener(event, onReady)
+    video.addEventListener('seeked', onSeeked)
+    video.addEventListener('error', onError)
+    video.addEventListener('abort', onError)
+    signal.addEventListener('abort', onAbort, { once: true })
+    video.preload = 'auto'
+    // Chrome can expose HAVE_ENOUGH_DATA yet draw no initial paused frame.
+    // Explicitly seek even at zero, without shifting the requested timestamp.
+    try {
+      if (initialSeek !== undefined) video.currentTime = initialSeek
+    } catch {
+      onError()
+      return
+    }
+    onReady()
+  })
+}
+
+async function extractDomFrames(
+  file: File,
+  signal: AbortSignal,
+  maxWidth: number,
+  prepare: (video: HTMLVideoElement) => PreparedExtraction,
+): Promise<ExtractionOutput> {
+  signal.throwIfAborted()
+  const started = performance.now()
+  const metrics = emptyMetrics()
+  const url = URL.createObjectURL(file)
+  let video: HTMLVideoElement | null = null
+  try {
+    video = await loadVideoElement(url, { signal })
+    signal.throwIfAborted()
+    const current = prepare(video)
     metrics.setupMs = performance.now() - started
     const frames: Blob[] = []
-    for (const target of prepared.targets) {
+    let outputBytes = 0
+    for (const target of current.targets) {
       const seekStarted = performance.now()
+      const initialSeek =
+        frames.length === 0 &&
+        Math.abs(video.currentTime - target) < 0.01 &&
+        !video.seeking
+          ? target
+          : undefined
       await seekToTime(video, target, { signal })
+      await waitForFrameData(video, signal, initialSeek)
+      signal.throwIfAborted()
       metrics.extractionMs += performance.now() - seekStarted
       const frame = await capturePreviewFrame(video, target, {
         signal,
-        maxWidth: 480,
+        maxWidth,
         onTiming: ({ phase, durationMs }) => {
           if (phase === 'encode') metrics.encodeMs += durationMs
           else if (phase === 'capture') metrics.extractionMs += durationMs
         },
       })
-      frames.push(frame.blob)
-      if (frames.reduce((n, blob) => n + blob.size, 0) > MAX_OUTPUT_BYTES)
+      signal.throwIfAborted()
+      outputBytes += frame.blob.size
+      if (
+        frame.blob.type !== 'image/jpeg' ||
+        frame.blob.size <= 0 ||
+        frame.width !== current.width ||
+        frame.height !== current.height ||
+        outputBytes > MAX_OUTPUT_BYTES
+      )
         throw new ExtractionError('output-invalid')
+      frames.push(frame.blob)
     }
-    return validateExtraction(
-      {
-        metrics,
-        frames,
-        width: current.width,
-        height: current.height,
-        readBytes: null,
-        readCalls: null,
-      },
-      prepared,
-    )
+    return {
+      metrics,
+      frames,
+      width: current.width,
+      height: current.height,
+      readBytes: null,
+      readCalls: null,
+    }
   } finally {
     const cleanupStarted = performance.now()
     disposeVideoElement(video)

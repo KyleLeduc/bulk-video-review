@@ -9,12 +9,14 @@ export function safeDiagnostics(value: unknown): VideoPreviewDiagnostic {
   const data = value as Record<string, unknown>
   if (data.cleanupFailed === true) result.cleanupFailed = true
   if (
+    typeof data.stage === 'string' &&
     ['setup', 'metadata', 'timeline', 'decode', 'encode', 'cleanup'].includes(
-      String(data.stage),
+      data.stage,
     )
   )
     result.stage = data.stage as VideoPreviewDiagnostic['stage']
   if (
+    typeof data.errorName === 'string' &&
     [
       'Error',
       'TypeError',
@@ -26,15 +28,30 @@ export function safeDiagnostics(value: unknown): VideoPreviewDiagnostic {
       'InvalidStateError',
       'AbortError',
       'QuotaExceededError',
-    ].includes(String(data.errorName))
+    ].includes(data.errorName)
   )
     result.errorName = data.errorName as string
-  if (['avc', 'hevc', 'vp8', 'vp9', 'av1'].includes(String(data.codec)))
+  if (
+    typeof data.codec === 'string' &&
+    ['avc', 'hevc', 'vp8', 'vp9', 'av1'].includes(data.codec)
+  )
     result.codec = data.codec as string
+  if (
+    typeof data.timelineReason === 'string' &&
+    [
+      'unsupported-edit-list',
+      'invalid-timing',
+      'leading-gap',
+      'track-ends-before-player',
+    ].includes(data.timelineReason)
+  )
+    result.timelineReason =
+      data.timelineReason as VideoPreviewDiagnostic['timelineReason']
   for (const key of [
     'trackStart',
     'trackEnd',
     'storedDuration',
+    'timeResolution',
     'readBytes',
     'readCalls',
     'elapsedMs',

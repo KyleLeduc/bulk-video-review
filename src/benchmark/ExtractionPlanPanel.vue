@@ -6,7 +6,11 @@ import MotionPreview from '../presentation/components/MotionPreview.vue'
 import SeekPreviewTooltip from '../presentation/components/SeekPreviewTooltip.vue'
 import type { KeyframeWidth } from './runKeyframeBenchmark'
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
-import { planSteps, type ExtractionPreset } from './extractionPlans'
+import {
+  planSteps,
+  type ExtractionPreset,
+  type KeyframePlanStep,
+} from './extractionPlans'
 import {
   CLIP_FPS,
   CLIP_SECONDS,
@@ -61,6 +65,7 @@ const isKeyframePlan = computed(() =>
 )
 const steps = computed(() => planSteps(preset.value))
 type KeyframeVariant = {
+  execution: 'dom' | 'mediabunny'
   maxWidth: KeyframeWidth
   duration: number
   bytes: number
@@ -78,13 +83,27 @@ const comparisonDuration = computed(
   () => keyframeVariants.value[0]?.duration ?? 0,
 )
 const comparisons = computed(() =>
-  ([120, 160, 240] as const).map((width) => ({
-    width,
-    variant: keyframeVariants.value.find(
-      (variant) => variant.maxWidth === width,
-    ),
-    failure: keyframeFailure(width),
-  })),
+  steps.value
+    .filter(
+      (step): step is KeyframePlanStep =>
+        step.workload === 'keyframes' && step.pass === 1 && step.jobs === 1,
+    )
+    .map((step) => ({
+      key:
+        preset.value === 'seek-backends-v1'
+          ? `backend-${step.execution}`
+          : `width-${step.maxWidth}`,
+      label:
+        preset.value === 'seek-backends-v1'
+          ? `${step.execution === 'dom' ? 'DOM' : 'Mediabunny'} · ${step.maxWidth} px`
+          : `${step.maxWidth} px`,
+      variant: keyframeVariants.value.find(
+        (variant) =>
+          variant.maxWidth === step.maxWidth &&
+          variant.execution === step.execution,
+      ),
+      failure: keyframeFailure(step),
+    })),
 )
 let sampleDisplayFailed = false
 
@@ -98,10 +117,9 @@ function compareAtPointer(event: PointerEvent) {
 function compareAtInput(event: Event) {
   comparisonSeconds.value = Number((event.target as HTMLInputElement).value)
 }
-function keyframeFailure(width: number) {
+function keyframeFailure(step: KeyframePlanStep) {
   const entry = completed.value.find(
-    (entry) =>
-      entry.step.workload === 'keyframes' && entry.step.maxWidth === width,
+    (entry) => entry.step.id === step.id && entry.step.pass === step.pass,
   )
   if (entry?.report.mode !== 'keyframe-extraction-v1') return 'Unavailable'
   return `Unavailable: ${entry.report.rows.find((row) => row.file === 1)?.reason ?? 'no sample'}`
@@ -306,7 +324,13 @@ async function start() {
         if (!canPublish()) return
         const frames: KeyframeVariant['frames'] = []
         try {
-          if (sample.file !== 1 || keyframeVariants.value.length >= 3)
+          if (
+            sample.file !== 1 ||
+            step.pass !== 1 ||
+            step.jobs !== 1 ||
+            keyframeVariants.value.length >=
+              (preset.value === 'seek-backends-v1' ? 2 : 3)
+          )
             throw new Error('Wrong comparison source or sample limit')
           const targets = keyframeTargets(sample.duration)
           for (const [index, blob] of sample.output.frames.entries())
@@ -319,6 +343,7 @@ async function start() {
           keyframeVariants.value = [
             ...keyframeVariants.value,
             {
+              execution: step.execution,
               maxWidth: step.maxWidth,
               duration: sample.duration,
               bytes: sample.output.frames.reduce(
@@ -410,6 +435,10 @@ onBeforeUnmount(() => {
         <option value="motion-keyframes-quality-v1">
           Motion + seek quality: 1.5 s · 20 FPS · 120 / 160 / 240 px
         </option>
+        <option value="seek-backends-v1">
+          Seek backends: DOM / Mediabunny · 160 px · 1 / 2 jobs · reversed
+          passes
+        </option>
         <option value="clips-duration-v1">
           Clip duration: 0.5 / 1 / 1.5 / 2 s · 20 FPS
         </option>
@@ -432,7 +461,12 @@ onBeforeUnmount(() => {
       its settings; Manual config does not apply. Keep the browser tab visible.
       Stop retains partial results.
     </p>
-    <p v-if="isKeyframePlan">
+    <p v-if="preset === 'seek-backends-v1'">
+      Matched 160 px JPEG seeks, every 15 seconds up to 100. Includes player
+      metadata preparation. Compare successful batches only; failures are not
+      speed wins. Video 1 samples appear after all timing ends.
+    </p>
+    <p v-else-if="isKeyframePlan">
       Production clips plus seek thumbnails every 15 seconds, capped at 100.
       Compare video 1 at the same tooltip size. Previews appear after all
       measured work ends.
@@ -454,7 +488,15 @@ onBeforeUnmount(() => {
     </p>
     <details>
       <summary>Preset details and limits</summary>
-      <p v-if="isKeyframePlan">
+      <p v-if="preset === 'seek-backends-v1'">
+        Both backends use quality 0.72, the same targets and one or two jobs.
+        Pass 2 reverses the order; shared caches are not reset. Each file has
+        120 seconds including metadata and at most 16 MiB encoded output.
+        Mediabunny uses buffered 1 MiB reads capped at 1 GiB; native reads are
+        unmeasured and uncapped. At most two sample sets are retained (32 MiB).
+        This tests extraction, not the full ingestion queue or decoder memory.
+      </p>
+      <p v-else-if="isKeyframePlan">
         One job, no app cache. Up to ten silent 1.5-second clips at 20 FPS; JPEG
         seek thumbnails at quality 0.72. Each worker allows 1 GiB of application
         reads, 16 MiB encoded output and 120 seconds. Metadata preparation is
@@ -581,6 +623,7 @@ onBeforeUnmount(() => {
             <th>Video</th>
             <th>Frames / expected</th>
             <th>Encoded size</th>
+            <th>File wall</th>
             <th>Output</th>
             <th>Status</th>
           </tr>
@@ -590,6 +633,7 @@ onBeforeUnmount(() => {
             <td>{{ row.file }}</td>
             <td>{{ row.frames }} / {{ row.expectedFrames ?? '—' }}</td>
             <td>{{ row.width ?? '—' }} × {{ row.height ?? '—' }}</td>
+            <td>{{ seconds(row.wallMs) }}</td>
             <td>{{ (row.outputBytes / 1024).toFixed(1) }} KiB</td>
             <td>{{ row.status }} {{ row.reason ?? '' }}</td>
           </tr>
@@ -599,13 +643,21 @@ onBeforeUnmount(() => {
     <section
       v-if="
         !running &&
-        result?.preset === 'motion-keyframes-quality-v1' &&
+        result &&
+        isKeyframePlan &&
         result.status !== 'interrupted' &&
         !sampleDisplayFailed
       "
       data-test="keyframe-comparison"
     >
-      <h4>Motion + seek quality — video 1</h4>
+      <h4>
+        {{
+          preset === 'seek-backends-v1'
+            ? 'Seek backends'
+            : 'Motion + seek quality'
+        }}
+        — video 1
+      </h4>
       <div v-if="motionClips.length" class="quality-motion">
         <img
           v-if="keyframeVariants[0]?.frames[0]"
@@ -618,7 +670,7 @@ onBeforeUnmount(() => {
           @error="reportPlaybackError"
         />
       </div>
-      <p v-else>Motion unavailable for video 1.</p>
+      <p v-else-if="isClipPlan">Motion unavailable for video 1.</p>
       <button
         v-if="motionClips.length"
         data-test="quality-playback"
@@ -628,17 +680,17 @@ onBeforeUnmount(() => {
       </button>
       <p v-if="playbackError" role="status">{{ playbackError }}</p>
       <p>
-        Hover or scrub the rail. Every width uses the production tooltip
-        viewport; only encoded image size changes.
+        Hover or scrub the rail. All samples use the same source video, target
+        times and production tooltip viewport.
       </p>
       <div class="quality-widths">
         <div
           v-for="comparison in comparisons"
-          :key="comparison.width"
-          :data-test="`keyframe-width-${comparison.width}`"
+          :key="comparison.key"
+          :data-test="`keyframe-${comparison.key}`"
           class="quality-width"
         >
-          <strong>{{ comparison.width }} px</strong>
+          <strong>{{ comparison.label }}</strong>
           <template v-if="comparison.variant">
             <p>
               {{ comparison.variant.frames[0]?.width }} ×
@@ -754,10 +806,10 @@ onBeforeUnmount(() => {
       />
     </label>
     <p>
-      Exports include exact file sizes, ordinals, codec choice and counters, but
-      no filenames, paths, tags, source timestamps or media. Those metadata can
-      still be identifying. Clips stay local; embedded source tags are not
-      copied.
+      Exports include exact file sizes, ordinals, codec choice, counters and
+      allowlisted timeline diagnostics, but no filenames, paths, tags, raw
+      errors or media. Those metadata can still be identifying. Clips stay
+      local; embedded source tags are not copied.
     </p>
   </section>
 </template>

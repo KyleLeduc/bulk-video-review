@@ -8,6 +8,7 @@ import {
   watch,
 } from 'vue'
 import type { BuildIdentity } from '../shared/benchmark/videoBenchmarkProtocol'
+import { isBrowserPlayableVideoFile } from '../shared/video/browserPlayableVideoTypes'
 import type { FileReaderMode } from '../infrastructure/video/extraction/fileReader'
 import type { PreviewCount } from '../infrastructure/video/extraction/previewExtraction'
 import ExtractionPlanPanel from './ExtractionPlanPanel.vue'
@@ -22,6 +23,8 @@ import {
 const props = defineProps<{ build: BuildIdentity; capable: boolean }>()
 const emit = defineEmits<{ active: [value: boolean] }>()
 const files = shallowRef<File[]>([])
+const ignoredFiles = ref(0)
+const showFileMap = ref(false)
 const selectionId = ref('')
 const repetitions = ref(3)
 const execution = ref<ExtractionExecution>('paired')
@@ -85,9 +88,16 @@ function releaseSamples() {
   samples.value = []
   samplePair.value = ''
 }
-function select(event: Event) {
+function select(event: Event, folder = false) {
+  if (active.value) return
+  const input = event.target as HTMLInputElement
+  const selected = Array.from(input.files ?? [])
+  if (!selected.length) return
   releaseSamples()
-  files.value = Array.from((event.target as HTMLInputElement).files ?? [])
+  files.value = folder ? selected.filter(isBrowserPlayableVideoFile) : selected
+  ignoredFiles.value = selected.length - files.value.length
+  showFileMap.value = false
+  input.value = ''
   selectionId.value = crypto.randomUUID()
   rows.value = []
   result.value = undefined
@@ -227,13 +237,38 @@ onBeforeUnmount(() => {
           type="file"
           multiple
           accept="video/*,.mp4,.m4v,.mov"
-          @change="select"
+          @change="select($event)"
+      /></label>
+      <label
+        >Folder, including subfolders
+        <input
+          data-test="extraction-folder"
+          type="file"
+          multiple
+          webkitdirectory
+          @change="select($event, true)"
       /></label>
       <p>
-        {{ files.length }} files selected. Candidate currently supports
-        MP4/H.264 with browser WebCodecs; unsupported files are reported, never
-        silently retried with DOM.
+        {{ files.length }} files selected.
+        {{ ignoredFiles }} unsupported/non-video files ignored by the folder
+        filter, matching normal import. Manual files can still probe unsupported
+        inputs. Candidate currently supports MP4/H.264 with browser WebCodecs;
+        unsupported files are reported, never silently retried with DOM.
       </p>
+      <label v-if="files.length">
+        <input
+          v-model="showFileMap"
+          data-test="show-file-map"
+          type="checkbox"
+        />
+        Show private file-number mapping (names/paths stay out of JSON)
+      </label>
+      <ol v-if="showFileMap" data-test="file-map">
+        <li v-for="(file, index) in files" :key="index">
+          {{ index + 1 }} · {{ file.webkitRelativePath || file.name }} ·
+          {{ file.size }} bytes
+        </li>
+      </ol>
       <label
         ><input v-model="acknowledged" data-test="memory-ack" type="checkbox" />
         I understand the experimental memory limits.</label
@@ -552,6 +587,11 @@ button {
 }
 .table-scroll {
   overflow-x: auto;
+}
+[data-test='file-map'] {
+  max-height: 18rem;
+  overflow: auto;
+  overflow-wrap: anywhere;
 }
 table {
   border-collapse: collapse;

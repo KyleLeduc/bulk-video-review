@@ -6,6 +6,7 @@ import { planSteps } from './extractionPlans'
 import MotionPreview from '../presentation/components/MotionPreview.vue'
 import SeekPreviewTooltip from '../presentation/components/SeekPreviewTooltip.vue'
 import { emptyMetrics } from '../infrastructure/video/extraction/previewExtraction'
+import type { KeyframeReport } from './runKeyframeBenchmark'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -18,6 +19,103 @@ const props = {
   disabled: false,
   busy: false,
 }
+it('labels seek backend samples separately and keeps failed backends unavailable', async () => {
+  vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:native-seek')
+  const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+  vi.spyOn(runner, 'runExtractionPlan').mockImplementation(async (options) => {
+    const result: runner.ExtractionPlanReport = {
+      ...report(),
+      preset: 'seek-backends-v1',
+      status: 'failed',
+      plannedSteps: planSteps('seek-backends-v1'),
+    }
+    for (const step of result.plannedSteps.slice(0, 2)) {
+      if (step.workload !== 'keyframes') throw new Error('Wrong preset')
+      const failed = step.execution === 'mediabunny'
+      const evidence: KeyframeReport = {
+        schemaVersion: 1,
+        mode: 'keyframe-extraction-v1',
+        status: failed ? 'failed' : 'completed',
+        settings: {
+          jobs: step.jobs,
+          execution: step.execution,
+          samplingPolicy: '15s-max100',
+          maxWidth: 160,
+          quality: 0.72,
+          readerMode: failed ? 'buffered-1mib' : null,
+          maxReadBytes: failed ? 1073741824 : null,
+          maxOutputBytes: 16777216,
+          deadlineMs: 120000,
+          candidate: 'mediabunny@1.55.7',
+        },
+        selection: result.selection,
+        identity: result.identity,
+        peakActiveJobs: 1,
+        wallMs: 150,
+        rows: [
+          {
+            file: 1,
+            status: failed ? 'failed' : 'passed',
+            reason: failed ? 'unsupported-timeline' : null,
+            expectedFrames: 1,
+            frames: failed ? 0 : 1,
+            outputBytes: failed ? 0 : 3,
+            width: failed ? null : 160,
+            height: failed ? null : 90,
+            readBytes: null,
+            readCalls: null,
+            metrics: null,
+            wallMs: 150,
+          },
+        ],
+      }
+      const entry = { step, report: evidence }
+      result.results.push(entry)
+      options.onStep?.(entry, result.results.length)
+      if (!failed)
+        options.onKeyframeSample?.(
+          {
+            file: 1,
+            duration: 1,
+            output: {
+              frames: [new Blob(['jpg'], { type: 'image/jpeg' })],
+              width: 160,
+              height: 90,
+              readBytes: null,
+              readCalls: null,
+              metrics: emptyMetrics(),
+            },
+          },
+          step,
+        )
+    }
+    return result
+  })
+  const wrapper = mount(ExtractionPlanPanel, { props })
+  await wrapper.get('[data-test=plan-preset]').setValue('seek-backends-v1')
+  expect(wrapper.text()).toContain('8 configurations')
+  expect(wrapper.text()).not.toContain('Production clips plus')
+  await wrapper.get('[data-test=plan-start]').trigger('click')
+  await flushPromises()
+  expect(
+    wrapper.get('[data-test=keyframe-backend-mediabunny]').text(),
+  ).toContain('Unavailable: unsupported-timeline')
+  expect(wrapper.get('[data-test=keyframe-backend-dom]').text()).toContain(
+    'DOM · 160 px',
+  )
+  expect(wrapper.get('[data-test=keyframe-backend-dom]').text()).toContain(
+    '1 frames',
+  )
+  expect(wrapper.text()).toContain('File wall')
+  expect(wrapper.text()).not.toContain('Motion unavailable')
+  await wrapper.get('[data-test=keyframe-comparison-rail]').setValue('0.5')
+  expect(wrapper.findAllComponents(SeekPreviewTooltip)).toHaveLength(1)
+  expect(
+    wrapper.get<HTMLTextAreaElement>('[data-test=plan-json]').element.value,
+  ).not.toMatch(/private.mp4|blob:native/)
+  wrapper.unmount()
+  expect(revoke).toHaveBeenCalledWith('blob:native-seek')
+})
 it.each([false, true])(
   'compares fixed-source keyframes at the shared viewport and cleans allocations (URL failure=%s)',
   async (allocationFailure) => {
