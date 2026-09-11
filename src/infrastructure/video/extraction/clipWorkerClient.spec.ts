@@ -25,6 +25,41 @@ function setup() {
   return worker
 }
 const file = new File(['private'], 'private.mp4')
+it.each([0.76, 1, 0, -1, NaN, Infinity, 1.1])(
+  'validates production clip duration %s without requiring a full-length short source',
+  async (duration) => {
+    const worker = setup()
+    const promise = extractClipsWithWorker(
+      file,
+      new AbortController().signal,
+      20,
+      1.5,
+      { kind: 'motion', duration: 1 },
+    )
+    const output = {
+      clips: [
+        { blob: new Blob(['mp4'], { type: 'video/mp4' }), start: 0, duration },
+      ],
+      width: 160,
+      height: 90,
+      codec: 'avc',
+      readBytes: 4,
+      readCalls: 1,
+      metrics: {
+        setupMs: 1,
+        conversionMs: 2,
+        firstClipMs: 3,
+        totalMs: 4,
+        readMs: 1,
+        readMaxMs: 1,
+      },
+    }
+    worker.onmessage?.({ data: { ok: true, output } } as MessageEvent)
+    if (duration > 0 && duration <= 1)
+      await expect(promise).resolves.toEqual(output)
+    else await expect(promise).rejects.toThrow('output-invalid')
+  },
+)
 it('retains the last progress evidence when the host deadline fires', async () => {
   vi.useFakeTimers()
   const worker = setup()

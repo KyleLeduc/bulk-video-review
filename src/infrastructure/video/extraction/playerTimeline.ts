@@ -1,6 +1,7 @@
 import { Logging } from 'mediabunny'
 import { ExtractionError } from './previewExtraction'
 import type { VideoPreviewDiagnostic } from '@app/ports/IVideoPreviewGenerator'
+import type { ClipWindow } from './clipExtraction'
 
 type TimelineTrack = {
   getFirstTimestamp(): Promise<number>
@@ -52,10 +53,29 @@ export function createPlayerTimelineGuard() {
       )
         reject('invalid-timing')
       const tolerance = 1 / resolution
-      // Blank leading edits and a video track shorter than the player are not yet qualified.
-      if (first > tolerance) reject('leading-gap')
-      if (end + tolerance < duration) reject('track-ends-before-player')
-      return tolerance
+      const start = Math.max(0, first)
+      const usableEnd = Math.min(end, duration)
+      if (!Number.isFinite(tolerance) || usableEnd <= start)
+        reject('invalid-timing')
+      // Browsing slots are approximate. A tick is timestamp precision, not an
+      // allowed player/track duration mismatch. Never sample the exclusive end.
+      const lastTarget = Math.max(start, usableEnd - tolerance)
+      return {
+        tolerance,
+        clampTimestamp: (target: number) =>
+          Math.max(start, Math.min(target, lastTarget)),
+        clampWindow: (window: ClipWindow): ClipWindow => {
+          const length = Math.min(window.end - window.start, usableEnd - start)
+          const clipStart = Math.max(
+            start,
+            Math.min(window.start, usableEnd - length),
+          )
+          return {
+            start: clipStart,
+            end: Math.min(usableEnd, clipStart + length),
+          }
+        },
+      }
     },
   }
 }

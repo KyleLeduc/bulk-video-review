@@ -53,6 +53,29 @@ afterEach(() => {
 })
 
 describe('inert motion preview lifecycle', () => {
+  test.each(['clips', 'stills'] as const)(
+    'uses the latest visibility when multiple %s transitions arrive together',
+    async (kind) => {
+      const wrapper = mount(MotionPreview, {
+        props: {
+          clips: kind === 'clips' ? clips() : [],
+          stills: [buildPreviewProducts().keyframes[0]],
+          active: true,
+        },
+      })
+      const media = kind === 'clips' ? 'video' : 'img'
+      intersect([{ isIntersecting: false }, { isIntersecting: true }])
+      await flushPromises()
+      expect(wrapper.find(media).exists()).toBe(true)
+      expect(createUrl).toHaveBeenCalledOnce()
+      intersect([{ isIntersecting: true }, { isIntersecting: false }])
+      await flushPromises()
+      expect(wrapper.find(media).exists()).toBe(false)
+      expect(revokeUrl).toHaveBeenCalledOnce()
+      wrapper.unmount()
+    },
+  )
+
   test('cycles nine fallback stills, wraps, and gives real clips precedence', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     const stills = Array.from({ length: 9 }, (_, i) => ({

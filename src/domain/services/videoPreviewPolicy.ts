@@ -105,8 +105,9 @@ export function hasCompleteMotionClips(
         clip.height % 2 === 0 &&
         clip.blob.size <= 2 * 1024 * 1024 &&
         Math.abs(clip.timestampSeconds - windows[i].start) < 1e-6 &&
-        Math.abs(clip.durationSeconds - (windows[i].end - windows[i].start)) <
-          1e-6,
+        Number.isFinite(clip.durationSeconds) &&
+        clip.durationSeconds > 0 &&
+        clip.durationSeconds <= windows[i].end - windows[i].start + 1e-6,
     ) &&
     clips.reduce((sum, clip) => sum + clip.blob.size, 0) <= MAX_PRODUCT_BYTES
   )

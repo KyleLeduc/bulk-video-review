@@ -103,19 +103,22 @@ self.onmessage = async (
     )
     if (!(await track.canDecode())) throw new ExtractionError('unsupported')
     let tolerance = 0
+    let targets = prepared?.targets
     if (keyframes) {
       diagnostics.stage = 'timeline'
       if (keyframes.kind !== 'keyframes')
         throw new ExtractionError('invalid-metadata')
-      tolerance = await timeline!.check(track, keyframes.duration)
+      const range = await timeline!.check(track, keyframes.duration)
+      tolerance = range.tolerance
       prepared = prepareKeyframes(
         keyframes.duration,
         await track.getDisplayWidth(),
         await track.getDisplayHeight(),
         keyframes.maxWidth,
       )
+      targets = prepared.targets.map(range.clampTimestamp)
     }
-    if (!prepared) throw new ExtractionError('invalid-metadata')
+    if (!prepared || !targets) throw new ExtractionError('invalid-metadata')
     const sink = new CanvasSink(track, {
       width: prepared.width,
       height: prepared.height,
@@ -126,7 +129,7 @@ self.onmessage = async (
     let outputBytes = 0
     let previousTimestamp = -Infinity
     metrics.setupMs = performance.now() - started
-    const iterator = sink.canvasesAtTimestamps(prepared.targets)
+    const iterator = sink.canvasesAtTimestamps(targets)
     try {
       for (;;) {
         diagnostics.stage = 'decode'
@@ -142,7 +145,7 @@ self.onmessage = async (
           if (
             !Number.isFinite(wrapped.timestamp) ||
             wrapped.timestamp < previousTimestamp ||
-            wrapped.timestamp > prepared.targets[frames.length] + tolerance
+            wrapped.timestamp > targets[frames.length] + tolerance
           )
             throw new ExtractionError('unsupported-timeline')
           previousTimestamp = wrapped.timestamp

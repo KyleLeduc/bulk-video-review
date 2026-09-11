@@ -13,6 +13,27 @@ import {
 } from './videoPreviewPolicy'
 
 describe('video preview product policy', () => {
+  it.each([0.76, 1, 0, -1, NaN, Infinity, 1.1])(
+    'validates a short source clip duration %s against its nominal slot',
+    (durationSeconds) => {
+      const video = buildParsedVideo({
+        duration: 1,
+        previewVersions: { motionClips: MOTION_PREVIEW_VERSION },
+        motionClips: [
+          {
+            timestampSeconds: 0,
+            durationSeconds,
+            width: 160,
+            height: 90,
+            blob: new Blob(['mp4'], { type: 'video/mp4' }),
+          },
+        ],
+      })
+      expect(hasCompleteMotionClips(video)).toBe(
+        durationSeconds > 0 && durationSeconds <= 1,
+      )
+    },
+  )
   it('accepts only complete bounded still fallback with a sanitized original failure', () => {
     const video = buildParsedVideo({ duration: 60 })
     video.motionFallback = {

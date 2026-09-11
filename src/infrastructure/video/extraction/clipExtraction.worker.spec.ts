@@ -5,6 +5,7 @@ const state = vi.hoisted(() => ({
   encoderAvailable: true,
   avcAvailable: true,
   options: undefined as unknown,
+  trims: [] as Array<{ start: number; end: number }>,
   first: 0,
   end: 3,
   warnOnConversion: false,
@@ -68,8 +69,12 @@ vi.mock('mediabunny', () => {
     StreamTarget,
     Output,
     Conversion: {
-      init: async (options: { output: Output }) => {
+      init: async (options: {
+        output: Output
+        trim: { start: number; end: number }
+      }) => {
         state.options = options
+        state.trims.push(options.trim)
         return {
           isValid: true,
           utilizedTracks: [track],
@@ -97,6 +102,8 @@ vi.mock('mediabunny', () => {
 afterEach(() => {
   state.first = 0
   state.end = 3
+  state.trims = []
+  state.encoderAvailable = true
   state.warnOnConversion = false
   state.failCleanup = false
   state.removeWarning.mockClear()
@@ -118,7 +125,7 @@ it('retains timeline evidence when cleanup also fails', async () => {
 })
 it('returns safe failure evidence even when benchmark progress is disabled', async () => {
   state.encoderAvailable = true
-  state.end = 2.97
+  state.end = 0
   const reply = await run(20, 1.5, 3)
   expect(reply).toMatchObject({
     ok: false,
@@ -127,15 +134,56 @@ it('returns safe failure evidence even when benchmark progress is disabled', asy
       stage: 'timeline',
       codec: 'avc',
       trackStart: 0,
-      trackEnd: 2.97,
+      trackEnd: 0,
       storedDuration: 3,
       timeResolution: 1000,
-      timelineReason: 'track-ends-before-player',
+      timelineReason: 'invalid-timing',
       readBytes: 4,
       readCalls: 1,
     },
   })
   expect(JSON.stringify(reply)).not.toMatch(/private|stack|message/)
+})
+it('bounds motion trims around leading gaps and short tails, preserving nominal slots', async () => {
+  state.first = 0.046
+  state.end = 4.4
+  const reply = await run(20, 1.5, 6)
+  expect(reply.ok).toBe(true)
+  expect(state.trims).toHaveLength(2)
+  expect(state.trims[0]).toEqual({ start: 0.046, end: 1.546 })
+  expect(state.trims[1].start).toBeCloseTo(2.9, 8)
+  expect(state.trims[1].end).toBe(4.4)
+  expect(
+    reply.output.clips.map((clip: { start: number }) => clip.start),
+  ).toEqual([0, 3])
+  expect(
+    reply.output.clips.map((clip: { duration: number }) => clip.duration),
+  ).toEqual([1.5, 1.5])
+})
+it('reports the shorter actual trim length when a whole track cannot fill the slot', async () => {
+  state.first = 0.04
+  state.end = 0.8
+  const reply = await run(20, 1.5, 1)
+  expect(reply.ok).toBe(true)
+  expect(state.trims).toEqual([{ start: 0.04, end: 0.8 }])
+  expect(reply.output.clips).toHaveLength(1)
+  expect(reply.output.clips[0]).toMatchObject({ start: 0, duration: 0.76 })
+})
+it('keeps every nominal clip slot when only a short usable track is available', async () => {
+  state.first = 0.05
+  state.end = 0.85
+  const reply = await run(20, 1.5, 60)
+  expect(reply.ok).toBe(true)
+  expect(state.trims).toHaveLength(10)
+  for (const trim of state.trims) {
+    expect(trim.start).toBeCloseTo(0.05, 8)
+    expect(trim.end).toBe(0.85)
+  }
+  expect(
+    reply.output.clips.map((clip: { start: number }) => clip.start),
+  ).toEqual(Array.from({ length: 10 }, (_, i) => i * 6))
+  for (const clip of reply.output.clips)
+    expect(clip.duration).toBeCloseTo(0.8, 8)
 })
 async function run(
   frameRate: unknown,

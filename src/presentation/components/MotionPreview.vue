@@ -165,7 +165,8 @@ onMounted(() => {
   mediaQuery?.addEventListener('change', motionChanged)
   if (typeof IntersectionObserver !== 'undefined') {
     observer = new IntersectionObserver((entries) => {
-      inView.value = entries[0]?.isIntersecting ?? false
+      // One observed element can cross the viewport twice before delivery.
+      inView.value = entries.at(-1)?.isIntersecting ?? false
     })
     if (container.value) observer.observe(container.value)
   }

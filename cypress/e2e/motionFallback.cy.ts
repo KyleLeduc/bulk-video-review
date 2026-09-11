@@ -108,7 +108,7 @@ describe('motion failure still slideshow', () => {
       onBeforeLoad: (win) => prepareFallbackSmoke(win, 'success', false),
     })
     cy.get(fallbackPicker).selectFile(
-      'cypress/fixtures/videos/short-blue.mp4',
+      'cypress/fixtures/videos/boundary-short-blue.mp4',
       { force: true },
     )
     cy.contains('.product-progress', 'Seek thumbnails ready 1 / 1', {
@@ -126,6 +126,7 @@ describe('motion failure still slideshow', () => {
       expect(video.paused).to.equal(false)
       expect(video.controls).to.equal(false)
       expect(video.muted).to.equal(true)
+      expect(video.duration).to.be.closeTo(0.8, 0.08)
     })
   })
 

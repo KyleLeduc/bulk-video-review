@@ -106,7 +106,9 @@ self.onmessage = async (
       await track.getDisplayHeight(),
     )
     diagnostics.stage = 'timeline'
-    if (motion) await timeline!.check(track, event.data.duration!)
+    const range = motion
+      ? await timeline!.check(track, event.data.duration!)
+      : undefined
     const startTime = motion ? 0 : Math.max(0, await track.getFirstTimestamp())
     const windows = motion
       ? motionClipWindows(event.data.duration!)
@@ -138,6 +140,7 @@ self.onmessage = async (
     let outputBytes = 0
     for (const window of windows) {
       diagnostics.stage = 'decode'
+      const trim = range?.clampWindow(window) ?? window
       const buffer = boundedClipBuffer(
         Math.min(MAX_CLIP_BYTES, MAX_OUTPUT_BYTES - outputBytes),
       )
@@ -154,7 +157,7 @@ self.onmessage = async (
         input,
         output,
         tracks: 'primary',
-        trim: window,
+        trim,
         video: {
           ...dimensions,
           fit: 'contain',
@@ -181,8 +184,9 @@ self.onmessage = async (
       outputBytes += blob.size
       clips.push({
         blob,
+        // Keep the nominal browsing slot; the source trim can move at a boundary.
         start: window.start,
-        duration: window.end - window.start,
+        duration: trim.end - trim.start,
       })
       if (clips.length === 1) metrics.firstClipMs = performance.now() - started
       if (event.data.progress)

@@ -1,4 +1,89 @@
 describe('Automatic plan and motion preview smoke', () => {
+  for (const [fixture, clips, frames, clipDuration] of [
+    ['boundary-long-blue', 10, 5, 1.5],
+    ['boundary-short-blue', 1, 1, 0.8],
+  ] as const) {
+    it(`extracts complete nonblank motion and seek arrays across track boundaries (${fixture})`, () => {
+      cy.visit('/benchmark/')
+      cy.get('[data-test=benchmark-mode]').select('extraction')
+      cy.get('[data-test=extraction-files]').selectFile(
+        `cypress/fixtures/videos/${fixture}.mp4`,
+      )
+      cy.get('[data-test=memory-ack]').check()
+      cy.get('[data-test=plan-preset]').select('motion-keyframes-quality-v1')
+      cy.get('[data-test=plan-start]').click()
+      cy.get('[data-test=plan-json]', { timeout: 120000 })
+        .invoke('val')
+        .should((value) => {
+          const report = JSON.parse(String(value))
+          expect(report.status).to.equal('completed')
+          expect(report.results).to.have.length(4)
+          expect(report.results[0].report.settings).to.include({
+            clipSeconds: 1.5,
+            frameRate: 20,
+          })
+          for (const entry of report.results) {
+            expect(entry.report.rows).to.have.length(1)
+            const row = entry.report.rows[0]
+            expect(row.status).to.equal('passed')
+            expect(row.outputBytes).to.be.greaterThan(0)
+            if (entry.step.workload === 'clips')
+              expect(row.clips).to.equal(clips)
+            else {
+              expect(row.frames).to.equal(frames)
+              expect(row.frames).to.equal(row.expectedFrames)
+            }
+          }
+          expect(String(value)).not.to.contain(fixture)
+        })
+      // MotionPreview intentionally does not attach off-screen video elements.
+      cy.get('[data-test=keyframe-comparison] .quality-motion').scrollIntoView()
+      cy.get('[data-test=quality-playback]').focus()
+      cy.document().invoke('hasFocus').should('equal', true)
+      cy.get('[data-test=keyframe-comparison] .motion-preview video').should(
+        (element) => {
+          const media = element[0] as HTMLVideoElement
+          expect(media.readyState).to.be.at.least(2)
+          expect(media.error).to.equal(null)
+          expect(media.duration).to.be.closeTo(clipDuration, 0.08)
+          expect(media.controls).to.equal(false)
+          expect(media.muted).to.equal(true)
+          const canvas = media.ownerDocument.createElement('canvas')
+          canvas.width = canvas.height = 1
+          const context = canvas.getContext('2d')!
+          context.drawImage(media, 0, 0, 1, 1)
+          const [red, green, blue] = context.getImageData(0, 0, 1, 1).data
+          expect(blue, 'decoded motion is blue, not blank').to.be.greaterThan(
+            150,
+          )
+          expect(red).to.be.lessThan(80)
+          expect(green).to.be.lessThan(80)
+        },
+      )
+      cy.get('[data-test=keyframe-comparison-rail]')
+        .invoke('val', '0')
+        .trigger('input')
+      cy.get('[data-test=keyframe-comparison] .quality-widths img')
+        .should('have.length', 3)
+        .each((image) => {
+          cy.wrap(image).should((element) => {
+            const media = element[0] as HTMLImageElement
+            expect(media.naturalWidth).to.be.within(1, 240)
+            const canvas = media.ownerDocument.createElement('canvas')
+            canvas.width = canvas.height = 1
+            const context = canvas.getContext('2d')!
+            context.drawImage(media, 0, 0, 1, 1)
+            const [red, green, blue] = context.getImageData(0, 0, 1, 1).data
+            expect(
+              blue,
+              'first seek image uses available video, not a leading blank',
+            ).to.be.greaterThan(150)
+            expect(red).to.be.lessThan(80)
+            expect(green).to.be.lessThan(80)
+          })
+        })
+    })
+  }
   it('accepts nested folder files and compares production seek backends without exporting paths', () => {
     cy.visit('/benchmark/')
     cy.get('[data-test=benchmark-mode]').select('extraction')
@@ -226,12 +311,17 @@ describe('Automatic plan and motion preview smoke', () => {
       )
     cy.contains('[data-test=clip-samples] figcaption', 'Clip 2 / 10')
     // Freeze native playback while driving ended events to avoid short-clip races.
+    // Use the UI first so it invalidates any in-flight play() request.
+    cy.get('[data-test=clip-playback]').click()
+    cy.get('[data-test=clip-playback]').should('contain', 'Resume previews')
     cy.get('[data-test=clip-samples] video').then((element) => {
       const media = element[0] as HTMLVideoElement
-      // Native autoplay after load() bypasses the play() stub.
-      media.autoplay = false
-      media.pause()
       cy.stub(media, 'play').resolves()
+    })
+    cy.get('[data-test=clip-playback]').click()
+    cy.get('[data-test=clip-samples] video').then((element) => {
+      // Native autoplay after load() bypasses the play() stub.
+      ;(element[0] as HTMLVideoElement).autoplay = false
     })
     cy.get('[data-test=clip-variant]').select('1')
     cy.get('[data-test=clip-samples] video').should((element) =>

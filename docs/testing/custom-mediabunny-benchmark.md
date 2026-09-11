@@ -1,10 +1,61 @@
 # Custom-file preview extraction comparison
 
-This experimental `/benchmark/` mode compares the current DOM preview extraction with **Mediabunny 1.55.7 + WebCodecs in a disposable worker**. No reference fixtures are needed on the operator PC. It does not change the normal app or its ingestion/preview concurrency defaults.
+This experimental `/benchmark/` mode compares DOM preview extraction with **Mediabunny 1.55.7 + WebCodecs in a disposable worker**. No reference fixtures are needed on the operator PC. Benchmark selections do not write to the normal library or change concurrency defaults. Production motion/seek recipes share their worker implementation with the normal app.
 
 ## Operator steps
 
+### Current checkpoint: approximate preview boundaries
+
+The owner-approved policy favors complete browsing previews over frame-accurate
+sampling. Production clips remain **1.5 seconds / 20 FPS** and normal seek images
+remain **160 px**, at the existing 15-second/max-100 nominal slots. Valid track
+start/end differences no longer fail the entire file: only boundary requests
+move to available video. Clips keep their requested length where possible and
+can be shorter on very short usable tracks. Nominal slots stay on the player's
+timeline; they are not guarantees of exact decoded-frame timestamps. Larger
+gaps can produce repeated boundary samples.
+
+1. Reload HTTPS `/benchmark/`, choose **Custom preview extraction**, and select
+   the same nine NAS files (or their folder). No site-data clearing is needed.
+2. Use **Show private file-number mapping** locally if you need to identify a
+   failed ordinal; keep names/paths out of anything shared.
+3. Run **Motion + seek quality** once with the tab visible. All four steps should
+   attempt real extraction instead of immediately rejecting the reported tiny
+   timeline gaps. Inspect the clip loop and first/last seek samples.
+4. Copy the complete plan JSON and state NAS/local storage and visual findings.
+   File 9's earlier `read-limit` may still recur; preserve its diagnostics. A
+   remaining decoder, unsupported-edit, read-limit or output failure is not
+   hidden or counted as a successful complete array.
+5. For the normal-app check, use a fresh private browser profile and select the
+   originals; confirm clips first, then seek completion. This keeps the live
+   library untouched and guarantees fresh clip attempts. Existing complete
+   still fallbacks remain usable and do **not** automatically retry motion on
+   ordinary reimport; missing seeks can retry. Explicit fallback-to-motion
+   upgrades remain separate follow-up work. Do not delete the live database.
+
+The seek-backend plan compares the same **nominal** slots; DOM and Mediabunny may
+choose different frames near track boundaries. Complete arrays and visual
+quality come before timing comparisons. This change does not repair source
+files, relax read/output/deadline limits, or change queue scheduling.
+
+Local implementation verification (2026-09-11): all **824 unit tests** across
+82 files, lint, application/Cypress types and production build pass. Independent
+read-only review found no blockers. Synthetic 50 ms-leading / 150 ms-tail MP4s
+first reproduced the old production rejection; Chrome 152 and Edge 152 now each
+pass all seven focused browser checks, including complete motion/seek arrays,
+nonblank first samples, shortened clips, normal-app persistence, still fallback
+and controlled blur/resume. Browser qualification also exposed and fixed a
+batched-visibility bug that could hide successful previews: the single observed
+container now uses its latest viewport notification, with clips/stills lifecycle
+regressions. These are local synthetic checks, not original-file compatibility,
+physical Windows focus acceptance, or a speed claim. The exact deployed build
+and release checks are recorded separately in the linked Notion checkpoint.
+
 ### Current checkpoint: folders, failure evidence and seek backends
+
+Historical `71d3460` checkpoint below. Its later NAS report identified the
+boundary guard failure; the approximate-boundary checkpoint above supersedes
+the requests to diagnose or rerun that unchanged guard.
 
 - Use **Folder (includes subfolders)** to exercise the same browser-playable file filter as normal folder import. Non-video/unsupported entries are counted as ignored; files in different subfolders are not deduplicated by name. **Files** remains available for deliberate unsupported-file probes. Neither picker writes to the normal library.
 - **Show private file-number mapping** reveals each selected ordinal, relative path (or name) and size locally. It is off initially and resets on selection changes. Copy/download JSON never includes this mapping. Do not share screenshots of the private mapping unredacted. Canceling the picker preserves the previous selection.
@@ -176,7 +227,20 @@ BVR_BENCHMARK_SMOKE=true npx cypress run --browser chrome --spec cypress/e2e/ext
 BVR_BENCHMARK_SMOKE=true npx cypress run --browser edge --spec cypress/e2e/extractionPlan.cy.ts
 ```
 
-The smoke uses the repository's two synthetic MP4s on the devbox only. It checks actual DOM and worker extraction, alternating order, 8 paired jobs / 9 frames each, successful stage metrics, decoded sample-image dimensions, private-field absence, clipboard-denial fallback and served source/license assets. It then runs DOM-only and both Mediabunny readers with two overlapping nine-preview jobs, followed by four overlapping 100-preview jobs (duplicate synthetic files), checks schema 4 settings/budgets and per-batch peak/completion counts, cancels another run and returns to pipeline controls. Unit tests cover deadlines, malformed replies, no fallback, hidden-tab invalidation, cancellation/queue settlement, display failures, launch ordering, dense policies and cleanup. Native owner hardware/performance and dense visual acceptance remain separate.
+The smoke uses original synthetic MP4s on the devbox only; fixture generation and
+timing are documented in `cypress/fixtures/videos/README.md`. Boundary fixtures
+exercise complete long/short motion and seek arrays, decoded blue first pixels,
+and shortened clips with real workers. The existing still smoke checks actual
+DOM and worker extraction, alternating order, 8 paired jobs / 9 frames each,
+successful stage metrics, decoded sample-image dimensions, private-field
+absence, clipboard-denial fallback and served source/license assets. It then
+runs DOM-only and both Mediabunny readers with two overlapping nine-preview
+jobs, followed by four overlapping 100-preview jobs, checks schema 4
+settings/budgets and per-batch peak/completion counts, cancels another run and
+returns to pipeline controls. Unit tests cover deadlines, malformed replies,
+hidden-tab invalidation, cancellation/queue settlement, display failures,
+launch ordering, dense policies and cleanup. Owner hardware/performance and
+original-file visual acceptance remain separate.
 
 The plan smoke additionally checks the four-step confirmation order, one/ten clips for the short/long fixtures, encoded duration and dimensions, actual playback and loop wraparound, single-envelope copy/download, cancellation and normal-mode return. These fixtures are solid colors, so this does not qualify motion fidelity or rotated real-world files.
 

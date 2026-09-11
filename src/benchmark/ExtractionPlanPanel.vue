@@ -680,8 +680,8 @@ onBeforeUnmount(() => {
       </button>
       <p v-if="playbackError" role="status">{{ playbackError }}</p>
       <p>
-        Hover or scrub the rail. All samples use the same source video, target
-        times and production tooltip viewport.
+        Hover or scrub the rail. Samples share nominal time slots and the
+        production viewport; boundary frames may differ between backends.
       </p>
       <div class="quality-widths">
         <div

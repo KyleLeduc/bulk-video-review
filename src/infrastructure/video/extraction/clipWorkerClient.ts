@@ -102,8 +102,7 @@ export function extractClipsWithWorker(
             output.clips.some(
               (clip, i) =>
                 Math.abs(clip.start - windows[i].start) > 1e-6 ||
-                Math.abs(clip.duration - (windows[i].end - windows[i].start)) >
-                  1e-6,
+                clip.duration > windows[i].end - windows[i].start + 1e-6,
             )
           )
             throw new ExtractionError('output-invalid')

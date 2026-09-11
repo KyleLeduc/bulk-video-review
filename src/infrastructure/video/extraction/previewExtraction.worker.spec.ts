@@ -5,6 +5,7 @@ const state = vi.hoisted(() => ({
   events: [] as string[],
   fail: false,
   end: 60,
+  first: -0.1,
   sinkTargets: [] as number[],
   timestamps: 'valid' as
     | 'valid'
@@ -45,7 +46,7 @@ vi.mock('mediabunny', () => ({
         getDisplayWidth: async () => 160,
         getDisplayHeight: async () => 90,
         canDecode: async () => true,
-        getFirstTimestamp: async () => -0.1,
+        getFirstTimestamp: async () => state.first,
         computeDuration: async () => state.end,
         getTimeResolution: async () => 1000,
       }
@@ -80,12 +81,13 @@ vi.mock('mediabunny', () => ({
 }))
 afterEach(() => {
   state.end = 60
+  state.first = -0.1
   state.timestamps = 'valid'
   vi.unstubAllGlobals()
   vi.resetModules()
 })
 it('returns timeline evidence without enabling benchmark progress traffic', async () => {
-  state.end = 59.97
+  state.end = 0
   const reply = await runKeyframes()
   expect(reply).toMatchObject({
     ok: false,
@@ -93,15 +95,38 @@ it('returns timeline evidence without enabling benchmark progress traffic', asyn
     diagnostics: {
       stage: 'timeline',
       codec: 'avc',
-      trackEnd: 59.97,
+      trackEnd: 0,
       storedDuration: 60,
-      timelineReason: 'track-ends-before-player',
+      timelineReason: 'invalid-timing',
       timeResolution: 1000,
       readBytes: 3,
       readCalls: 1,
     },
   })
   expect(JSON.stringify(reply)).not.toMatch(/private|stack|message/)
+})
+it('clamps seek targets to available video and keeps the complete nominal slot count', async () => {
+  state.first = 0.033
+  state.end = 44.97
+  const reply = await runKeyframes()
+  expect(reply.ok).toBe(true)
+  expect(state.sinkTargets).toEqual([0.033, 15, 30, 44.969])
+  expect(reply.output.frames).toHaveLength(4)
+})
+it('does not reject a shorter track when every requested seek is already in range', async () => {
+  state.end = 59.97
+  const reply = await runKeyframes()
+  expect(reply.ok).toBe(true)
+  expect(state.sinkTargets).toEqual([0, 15, 30, 45])
+  expect(reply.output.frames).toHaveLength(4)
+})
+it('retains all seek slots when several resolve to the same available last frame', async () => {
+  state.first = 0.05
+  state.end = 0.85
+  const reply = await runKeyframes()
+  expect(reply.ok).toBe(true)
+  expect(state.sinkTargets).toEqual([0.05, 0.849, 0.849, 0.849])
+  expect(reply.output.frames).toHaveLength(4)
 })
 it.each([
   { fail: false, readerMode: 'direct', count: 9 },
