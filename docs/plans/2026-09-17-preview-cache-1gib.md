@@ -26,3 +26,8 @@
 - Full backup validation accepts the matching cache size and maintains bounded total size.
 - Existing HTTPS preprod serves exact verified artifact. No master integration.
 - Preserve prior f32d673 release for rollback. Old releases retain the 256 MiB cap and can evict extra previews on new writes or reject larger backups; rollback is not lossless for newly expanded preview capacity. Review metadata remains separate.
+
+## Release-gate findings
+
+- CI35240814392 passes app checks/build but Trivy blocks the existing runtime libpcre2-8-0 10.42-1 on three fixed HIGH findings (CVE-2026-86145, CVE-2026-89157, CVE-2026-89161). Apply only the scanner-reported fixed Debian package 10.42-1+deb12u1 in the runtime stage, preserving base pins and trusted CI workflow. Rerun exact-SHA trusted CI; no suppression or security-gate changes.
+- Platform baseline on the last successful release branch fix/bvr-preprod-https has493 tests passed,1 skipped and1 VM-backup test blocked by real devbox free disk below its10GiB prerequisite. This is unrelated to BVR; do not prune operator resources or bypass that check. Remaining platform checks may run independently; release readiness must report any unresolved gate.

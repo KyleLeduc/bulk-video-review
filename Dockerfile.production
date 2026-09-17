@@ -23,6 +23,11 @@ ENV NODE_ENV=production \
 LABEL org.opencontainers.image.source="https://github.com/KyleLeduc/bulk-video-review" \
       org.opencontainers.image.revision="${VCS_REF}"
 
+# Apply the fixed Bookworm PCRE2 package until the pinned base includes it.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends --only-upgrade libpcre2-8-0=10.42-1+deb12u1 \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN groupadd --gid 10001 bvr \
     && useradd --uid 10001 --gid bvr --home-dir /app --shell /usr/sbin/nologin bvr \
     && rm -rf /usr/local/lib/node_modules/npm \
