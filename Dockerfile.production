@@ -24,10 +24,12 @@ LABEL org.opencontainers.image.source="https://github.com/KyleLeduc/bulk-video-r
       org.opencontainers.image.revision="${VCS_REF}"
 
 # Apply the fixed Bookworm PCRE2 package until the pinned base includes it.
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
-    && apt-get update -o APT::Update::Error-Mode=any \
-    && apt-get install -y --no-install-recommends --only-upgrade libpcre2-8-0=10.42-1+deb12u1 \
-    && rm -rf /var/lib/apt/lists/*
+# The slim image has no system CA bundle; bootstrap HTTPS from Node's bundled roots.
+RUN node -e "require('fs').writeFileSync('/tmp/apt-ca.pem', require('tls').rootCertificates.join('\\n'))" \
+    && sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get -o Acquire::https::CaInfo=/tmp/apt-ca.pem update -o APT::Update::Error-Mode=any \
+    && apt-get -o Acquire::https::CaInfo=/tmp/apt-ca.pem install -y --no-install-recommends --only-upgrade libpcre2-8-0=10.42-1+deb12u1 \
+    && rm -rf /var/lib/apt/lists/* /tmp/apt-ca.pem
 
 RUN groupadd --gid 10001 bvr \
     && useradd --uid 10001 --gid bvr --home-dir /app --shell /usr/sbin/nologin bvr \
