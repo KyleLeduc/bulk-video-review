@@ -1,5 +1,26 @@
 # Motion previews, seek keyframes and focus recovery smoke plan
 
+## Current cache capacity — September 17, 2026
+
+Generated motion clips, seek thumbnails and fallback previews share a 1 GiB
+(1,073,741,824-byte) cache. New writes evict the oldest-used generated products
+only when this budget is exceeded. Existing database names, versions and cached
+products are retained; no clearing or re-ingestion is required by this change.
+Browser quota can still prevent a write. This is an encoded-storage budget, not
+a RAM limit.
+
+Full backups accept up to 1 GiB of generated cache within a 2 GiB total archive.
+The 64 MiB manifest and 100,000 binary-record limits remain unchanged. Historical
+release checkpoints below describe the limits of those older builds. Rolling
+back to a 256 MiB-cache build can evict additional previews on new writes and
+reject backups exceeding its older limits.
+
+Smoke: finish ingesting a representative selection, refresh, and reselect the
+same files. Saved complete previews should be reused. In Diagnostics, confirm
+there are no cache-write failures; larger real-library capacity remains an owner
+check. Preserve existing votes and use a disposable profile for restore tests.
+
+
 ## Release checkpoint — read-only backup vote evidence (v8)
 
 Plan revision: `bvr-motion-keyframes-smoke-v8`. Use the exact target SHA in

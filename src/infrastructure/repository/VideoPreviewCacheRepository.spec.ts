@@ -358,3 +358,15 @@ it('waits for transaction commit and rejects an abort after request success', as
   transaction.onabort?.(new Event('abort'))
   await expect(pending).rejects.toMatchObject({ name: 'QuotaExceededError' })
 })
+
+it('retains one GiB by default and evicts only the oldest product above it', () => {
+  const mib = 1024 * 1024
+  const entries = [
+    { key: 'old', bytes: 256 * mib },
+    { key: 'recent', bytes: 512 * mib },
+  ]
+  expect(selectCacheEvictions(entries, 'incoming', 256 * mib)).toEqual([])
+  expect(selectCacheEvictions(entries, 'incoming', 256 * mib + 1)).toEqual([
+    'old',
+  ])
+})

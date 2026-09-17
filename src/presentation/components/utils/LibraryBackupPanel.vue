@@ -109,7 +109,7 @@ const reload = () => window.location.reload()
     <p>
       Includes both databases: library, votes, tags, covers, failure records and
       generated clips/stills/seeks. Excludes original videos, file permissions,
-      active queues and UI preferences. Private, local download; maximum 1 GiB.
+      active queues and UI preferences. Private, local download; maximum 2 GiB.
     </p>
     <p v-if="store.libraryRecoveryRequired" role="alert">
       An interrupted restore needs recovery. Reselect the intended or safety

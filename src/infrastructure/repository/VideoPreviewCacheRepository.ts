@@ -16,7 +16,7 @@ import type { ILogger } from '@app/ports'
 import { libraryMaintenance } from '@infra/database/libraryMaintenance'
 
 export const PREVIEW_CACHE_DATABASE = 'BVRPreviewCache-v1'
-export const PREVIEW_CACHE_BYTES = 256 * 1024 * 1024
+export const PREVIEW_CACHE_BYTES = 1024 * 1024 * 1024
 const STORE = 'products'
 type CacheRecord = {
   key: string

@@ -17,7 +17,7 @@ export type LibrarySnapshot = {
 }
 const MAGIC = new TextEncoder().encode('BVR-FULL-1\n')
 const PREFIX = MAGIC.length + 4 + 32
-export const MAX_ARCHIVE_BYTES = 1024 * 1024 * 1024
+export const MAX_ARCHIVE_BYTES = 2 * 1024 * 1024 * 1024
 const MAX_MANIFEST_BYTES = 64 * 1024 * 1024
 function fail(message = 'Invalid backup record'): never {
   throw new Error(message)
@@ -216,7 +216,7 @@ export function validateLibrarySnapshot(
     if (bytes !== row.bytes) fail()
     cacheBytes += bytes
   }
-  if (cacheBytes > 256 * 1024 * 1024)
+  if (cacheBytes > 1024 * 1024 * 1024)
     fail('Preview cache exceeds supported capacity')
 }
 
@@ -263,7 +263,7 @@ export async function encodeLibraryArchive(
   const archive = new Blob([prefix, manifest, ...blobs], {
     type: 'application/octet-stream',
   })
-  if (archive.size > MAX_ARCHIVE_BYTES) fail('Backup exceeds 1 GiB limit')
+  if (archive.size > MAX_ARCHIVE_BYTES) fail('Backup exceeds 2 GiB limit')
   return archive
 }
 

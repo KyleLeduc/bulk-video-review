@@ -5,6 +5,7 @@ import {
   encodeLibraryArchive,
   decodeLibraryArchive,
   type LibrarySnapshot,
+  validateLibrarySnapshot,
 } from './libraryArchive'
 
 const snapshot = (): LibrarySnapshot => ({
@@ -247,4 +248,51 @@ it('keeps untrusted free-text identity fields out of copyable inspection evidenc
   expect(summary.createdAt).toBe(new Date(value.createdAt).toISOString())
   expect(JSON.stringify(summary)).not.toContain('private-folder')
   expect(connect).not.toHaveBeenCalled()
+})
+
+it.each([257, 1024])(
+  'accepts a %i MiB preview cache in a backup snapshot',
+  (count) => {
+    const value = snapshot()
+    // Reuse one real MiB Blob: test aggregate accounting without allocating a GiB.
+    const blob = new Blob([new Uint8Array(1024 * 1024)], { type: 'image/jpeg' })
+    const base = value.cache[0] as {
+      product: { items: Record<string, unknown>[] }
+    }
+    value.cache = Array.from({ length: count }, (_, i) => ({
+      ...base,
+      key: JSON.stringify([`cached-${i}`, 'keyframes', 'v1']),
+      bytes: blob.size,
+      product: { ...base.product, items: [{ ...base.product.items[0], blob }] },
+    }))
+    expect(() => validateLibrarySnapshot(value)).not.toThrow()
+    value.cache.push({
+      ...(value.cache[0] as object),
+      key: JSON.stringify(['extra', 'keyframes', 'v1']),
+    })
+    if (count === 1024)
+      expect(() => validateLibrarySnapshot(value)).toThrow(/supported capacity/)
+  },
+)
+
+it.each([1024 * 1024 * 1024 + 1, 2 * 1024 * 1024 * 1024])(
+  'allows archive size %i to reach format validation',
+  async (size) => {
+    const archive = new Blob([new Uint8Array(64)])
+    // Only the size gate is under test; do not allocate or decode GiB payloads.
+    vi.spyOn(archive, 'size', 'get').mockReturnValue(size)
+    await expect(decodeLibraryArchive(archive)).rejects.toThrow(
+      'Unsupported backup format',
+    )
+  },
+)
+
+it('rejects archives above two GiB before reading their payload', async () => {
+  const archive = new Blob([new Uint8Array(64)])
+  vi.spyOn(archive, 'size', 'get').mockReturnValue(2 * 1024 * 1024 * 1024 + 1)
+  const read = vi.spyOn(archive, 'slice')
+  await expect(decodeLibraryArchive(archive)).rejects.toThrow(
+    'Invalid backup size',
+  )
+  expect(read).not.toHaveBeenCalled()
 })
